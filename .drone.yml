@@ -1,0 +1,31 @@
+pipeline:
+  install:
+    image: reimagined/resolve-docker
+    commands:
+      - yarn
+
+  testing:
+    image: reimagined/resolve-docker
+    group: testing
+    commands:
+      - yarn test
+
+  lint:
+    image: reimagined/resolve-docker
+    group: testing
+    commands:
+      - yarn lint
+
+  release:
+    when:
+      event: push
+      branch: release*
+    image: reimagined/resolve-docker
+    commands:
+      - /scripts/package_json git-manage-patch-version
+      - echo 'Publishing package'
+      - /scripts/package_json git-release-tag
+
+
+
+
