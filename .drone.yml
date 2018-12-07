@@ -34,9 +34,3 @@ pipeline:
       - /scripts/package_json make-public
       - npm publish --access=public
       - /scripts/package_json git-release-tag ${DRONE_BRANCH} $RELEASE_VERSION
-
-
-
-
-
-
