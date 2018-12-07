@@ -26,7 +26,7 @@ pipeline:
       [ github_resolve_bot_base64, npm_reimagined_npmrc_base64 ]
     commands:
       - echo $GITHUB_RESOLVE_BOT_BASE64 | base64 --decode >> ~/.ssh/github-resolve-bot
-      - echo $NPM_REIMANGIED_NPMRC_BASE64 | base64 --decode >> ~/.npmrc
+      - echo $NPM_REIMAGINED_NPMRC_BASE64 | base64 --decode >> ~/.npmrc
       - ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
       - chmod 400 ~/.ssh/github-resolve-bot
       - git remote set-url origin git@github:${DRONE_REPO}.git
