@@ -30,12 +30,10 @@ pipeline:
       - ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
       - chmod 400 ~/.ssh/github-resolve-bot
       - git remote set-url origin git@github:${DRONE_REPO}.git
-      - /scripts/package_json git-manage-patch-version ${DRONE_BRANCH}
-#      - RELEASE_VERSION=$(/scripts/package_json git-manage-patch-version ${DRONE_BRANCH})
-#     - /scripts/package_json make-public
-#      - npm publish --access=public
-#      - /scripts/package_json git-release-tag ${DRONE_BRANCH} $RELEASE_VERSION
-
+      - RELEASE_VERSION=$(/scripts/package_json git-manage-patch-version ${DRONE_BRANCH})
+      - /scripts/package_json make-public
+      - npm publish --access=public
+      - /scripts/package_json git-release-tag ${DRONE_BRANCH} $RELEASE_VERSION
 
 
 
