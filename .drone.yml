@@ -21,11 +21,16 @@ pipeline:
       event: push
       branch: release*
     image: reimagined/resolve-docker
+    pull: true
+    secrets:
+      [ github_resolve_bot_base64, npm_reimagined_npmrc_base64 ]
     commands:
-      - /scripts/package_json git-manage-patch-version
-      - echo 'Publishing package'
-      - /scripts/package_json git-release-tag
-
-
-
-
+      - echo $GITHUB_RESOLVE_BOT_BASE64 | base64 --decode >> ~/.ssh/github-resolve-bot
+      - echo $NPM_REIMAGINED_NPMRC_BASE64 | base64 --decode >> ~/.npmrc
+      - ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+      - chmod 400 ~/.ssh/github-resolve-bot
+      - git remote set-url origin git@github:${DRONE_REPO}.git
+      - RELEASE_VERSION=$(/scripts/package_json git-manage-patch-version ${DRONE_BRANCH})
+      - /scripts/package_json make-public
+      - npm publish --access=public
+      - /scripts/package_json git-release-tag ${DRONE_BRANCH} $RELEASE_VERSION
