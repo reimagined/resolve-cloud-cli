@@ -79,3 +79,11 @@ if (process.argv.length <= 2) {
 }
 
 cli.parse(process.argv)
+
+const exit = err => {
+  console.error(err)
+  process.exit(1)
+}
+
+process.on('uncaughtException', exit)
+process.on('unhandledRejection', exit)
