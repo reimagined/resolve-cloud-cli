@@ -29,7 +29,7 @@ beforeEach(() => {
 const app = { name: 'name-from-package-json', version: '0.0.1' }
 
 test('removing an app with default options', async () => {
-  await handler(app, {})
+  await handler(app, null, {})
   expect(removeApp).toHaveBeenCalledWith({
     name: 'name-from-package-json',
     stage: DEFAULT_STAGE,
@@ -37,8 +37,17 @@ test('removing an app with default options', async () => {
   })
 })
 
+test('removing another user app with default options', async () => {
+  await handler(app, 'app-2', {})
+  expect(removeApp).toHaveBeenCalledWith({
+    name: 'app-2',
+    stage: DEFAULT_STAGE,
+    region: DEFAULT_REGION
+  })
+})
+
 test('removing an app at specified --stage', async () => {
-  await handler(app, { stage: 'specified-stage' })
+  await handler(app, null, { stage: 'specified-stage' })
   expect(removeApp).toHaveBeenCalledWith({
     name: 'name-from-package-json',
     stage: 'specified-stage',
@@ -47,7 +56,7 @@ test('removing an app at specified --stage', async () => {
 })
 
 test('ignore arguments', async () => {
-  await handler(app, { stage: 'specified-stage' })
+  await handler(app, null, { stage: 'specified-stage' })
   expect(removeApp).toHaveBeenCalledWith({
     name: 'name-from-package-json',
     stage: 'specified-stage',
@@ -56,6 +65,6 @@ test('ignore arguments', async () => {
 })
 
 test('waiting for the job to complete', async () => {
-  await handler(app, {})
+  await handler(app, null, {})
   expect(waitJob).toHaveBeenCalledWith(removeJobData)
 })

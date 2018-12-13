@@ -16,13 +16,19 @@ beforeEach(() => {
 })
 
 test('default invoke', async () => {
-  await handler(app, {})
+  await handler(app, null, {})
   expect(deploymentLogs).toBeCalledWith({ applicationName: 'name-from-package-json' })
   expect(log.info).toBeCalledWith('some logs')
 })
 
+test('get logs from another deployment', async () => {
+  await handler(app, 'app-2', {})
+  expect(deploymentLogs).toBeCalledWith({ applicationName: 'app-2' })
+  expect(log.info).toBeCalledWith('some logs')
+})
+
 test('startTime option', async () => {
-  await handler(app, { startTime: 'startTime' })
+  await handler(app, null, { startTime: 'startTime' })
   expect(deploymentLogs).toBeCalledWith({
     applicationName: 'name-from-package-json',
     startTime: 'startTime'
@@ -31,7 +37,7 @@ test('startTime option', async () => {
 })
 
 test('endTime option', async () => {
-  await handler(app, { endTime: 'endTime' })
+  await handler(app, null, { endTime: 'endTime' })
   expect(deploymentLogs).toBeCalledWith({
     applicationName: 'name-from-package-json',
     endTime: 'endTime'
@@ -40,7 +46,7 @@ test('endTime option', async () => {
 })
 
 test('filterPattern option', async () => {
-  await handler(app, { filterPattern: 'filterPattern' })
+  await handler(app, null, { filterPattern: 'filterPattern' })
   expect(deploymentLogs).toBeCalledWith({
     applicationName: 'name-from-package-json',
     filterPattern: 'filterPattern'
@@ -49,7 +55,7 @@ test('filterPattern option', async () => {
 })
 
 test('streamLimit option', async () => {
-  await handler(app, { streamLimit: 'streamLimit' })
+  await handler(app, null, { streamLimit: 'streamLimit' })
   expect(deploymentLogs).toBeCalledWith({
     applicationName: 'name-from-package-json',
     streamLimit: 'streamLimit'
@@ -58,7 +64,7 @@ test('streamLimit option', async () => {
 })
 
 test('all options', async () => {
-  await handler(app, {
+  await handler(app, null, {
     streamLimit: 'streamLimit',
     endTime: 'endTime',
     startTime: 'startTime',
@@ -77,7 +83,7 @@ test('all options', async () => {
 test('request failure', async () => {
   deploymentLogs = () => Promise.reject(Error('oops'))
 
-  await handler(app, { startTime: 'startTime' })
+  await handler(app, null, { startTime: 'startTime' })
   expect(log.error).toBeCalledWith('oops')
   expect(log.info).not.toBeCalled()
 })

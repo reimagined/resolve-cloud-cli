@@ -10,13 +10,12 @@ const { DEFAULT_CONFIG } = require('../constants')
 const { upload, requestDeploy, commitDeploy, waitJob } = require('../utils/api')
 const { validateSubdomainName } = require('../utils/verification')
 
-log.level = 5
-
 module.exports = async (
   { name, version },
-  { config = DEFAULT_CONFIG, eventstore = undefined, skipBuild = false }
+  { config = DEFAULT_CONFIG, eventstore = undefined, skipBuild = false, verbose = false }
 ) => {
   try {
+    log.level = verbose ? 5 : 3
     const start = Date.now()
 
     const validationErrors = validateSubdomainName(name)

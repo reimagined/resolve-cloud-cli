@@ -2,8 +2,8 @@ const log = require('consola')
 
 const { deploymentLogs } = require('../utils/api')
 
-module.exports = async ({ name }, cmd) => {
-  const { startTime, endTime, streamLimit, filterPattern } = cmd
+module.exports = async ({ name }, applicationName, options) => {
+  const { startTime, endTime, streamLimit, filterPattern } = options
 
   if (!name) {
     log.error('Please specify application name')
@@ -12,7 +12,7 @@ module.exports = async ({ name }, cmd) => {
 
   try {
     const output = await deploymentLogs({
-      applicationName: name,
+      applicationName: applicationName || name,
       startTime,
       endTime,
       streamLimit,
@@ -20,6 +20,10 @@ module.exports = async ({ name }, cmd) => {
     })
     log.info(output)
   } catch (e) {
-    log.error(e.message)
+    if (e.response && e.response.data) {
+      log.error(e.response.data)
+    } else {
+      log.error(e.message)
+    }
   }
 }
