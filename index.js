@@ -15,6 +15,7 @@ cli
   .option('-c, --config [config]', `Specify cloud config`)
   .option('--skip-build', 'Skip yarn build phase')
   .option('--eventstore [application eventstore name]', `Use existing application's eventstore`)
+  .option('--verbose', `verbose mode`)
   .description('Deploy application to the resolve cloud')
   .action(async cmd => {
     const app = await getAppPackage()
@@ -23,26 +24,26 @@ cli
   })
 
 cli
-  .command('remove')
+  .command('remove [applicationName]')
   .option('-s, --stage [stage]', `The stage of the application to remove`)
   .description('Removes application deployment')
-  .action(async cmd => {
+  .action(async (cmd, options) => {
     const app = await getAppPackage()
     await refreshToken()
-    await remove(app, cmd)
+    await remove(app, cmd, options)
   })
 
 cli
-  .command('logs')
+  .command('logs [applicationName]')
   .option('--startTime [startTime]', 'A specific unit in time to start fetching logs from')
   .option('--endTime [endTime]', 'A specific unit in time to finish fetching logs at')
   .option('--filterPattern [filterPattern]', 'A filter pattern to search matchings with')
   .option('--streamLimit [streamLimit]', 'A number of streams to fetch logs from')
   .description('Prints function logs')
-  .action(async cmd => {
+  .action(async (cmd, options) => {
     const app = await getAppPackage()
     await refreshToken()
-    await logs(app, cmd)
+    await logs(app, cmd, options)
   })
 
 cli

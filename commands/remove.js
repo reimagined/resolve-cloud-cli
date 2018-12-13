@@ -3,16 +3,16 @@ const createSpinner = require('../utils/spinner')
 const { waitJob, removeApp } = require('../utils/api')
 const { DEFAULT_REGION, DEFAULT_STAGE } = require('../constants')
 
-module.exports = async ({ name }, cmd) => {
+module.exports = async ({ name }, applicationName, opts) => {
   const spinner = createSpinner()
   try {
-    const { region = DEFAULT_REGION, stage = DEFAULT_STAGE } = cmd
+    const { region = DEFAULT_REGION, stage = DEFAULT_STAGE } = opts
 
     spinner.spin()
     log.debug(`\rEnqueuing app '${name}' removal`)
 
     const removeJob = await removeApp({
-      name,
+      name: applicationName || name,
       region,
       stage
     })
@@ -20,11 +20,11 @@ module.exports = async ({ name }, cmd) => {
 
     await waitJob(removeJob)
     log.success(`Application '${name}' removed successfully`)
-  } catch (error) {
-    if (error.response && error.response.status === 400) {
-      log.error(error.response.data.message)
+  } catch (e) {
+    if (e.response && e.response.status === 400) {
+      log.error(e.response.data)
     } else {
-      log.error(error.message)
+      log.error(e.message)
     }
     return 1
   } finally {

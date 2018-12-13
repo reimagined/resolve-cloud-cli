@@ -33,13 +33,13 @@ describe('deploy', () => {
 
 describe('remove', () => {
   test('valid name', () => {
-    expect(findCall(commander.command, 'remove')).toBeTruthy()
+    expect(findCall(commander.command, 'remove [applicationName]')).toBeTruthy()
   })
 })
 
 describe('logs', () => {
   test('valid name', () => {
-    expect(findCall(commander.command, 'logs')).toBeTruthy()
+    expect(findCall(commander.command, 'logs [applicationName]')).toBeTruthy()
   })
 })
 

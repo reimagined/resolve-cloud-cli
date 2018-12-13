@@ -33,7 +33,7 @@ const getCloudConfig = async () => {
     const resolveCloudConfig = await readFile(CLOUD_CONFIG.PATH, 'utf8')
     return JSON.parse(resolveCloudConfig)
   } catch (e) {
-    log.error(e)
+    log.debug(e)
   }
   return {}
 }
