@@ -5,7 +5,7 @@ This package is an interface to deploy applications based on [ReSolve](https://g
 ## Quick Overview
 
 ```sh
-npx create-resolve-app resolve-app
+yarn create resolve-app resolve-app
 cd resolve-app
 yarn add resolve-cloud
 yarn resolve-cloud login
