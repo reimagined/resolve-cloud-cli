@@ -11,12 +11,12 @@ cli.version(version, '-v, --version')
 
 cli
   .command('deploy')
-  .option('-s, --stage [stage]', `The stage of the application will be deployed`)
+  .option('-s, --stage [stage]', `The stage of the application to deploy`)
   .option('-c, --config [config]', `Specify cloud config`)
   .option('--skip-build', 'Skip yarn build phase')
   .option('--eventstore [application eventstore name]', `Use existing application's eventstore`)
   .option('--verbose', `verbose mode`)
-  .description('Deploy application to the resolve cloud')
+  .description('Deploy application to the reSolve cloud')
   .action(async cmd => {
     const app = await getAppPackage()
     await refreshToken()
@@ -26,7 +26,7 @@ cli
 cli
   .command('remove [applicationName]')
   .option('-s, --stage [stage]', `The stage of the application to remove`)
-  .description('Removes application deployment')
+  .description('Remove application deployment')
   .action(async (cmd, options) => {
     const app = await getAppPackage()
     await refreshToken()
@@ -35,11 +35,11 @@ cli
 
 cli
   .command('logs [applicationName]')
-  .option('--startTime [startTime]', 'A specific unit in time to start fetching logs from')
-  .option('--endTime [endTime]', 'A specific unit in time to finish fetching logs at')
-  .option('--filterPattern [filterPattern]', 'A filter pattern to search matchings with')
-  .option('--streamLimit [streamLimit]', 'A number of streams to fetch logs from')
-  .description('Prints function logs')
+  .option('--startTime [startTime]', 'A specific moment in time at which to start fetching logs')
+  .option('--endTime [endTime]', 'A specific moment in time at which to finish fetching logs')
+  .option('--filterPattern [filterPattern]', 'A filter pattern to use')
+  .option('--streamLimit [streamLimit]', 'A number of streams used to fetch logs')
+  .description('Print function logs')
   .action(async (cmd, options) => {
     const app = await getAppPackage()
     await refreshToken()
@@ -48,7 +48,7 @@ cli
 
 cli
   .command('add-secret <name> <value>')
-  .description('Adds secret to the env variables')
+  .description('Add a secret to environment variables')
   .action(async (name, value) => {
     const app = await getAppPackage()
     await refreshToken()
@@ -57,7 +57,7 @@ cli
 
 cli
   .command('delete-secret <name>')
-  .description('Removes secret from the env variables')
+  .description('Remove a secret from environment variables')
   .action(async name => {
     const app = await getAppPackage()
     await refreshToken()
@@ -66,7 +66,7 @@ cli
 
 cli
   .command('deployments')
-  .description('get user deployments list')
+  .description('Get user deployments list')
   .action(async () => {
     await getAppPackage()
     await refreshToken()

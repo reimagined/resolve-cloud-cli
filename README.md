@@ -1,8 +1,8 @@
-## [ReSolve](https://github.com/reimagined/resolve) Cloud Platform command line interface
+## [ReSolve](https://github.com/reimagined/resolve) Cloud Platform Command Line Interface
 
-This package is an interface to deploy applications based on [ReSolve](https://github.com/reimagined/resolve) framework to the cloud.
+This package provides an interface used to deploy applications implemented using the [reSolve](https://github.com/reimagined/resolve) framework to the cloud.
 
-## Quick Overview
+## Usage
 
 ```sh
 npx create-resolve-app resolve-app
