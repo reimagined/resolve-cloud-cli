@@ -77,7 +77,7 @@ module.exports = async (
 
       log.info('\n')
       qr.generate(url, { small: true })
-      log.success(`\rBuild time ${duration} sec. Your app now available at: ${url}`)
+      log.success(`\rBuild time ${duration} sec. Your app is now available at: ${url}`)
     } catch (error) {
       if (error.response && error.response.status === 400) {
         log.error(error.response.data)
