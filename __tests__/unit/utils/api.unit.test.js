@@ -18,7 +18,8 @@ const {
   removeApp,
   addSecret,
   deleteSecret,
-  deployments
+  deployments,
+  resetReadModel
 } = require('../../../utils/api')
 
 const remoteUrl = method => `http://fake.com/${method}`
@@ -202,5 +203,24 @@ describe('deployments', () => {
       params: {},
       headers: makeGetHeaders()
     })
+  })
+})
+
+describe('resetReadModel', () => {
+  test('payload should be valid', async () => {
+    axios.post.mockReturnValue({})
+
+    const payload = {
+      name: 'test-app-name',
+      command: 'reset'
+    }
+    await resetReadModel(payload)
+    expect(axios.post).toHaveBeenCalledWith(
+      remoteUrl('reset-readmodel'),
+      payload,
+      makePostHeaders({
+        'Content-Type': 'application/json'
+      })
+    )
   })
 })
