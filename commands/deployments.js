@@ -10,6 +10,10 @@ module.exports = async () => {
   `
   try {
     const userDeployments = await deployments()
+    if (!userDeployments.length) {
+      console.info('No leased deployments found')
+      return
+    }
     console.info(
       [chalk.yellow(`  ======= Deployments =======`)]
         .concat(userDeployments.map(i => format(i)))

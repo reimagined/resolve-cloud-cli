@@ -3,7 +3,16 @@
 const cli = require('commander')
 const { version } = require('./package')
 
-const { deploy, remove, login, logs, addSecret, deleteSecret, deployments } = require('./commands')
+const {
+  deploy,
+  remove,
+  login,
+  logs,
+  addSecret,
+  deleteSecret,
+  deployments,
+  resetReadModel
+} = require('./commands')
 const { refreshToken } = require('./utils/auth')
 const { getAppPackage } = require('./utils/config')
 
@@ -71,6 +80,15 @@ cli
     await getAppPackage()
     await refreshToken()
     await deployments()
+  })
+
+cli
+  .command('readmodel <command>')
+  .description('reset application readmodel')
+  .action(async command => {
+    const app = await getAppPackage()
+    await refreshToken()
+    await resetReadModel(app, command)
   })
 
 cli.command('login').action(login)

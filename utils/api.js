@@ -97,6 +97,13 @@ const addSecret = async payload => post('add-secret', payload)
 const deleteSecret = async payload => post('delete-secret', payload)
 const deployments = async () => get('deployments')
 
+/**
+ * @param {String} payload.app.name
+ * @param {String} payload.command
+ * @returns {Promise<String>}
+ */
+const resetReadModel = async payload => post('reset-readmodel', payload)
+
 module.exports = {
   waitJob,
   requestDeploy,
@@ -106,5 +113,6 @@ module.exports = {
   deploymentLogs,
   addSecret,
   deleteSecret,
-  deployments
+  deployments,
+  resetReadModel
 }
