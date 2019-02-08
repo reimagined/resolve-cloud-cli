@@ -83,7 +83,7 @@ cli
   })
 
 cli
-  .command('readmodel <operation> <name>')
+  .command('readmodel <operation> [<name>]')
   .description('Executes operation with application readmodel')
   .action(async (operation, name) => {
     const app = await getAppPackage()
