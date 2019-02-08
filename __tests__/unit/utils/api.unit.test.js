@@ -19,7 +19,7 @@ const {
   addSecret,
   deleteSecret,
   deployments,
-  resetReadModel
+  readModel
 } = require('../../../utils/api')
 
 const remoteUrl = method => `http://fake.com/${method}`
@@ -206,17 +206,18 @@ describe('deployments', () => {
   })
 })
 
-describe('resetReadModel', () => {
+describe('readModel', () => {
   test('payload should be valid', async () => {
     axios.post.mockReturnValue({})
 
     const payload = {
-      name: 'test-app-name',
-      command: 'reset'
+      app: { name: 'test-app-name' },
+      operation: 'reset',
+      name: 'MyReadModel'
     }
-    await resetReadModel(payload)
+    await readModel(payload)
     expect(axios.post).toHaveBeenCalledWith(
-      remoteUrl('reset-readmodel'),
+      remoteUrl('readmodel'),
       payload,
       makePostHeaders({
         'Content-Type': 'application/json'

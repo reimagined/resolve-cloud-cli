@@ -5,7 +5,7 @@ const logs = require('./logs')
 const addSecret = require('./addSecret')
 const deleteSecret = require('./deleteSecret')
 const deployments = require('./deployments')
-const resetReadModel = require('./resetReadModel')
+const readModel = require('./readModel')
 
 module.exports = {
   deploy,
@@ -15,5 +15,5 @@ module.exports = {
   addSecret,
   deleteSecret,
   deployments,
-  resetReadModel
+  readModel
 }

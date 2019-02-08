@@ -11,7 +11,7 @@ const {
   addSecret,
   deleteSecret,
   deployments,
-  resetReadModel
+  readModel
 } = require('./commands')
 const { refreshToken } = require('./utils/auth')
 const { getAppPackage } = require('./utils/config')
@@ -83,12 +83,12 @@ cli
   })
 
 cli
-  .command('readmodel <command>')
-  .description('reset application readmodel')
-  .action(async command => {
+  .command('readmodel <operation> [<name>]')
+  .description('Executes operation with application readmodel')
+  .action(async (operation, name) => {
     const app = await getAppPackage()
     await refreshToken()
-    await resetReadModel(app, command)
+    await readModel(app, operation, name)
   })
 
 cli.command('login').action(login)
