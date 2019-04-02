@@ -20,7 +20,7 @@ module.exports = async ({ name: appName }, operation, name) => {
         return
       }
       console.info(
-        [chalk.yellow(`  ======= Read Models =======`)]
+        [chalk.yellow(`  ======= Read models =======`)]
           .concat(readModels.map(i => format(i)))
           .join('\n')
       )
