@@ -3,9 +3,7 @@ const chalk = require('chalk')
 const { readModel } = require('../utils/api')
 
 module.exports = async ({ name: appName }, operation, name) => {
-  const format = readmodel => `
-  ${readmodel}
-  `
+  const format = readmodel => `  ${readmodel}`
   try {
     const output = await readModel({
       app: { name: appName },
