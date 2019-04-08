@@ -3,7 +3,16 @@ const chalk = require('chalk')
 const { readModel } = require('../utils/api')
 
 module.exports = async ({ name: appName }, operation, name) => {
-  const format = readmodel => `  ${readmodel}`
+  const format = readmodel => {
+    const payload = JSON.parse(readmodel.Payload)
+
+    if (payload && payload.paused === true) {
+      return `  ${readmodel.name}: paused`
+    } else if (payload && payload.errorMessage) {
+      return `  ${readmodel.name}: ${payload.errorMessage}`
+    }
+    return `  ${readmodel.name}`
+  }
   try {
     const output = await readModel({
       app: { name: appName },
