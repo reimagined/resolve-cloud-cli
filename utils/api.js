@@ -104,6 +104,13 @@ const deployments = async () => get('deployments')
  */
 const readModel = async payload => post('readmodel', payload)
 
+/**
+ * @param {String} payload.app.name
+ * @param {String} payload.command
+ * @returns {Promise<String>}
+ */
+const saga = async payload => post('saga', payload)
+
 module.exports = {
   waitJob,
   requestDeploy,
@@ -114,5 +121,6 @@ module.exports = {
   addSecret,
   deleteSecret,
   deployments,
-  readModel
+  readModel,
+  saga
 }

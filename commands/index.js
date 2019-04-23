@@ -6,6 +6,7 @@ const addSecret = require('./addSecret')
 const deleteSecret = require('./deleteSecret')
 const deployments = require('./deployments')
 const readModel = require('./readModel')
+const saga = require('./saga')
 
 module.exports = {
   deploy,
@@ -15,5 +16,6 @@ module.exports = {
   addSecret,
   deleteSecret,
   deployments,
-  readModel
+  readModel,
+  saga
 }
