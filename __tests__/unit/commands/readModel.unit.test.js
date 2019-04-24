@@ -7,7 +7,7 @@ const { readModel } = require('../../../utils/api')
 const handler = require('../../../commands/readModel')
 
 describe('resetReadModel', () => {
-  test('removing an app with default options', async () => {
+  test('executes correctly', async () => {
     await handler({ name: 'name-from-package-json', version: '0.0.1' }, 'reset', 'MyReadModel')
     expect(readModel).toHaveBeenCalledWith({
       app: { name: 'name-from-package-json' },

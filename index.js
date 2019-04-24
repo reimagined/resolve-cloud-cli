@@ -11,7 +11,8 @@ const {
   addSecret,
   deleteSecret,
   deployments,
-  readModel
+  readModel,
+  saga
 } = require('./commands')
 const { refreshToken } = require('./utils/auth')
 const { getAppPackage } = require('./utils/config')
@@ -89,6 +90,15 @@ cli
     const app = await getAppPackage()
     await refreshToken()
     await readModel(app, operation, name)
+  })
+
+cli
+  .command('saga <operation> [<name>]')
+  .description('Executes operation with application saga')
+  .action(async (operation, name) => {
+    const app = await getAppPackage()
+    await refreshToken()
+    await saga(app, operation, name)
   })
 
 cli.command('login').action(login)
