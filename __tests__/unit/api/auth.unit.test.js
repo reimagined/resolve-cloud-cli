@@ -20,7 +20,7 @@ jest.doMock('../../../utils/config', () => ({
   updateCloudConfig
 }))
 
-const { login, refreshToken } = require('../../../utils/auth')
+const { login, refreshToken } = require('../../../api/auth')
 
 const Pool = new CognitoUserPool({
   UserPoolId: 'user_pool_id',

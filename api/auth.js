@@ -1,4 +1,3 @@
-const log = require('consola')
 const { updateCloudConfig, getCloudConfig } = require('./config')
 global.fetch = require('node-fetch')
 const {
@@ -28,19 +27,14 @@ const login = async (Username, Password) => {
     )
 
     await updateCloudConfig({ userName: Username, refreshToken })
-    log.success(`Successfully logged in as ${Username}`)
   } catch (e) {
-    log.error(e)
     await updateCloudConfig({ userName: Username, refreshToken: '', token: '' })
+    throw e
   }
 }
 
 const refreshToken = async () => {
   const config = await getCloudConfig()
-  if (!config || !config.refreshToken) {
-    log.error('Please login to deploy apps')
-    log.info('run `resolve-cloud login` command')
-  }
 
   const cognitoUser = new CognitoUser({ Username: config.userName, Pool })
 
@@ -56,8 +50,8 @@ const refreshToken = async () => {
 
     await updateCloudConfig({ token })
   } catch (err) {
-    log.error(err)
     await updateCloudConfig({ token: '' })
+    throw e
   }
 }
 

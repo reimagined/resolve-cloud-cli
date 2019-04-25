@@ -1,14 +1,7 @@
 const inquirer = require('inquirer')
-const chalk = require('chalk')
-const { login } = require('../api/auth')
+const { login } = require('../utils/auth')
 
-exports.command = 'login'
-
-exports.describe = chalk.green('interactively authenticate and authorize user')
-
-exports.builder = {}
-
-exports.handler = async () => {
+module.exports = async () => {
   const { Username, Password } = await inquirer.prompt([
     {
       type: 'input',

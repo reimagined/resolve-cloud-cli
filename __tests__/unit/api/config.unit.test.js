@@ -3,7 +3,7 @@ jest.mock('fs')
 
 const fs = require('fs')
 const { CLOUD_CONFIG: { PATH: configPath } } = require('../../../constants')
-const { getCloudConfig, updateCloudConfig } = require('../../../utils/config')
+const { getCloudConfig, updateCloudConfig } = require('../../../api/config')
 
 describe('getCloudConfig', () => {
   beforeEach(() => {
