@@ -32,7 +32,12 @@ const saveFile = conf => {
 
 const get = (...selectors) => {
   const conf = load()
-  return selectors.map(selector => lodashGet(conf, selector))
+  return selectors.map(selector => lodashGet(conf, selector)).reduce((acc, value) => {
+    if (acc === null) {
+      return value
+    }
+    return [].concat(acc, value)
+  }, null)
 }
 
 const set = (selector, value) => {

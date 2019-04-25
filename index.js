@@ -13,14 +13,14 @@ yargs
   .wrap(yargs.terminalWidth())
   .demandCommand(1, '')
   .help()
-  .usage(`\n${chalk.blue('$0')} <command> [options]\n${chalk.blue('$0')} <command> --help`)
   .showHelpOnFail(true)
+  .usage(`\n${chalk.blue('$0')} <command> [subcommand] [arguments]\n${chalk.blue('$0')} <command> --help`)
   .fail((msg, err) => {
     if (msg) {
       log.error(msg)
     }
     if (err) {
-      log.error(err)
+      log.error(err.message)
     }
     process.exit(1)
   })

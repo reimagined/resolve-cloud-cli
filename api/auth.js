@@ -27,17 +27,18 @@ const login = async (Username, Password) => {
     )
 
     config.set('credentials.user', Username)
-    config.set('credentials.refreshToken', refreshToken)
+    config.set('credentials.refresh_token', refreshToken)
   } catch (e) {
     config.set('credentials.user', Username)
-    config.del('credentials.refreshToken', 'credentials.token')
+    config.del('credentials.refresh_token', 'credentials.token')
     throw e
   }
 }
 
+// TODO: verify jwt and check expiration instead of refreshing session every time
 const refreshToken = async () => {
   try {
-    const [Username, RefreshToken] = config.get('cloud.user', 'cloud.refreshToken')
+    const [Username, RefreshToken] = config.get('credentials.user', 'credentials.refresh_token')
 
     const user = new CognitoUser({ Username, Pool })
 
@@ -51,7 +52,8 @@ const refreshToken = async () => {
     )
 
     config.set('credentials.token', token)
-  } catch (err) {
+    return token
+  } catch (e) {
     config.del('credentials.token')
     throw e
   }

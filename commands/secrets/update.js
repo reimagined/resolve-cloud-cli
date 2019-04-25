@@ -1,15 +1,15 @@
 const chalk = require('chalk')
-const { post } = require('../../api/client')
+const { put } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
 
-const handler = refreshToken(async (token, { deployment, name, value }) =>
-  post(token, `${deployment}/secrets`, { name, value })
+const handler = refreshToken((token, { deployment, name, value }) =>
+  put(token, `${deployment}/secrets/${name}`, { value })
 )
 
 module.exports = {
   handler,
-  command: `add <deployment> <name> <value>`,
-  describe: chalk.green('add new secret variable'),
+  command: 'update <name> <value>',
+  describe: 'update secret variable value',
   builder: yargs =>
     yargs
       .positional('deployment', {
@@ -17,11 +17,11 @@ module.exports = {
         type: 'string'
       })
       .positional('name', {
-        describe: chalk.green('secret variable name'),
+        describe: chalk.green('existing secret variable name'),
         type: 'string'
       })
       .positional('value', {
-        describe: chalk.green('secret variable value'),
+        describe: chalk.green('secret variable new value'),
         type: 'string'
       })
 }
