@@ -1,3 +1,10 @@
+const rc = require('rc')
+
+
+
+
+
+/*
 const log = require('consola')
 const fs = require('fs')
 const path = require('path')
@@ -53,3 +60,4 @@ module.exports = {
   updateCloudConfig,
   getAppPackage
 }
+*/

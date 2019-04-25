@@ -1,4 +1,4 @@
-const { updateCloudConfig, getCloudConfig } = require('./config')
+const config = require('../config')
 global.fetch = require('node-fetch')
 const {
   CognitoUserPool,
@@ -26,21 +26,23 @@ const login = async (Username, Password) => {
       })
     )
 
-    await updateCloudConfig({ userName: Username, refreshToken })
+    config.set('credentials.user', Username)
+    config.set('credentials.refreshToken', refreshToken)
   } catch (e) {
-    await updateCloudConfig({ userName: Username, refreshToken: '', token: '' })
+    config.set('credentials.user', Username)
+    config.del('credentials.refreshToken', 'credentials.token')
     throw e
   }
 }
 
 const refreshToken = async () => {
-  const config = await getCloudConfig()
-
-  const cognitoUser = new CognitoUser({ Username: config.userName, Pool })
-
   try {
+    const [Username, RefreshToken] = config.get('cloud.user', 'cloud.refreshToken')
+
+    const user = new CognitoUser({ Username, Pool })
+
     const token = await new Promise((resolve, reject) =>
-      cognitoUser.refreshSession({ getToken: () => config.refreshToken }, (err, session) => {
+      user.refreshSession({ getToken: () => RefreshToken }, (err, session) => {
         if (err) {
           return reject(err)
         }
@@ -48,9 +50,9 @@ const refreshToken = async () => {
       })
     )
 
-    await updateCloudConfig({ token })
+    config.set('credentials.token', token)
   } catch (err) {
-    await updateCloudConfig({ token: '' })
+    config.del('credentials.token')
     throw e
   }
 }
