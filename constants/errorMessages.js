@@ -1,3 +1,4 @@
+// TODO: check deprecation
 module.exports = {
   INVALID_SUBDOMAIN_NAME: {
     LENGTH: '- Application name length must not exceed 63 characters.',
