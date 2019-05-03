@@ -12,7 +12,7 @@ yargs
   .recommendCommands()
   .scriptName('resolve-cloud')
   .strict()
-  .wrap(100)
+  .wrap(128)
   .demandCommand(1, '')
   .help()
   .showHelpOnFail(true)

@@ -6,8 +6,8 @@ const handler = refreshToken(async (token, {}) => {})
 
 module.exports = {
   handler,
-  command: 'remove',
-  aliases: ['rm'],
-  describe: chalk.green('remove specific deployment and all its data'),
+  command: 'list',
+  aliases: ['ls'],
+  describe: chalk.green('show deployment list'),
   builder: {}
 }

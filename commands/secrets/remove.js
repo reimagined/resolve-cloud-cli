@@ -8,7 +8,8 @@ const handler = refreshToken((token, { deployment, name }) =>
 
 module.exports = {
   handler,
-  command: 'rm <deployment> <name>',
+  command: 'remove <deployment> <name>',
+  aliases: ['rm'],
   describe: 'remove secret variable',
   builder: yargs =>
     yargs

@@ -6,7 +6,8 @@ const handler = refreshToken((token, { deployment }) => get(token, `${deployment
 
 module.exports = {
   handler,
-  command: 'ls <deployment>',
+  command: 'list <deployment>',
+  aliases: [ 'ls' ],
   describe: 'show all secrets',
   builder: yargs =>
     yargs.positional('deployment', {
