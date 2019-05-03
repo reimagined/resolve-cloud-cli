@@ -1,3 +1,4 @@
+const log = require('consola')
 const axios = require('axios')
 const config = require('../config')
 
@@ -14,6 +15,7 @@ const request = async (
   const baseURL = `${config.get('api_url')}/${apiVersion}/`
 
   try {
+    log.trace(`${method}: ${baseURL}${url}`)
     return (await axios.request({
       method,
       baseURL,
@@ -26,8 +28,12 @@ const request = async (
         ...headers
       }
     })).data
-  } catch ({ response: { data: { statusCode, error } } }) {
-    throw new Error(`Server responded with ${statusCode}: ${error}`)
+  } catch (e) {
+    if (e.response) {
+      const { response: { data: { statusCode, error } } } = e
+      throw new Error(`Server responded with ${statusCode}: ${error}`)
+    }
+    throw e
   }
 }
 
@@ -46,5 +52,6 @@ const put = async (token, path, payload = {}, headers = { 'Content-Type': `appli
 module.exports = {
   post,
   get,
-  del
+  del,
+  put
 }

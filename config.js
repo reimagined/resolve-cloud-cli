@@ -52,8 +52,20 @@ const del = (...selectors) => {
   saveFile(conf)
 }
 
+const getPackageValue = (selector, defaultValue = undefined) => {
+  let pkg = {}
+  try {
+    pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+  } catch (e) {
+    return defaultValue
+  }
+
+  return lodashGet(pkg, selector, defaultValue)
+}
+
 module.exports = {
   get,
   set,
-  del
+  del,
+  getPackageValue
 }

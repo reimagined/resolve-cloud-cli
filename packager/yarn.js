@@ -1,7 +1,10 @@
 const path = require('path')
+const log = require('consola')
+const isEmpty = require('lodash.isempty')
 const { spawn } = require('child_process')
 
 const yarn = /^win/.test(process.platform) ? 'yarn.cmd' : 'yarn'
+const notEmpty = val => !isEmpty(val)
 
 const exec = async (cmd, args, options) =>
   new Promise((resolve, reject) => {
@@ -9,7 +12,7 @@ const exec = async (cmd, args, options) =>
       cmd,
       args,
       Object.assign({
-        stdio: 'inherit',
+        stdio: 'pipe',
         ...options
       })
     )
@@ -20,9 +23,23 @@ const exec = async (cmd, args, options) =>
       }
       return resolve()
     })
+    proc.stdout.on('data', data =>
+      data
+        .toString()
+        .split('\n')
+        .filter(notEmpty)
+        .map(m => log.trace(m))
+    )
+    proc.stderr.on('data', data =>
+      data
+        .toString()
+        .split('\n')
+        .filter(notEmpty)
+        .map(m => log.error(m))
+    )
   })
 
-module.exports = async (config, deploymentId) => {
+const build = async (config, deploymentId) => {
   await exec(yarn, [config], {
     env: Object.assign({}, process.env, {
       CLOUD_STATIC_URL: `https://static.resolve.sh/${deploymentId}`
@@ -33,4 +50,14 @@ module.exports = async (config, deploymentId) => {
     serverPath: path.resolve('dist/common/cloud-entry'),
     clientPath: path.resolve('dist/client')
   }
+}
+
+const install = async cloudEntry =>
+  exec(yarn, [], {
+    cwd: path.resolve(cloudEntry)
+  })
+
+module.exports = {
+  build,
+  install
 }
