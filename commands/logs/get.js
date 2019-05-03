@@ -6,7 +6,7 @@ const { get } = require('../../api/client')
 
 const handler = refreshToken(
   (token, { deployment, startTime, endTime, filterPattern, streamLimit }) =>
-    get(token, `${deployment}/logs`, {
+    get(token, `deployments/${deployment}/logs`, {
       startTime,
       endTime,
       filterPattern,

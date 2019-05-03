@@ -5,7 +5,7 @@ const { post } = require('../../../api/client')
 const refreshToken = require('../../../refreshToken')
 
 const handler = refreshToken(async (token, { deployment, saga, name, value }) =>
-  post(token, `${deployment}/sagas/${saga}/properties`, { name, value })
+  post(token, `deployments/${deployment}/sagas/${saga}/properties`, { name, value })
 )
 
 module.exports = {

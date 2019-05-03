@@ -5,7 +5,7 @@ const refreshToken = require('../../../refreshToken')
 const { del } = require('../../../api/client')
 
 const handler = refreshToken(async (token, { deployment, saga, name }) =>
-  del(token`${deployment}/sagas/${saga}/properties/${name}`)
+  del(token, `deployments/${deployment}/sagas/${saga}/properties/${name}`)
 )
 
 module.exports = {
