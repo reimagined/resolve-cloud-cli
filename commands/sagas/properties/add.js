@@ -1,3 +1,5 @@
+// TODO: route
+// TODO: tests
 const chalk = require('chalk')
 const { post } = require('../../../api/client')
 const refreshToken = require('../../../refreshToken')
@@ -9,6 +11,7 @@ const handler = refreshToken(async (token, { deployment, saga, name, value }) =>
 module.exports = {
   handler,
   command: `add <deployment> <saga> <name> <value>`,
+  aliases: ['create'],
   describe: chalk.green('add new saga property'),
   builder: yargs =>
     yargs
