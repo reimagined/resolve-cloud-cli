@@ -1,9 +1,11 @@
+// TODO: route
+// TODO: tests
 const chalk = require('chalk')
 const { post } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
 
 const handler = refreshToken(async (token, { deployment, name, value }) =>
-  post(token, `${deployment}/secrets`, { name, value })
+  post(token, `deployments/${deployment}/secrets`, { name, value })
 )
 
 module.exports = {

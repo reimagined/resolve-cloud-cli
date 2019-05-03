@@ -1,9 +1,11 @@
+// TODO: route
+// TODO: lists
 const chalk = require('chalk')
 const { put } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
 
 const handler = refreshToken((token, { deployment, name, value }) =>
-  put(token, `${deployment}/secrets/${name}`, { value })
+  put(token, `deployments/${deployment}/secrets/${name}`, { value })
 )
 
 module.exports = {

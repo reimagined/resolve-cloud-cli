@@ -1,9 +1,11 @@
+// TODO: route
+// TODO: tests
 const chalk = require('chalk')
 const { del } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
 
 const handler = refreshToken((token, { deployment, name }) =>
-  del(token, `${deployment}/secrets/${name}`)
+  del(token, `deployments/${deployment}/secrets/${name}`)
 )
 
 module.exports = {
