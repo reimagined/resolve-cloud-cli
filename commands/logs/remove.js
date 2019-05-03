@@ -4,7 +4,9 @@ const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { del } = require('../../api/client')
 
-const handler = refreshToken((token, { deployment }) => del(token, `deployments/${deployment}/logs`))
+const handler = refreshToken((token, { deployment }) =>
+  del(token, `deployments/${deployment}/logs`)
+)
 
 module.exports = {
   handler,

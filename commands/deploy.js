@@ -42,32 +42,24 @@ const handler = refreshToken(
 
     log.trace(`deployment list arrived: ${deployments.length} items`)
 
-    const deployment = deployments.find(item => item.name === name)
+    let { id } = deployments.find(item => item.name === name) || {}
 
-    let id
-
-    if (deployment) {
-      id = deployment.id
-    } else {
+    if (!id) {
       log.trace(`deployment with name "${name}" not found`)
       log.trace(`creating new deployment`)
 
-      id = (await post(token, `deployments`, {
+      const { result: { id: newId } } = await post(token, `deployments`, {
         name
-      })).result.id
+      })
+      id = newId
     }
 
     log.trace(`deployment id obtained: ${id}`)
 
     if (!skipBuild) {
-      try {
-        await packager(configuration, id)
-      } catch (e) {
-        log.error(e)
-        return 1
-      }
+      await packager(configuration, id)
     } else {
-      log.trace(`skip application building`)
+      log.trace(`skipping application building`)
     }
 
     log.trace(`opening code package stream`)

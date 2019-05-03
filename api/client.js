@@ -4,14 +4,7 @@ const config = require('../config')
 
 const apiVersion = 'v0'
 
-const request = async (
-  token,
-  method,
-  url,
-  data,
-  params,
-  headers
-) => {
+const request = async (token, method, url, data, params, headers) => {
   const baseURL = `${config.get('api_url')}/${apiVersion}/`
 
   try {
