@@ -1,10 +1,9 @@
+// TODO: tests
 const chalk = require('chalk')
 
 module.exports = {
   command: 'properties',
-  aliases: [ 'props' ],
+  aliases: ['props'],
   describe: chalk.green('manage saga properties'),
-  builder: yargs => yargs.commandDir('properties'),
-  handler: argv => {}
-
+  builder: yargs => yargs.commandDir('properties')
 }

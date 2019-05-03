@@ -1,12 +1,25 @@
-const log = require('consola')
+// TODO: route
+// TODO: tests
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
+const { post } = require('../../api/client')
 
-const handler = refreshToken(async (token, {}) => {})
+const handler = refreshToken(async (token, { deployment, saga }) =>
+  post(token, `deployments/${deployment}/sagas/${saga}/reset`)
+)
 
 module.exports = {
   handler,
-  command: 'reset',
-  describe: chalk.green('reset saga (execute saga with full event history)'),
-  builder: {}
+  command: 'resume <deployment> <saga>',
+  describe: chalk.green('reset saga'),
+  builder: yargs =>
+    yargs
+      .positional('deployment', {
+        describe: chalk.green('existing deployment id'),
+        type: 'string'
+      })
+      .positional('saga', {
+        describe: chalk.green('application saga name'),
+        type: 'string'
+      })
 }

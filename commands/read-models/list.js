@@ -11,7 +11,7 @@ const handler = refreshToken(async (token, { deployment }) =>
 module.exports = {
   handler,
   command: 'list <deployment>',
-  aliases: ['ls'],
+  aliases: ['ls', '$0'],
   describe: chalk.green('show read model list'),
   builder: yargs =>
     yargs.positional('deployment', {

@@ -11,7 +11,7 @@ const handler = refreshToken(async (token, { deployment, saga }) =>
 module.exports = {
   handler,
   command: 'list <deployment> <saga>',
-  aliases: ['ls'],
+  aliases: ['ls', '$0'],
   describe: chalk.green('show assigned saga properties'),
   builder: yargs =>
     yargs

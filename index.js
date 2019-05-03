@@ -16,7 +16,11 @@ yargs
   .demandCommand(1, '')
   .help()
   .showHelpOnFail(true)
-  .usage(`\n${chalk.blue('$0')} <command> [subcommand] [arguments]\n${chalk.blue('$0')} <command> --help\n${chalk.blue('$0')} --version`)
+  .usage(
+    `\n${chalk.blue('$0')} <command> [sub-command] [arguments]\n${chalk.blue(
+      '$0'
+    )} <command> --help\n${chalk.blue('$0')} --version`
+  )
   .option('help', { hidden: true })
   .option('version', { hidden: true })
   .option('verbose', {
