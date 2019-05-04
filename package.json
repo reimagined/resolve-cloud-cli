@@ -59,7 +59,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run test && pretty-quick && npm run lint"
+      "pre-commit": "npm run test && npm run lint"
     }
   },
   "jest": {
