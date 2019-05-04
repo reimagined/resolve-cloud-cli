@@ -32,7 +32,6 @@
     "archiver": "^3.0.0",
     "axios": "^0.18.0",
     "chalk": "^2.4.1",
-    "commander": "^2.17.1",
     "consola": "^1.4.3",
     "form-data": "^2.3.2",
     "inquirer": "^6.2.0",

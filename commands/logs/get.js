@@ -42,6 +42,6 @@ module.exports = {
       .option('streamLimit', {
         alias: 'l',
         describe: 'set output limit',
-        type: 'string'
+        type: 'number'
       })
 }
