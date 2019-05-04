@@ -1,5 +1,4 @@
 // TODO: route
-// TODO: tests
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { post } = require('../../api/client')
@@ -10,7 +9,7 @@ const handler = refreshToken(async (token, { deployment, saga }) =>
 
 module.exports = {
   handler,
-  command: 'pause <deployment> <saga>>',
+  command: 'pause <deployment> <saga>',
   describe: chalk.green('stop saga event handling'),
   builder: yargs =>
     yargs

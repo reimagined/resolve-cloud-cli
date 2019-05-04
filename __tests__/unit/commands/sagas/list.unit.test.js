@@ -51,9 +51,6 @@ describe('handler', () => {
       saga: 'saga-name'
     })
 
-    expect(get).toHaveBeenCalledWith(
-      'token',
-      'deployments/deployment-id/sagas'
-    )
+    expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/sagas')
   })
 })
