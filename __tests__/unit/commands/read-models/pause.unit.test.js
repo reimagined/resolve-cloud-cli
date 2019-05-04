@@ -50,6 +50,9 @@ describe('handler', () => {
   test('api call', async () => {
     await handler({ deployment: 'deployment-id', readmodel: 'read-model-name' })
 
-    expect(post).toHaveBeenCalledWith('token', 'deployments/deployment-id/read-models/read-model-name/pause')
+    expect(post).toHaveBeenCalledWith(
+      'token',
+      'deployments/deployment-id/read-models/read-model-name/pause'
+    )
   })
 })
