@@ -50,9 +50,6 @@ describe('handler', () => {
   test('api call', async () => {
     await handler({ deployment: 'deployment-id', saga: 'saga-name' })
 
-    expect(post).toHaveBeenCalledWith(
-      'token',
-      'deployments/deployment-id/sagas/saga-name/pause'
-    )
+    expect(post).toHaveBeenCalledWith('token', 'deployments/deployment-id/sagas/saga-name/pause')
   })
 })
