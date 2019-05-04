@@ -1,5 +1,4 @@
 // TODO: route
-// TODO: tests
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { post } = require('../../api/client')
@@ -10,8 +9,8 @@ const handler = refreshToken(async (token, { deployment, saga }) =>
 
 module.exports = {
   handler,
-  command: 'resume <deployment> <saga>',
-  describe: chalk.green('reset saga'),
+  command: 'reset <deployment> <saga>',
+  describe: chalk.green('reset a saga'),
   builder: yargs =>
     yargs
       .positional('deployment', {
