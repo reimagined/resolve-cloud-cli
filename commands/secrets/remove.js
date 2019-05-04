@@ -1,5 +1,4 @@
 // TODO: route
-// TODO: tests
 const chalk = require('chalk')
 const { del } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
