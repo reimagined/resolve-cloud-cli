@@ -28,30 +28,28 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-
   expect(option).toHaveBeenCalledWith('startTime', {
     describe: expect.any(String),
     alias: 's',
     type: 'string'
   })
-
   expect(option).toHaveBeenCalledWith('endTime', {
     describe: expect.any(String),
     alias: 'e',
     type: 'string'
   })
-
   expect(option).toHaveBeenCalledWith('filterPattern', {
     describe: expect.any(String),
     alias: 'f',
     type: 'string'
   })
-
   expect(option).toHaveBeenCalledWith('streamLimit', {
     describe: expect.any(String),
     alias: 'l',
     type: 'number'
   })
+  expect(positional).toHaveBeenCalledTimes(1)
+  expect(option).toHaveBeenCalledTimes(4)
 })
 
 describe('handler', () => {

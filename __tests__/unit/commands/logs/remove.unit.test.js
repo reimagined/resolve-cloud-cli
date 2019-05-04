@@ -30,6 +30,7 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
+  expect(positional).toHaveBeenCalledTimes(1)
 })
 
 describe('handler', () => {

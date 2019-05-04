@@ -28,11 +28,11 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-
   expect(positional).toHaveBeenCalledWith('readmodel', {
     describe: expect.any(String),
     type: 'string'
   })
+  expect(positional).toHaveBeenCalledTimes(2)
 })
 
 describe('handler', () => {
