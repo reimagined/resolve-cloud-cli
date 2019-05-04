@@ -1,5 +1,4 @@
 // TODO: route
-// TODO: lists
 const chalk = require('chalk')
 const { put } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
@@ -10,7 +9,8 @@ const handler = refreshToken((token, { deployment, name, value }) =>
 
 module.exports = {
   handler,
-  command: 'update <name> <value>',
+  command: 'update <deployment> <name> <value>',
+  aliases: ['set'],
   describe: 'update secret variable value',
   builder: yargs =>
     yargs
