@@ -1,5 +1,4 @@
 // TODO: route
-// TODO: tests
 const chalk = require('chalk')
 const { post } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
@@ -11,6 +10,7 @@ const handler = refreshToken(async (token, { deployment, name, value }) =>
 module.exports = {
   handler,
   command: `add <deployment> <name> <value>`,
+  aliases: ['create'],
   describe: chalk.green('add new secret variable'),
   builder: yargs =>
     yargs
