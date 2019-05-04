@@ -1,5 +1,4 @@
 // TODO: route
-// TODO: tests
 const chalk = require('chalk')
 const { post } = require('../../../api/client')
 const refreshToken = require('../../../refreshToken')
@@ -19,7 +18,7 @@ module.exports = {
         describe: chalk.green('existing deployment id'),
         type: 'string'
       })
-      .positional('deployment', {
+      .positional('saga', {
         describe: chalk.green('application saga name'),
         type: 'string'
       })
