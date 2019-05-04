@@ -1,5 +1,4 @@
 // TODO: route
-// TODO: tests
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { get } = require('../../api/client')
@@ -11,7 +10,7 @@ const handler = refreshToken((token, { deployment }) =>
 module.exports = {
   handler,
   command: 'list <deployment>',
-  aliases: ['ls'],
+  aliases: ['ls', '$0'],
   describe: 'list all secrets names',
   builder: yargs =>
     yargs.positional('deployment', {
