@@ -122,7 +122,7 @@ module.exports = {
   describe: chalk.green('deploy reSolve framework application to the cloud'),
   builder: yargs =>
     yargs
-      .option('skip-build', {
+      .option('skipBuild', {
         describe: 'skip application building',
         type: 'boolean',
         default: false
@@ -143,7 +143,7 @@ module.exports = {
         describe: 'update existing deployment by id',
         type: 'string'
       })
-      .option('no-wait', {
+      .option('noWait', {
         describe: 'do not wait for deployment ready state',
         type: 'boolean',
         default: false

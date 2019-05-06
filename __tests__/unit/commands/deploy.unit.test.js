@@ -41,7 +41,7 @@ test('command', () => {
 test('options', () => {
   builder(yargs)
 
-  expect(option).toHaveBeenCalledWith('skip-build', {
+  expect(option).toHaveBeenCalledWith('skipBuild', {
     describe: expect.any(String),
     type: 'boolean',
     default: false
@@ -62,7 +62,7 @@ test('options', () => {
     alias: 'd',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('no-wait', {
+  expect(option).toHaveBeenCalledWith('noWait', {
     describe: expect.any(String),
     type: 'boolean',
     default: false
