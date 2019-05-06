@@ -1,4 +1,3 @@
-// TODO: tests
 const chalk = require('chalk')
 
 module.exports = {
