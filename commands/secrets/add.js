@@ -1,4 +1,3 @@
-// TODO: route
 const chalk = require('chalk')
 const { post } = require('../../api/client')
 const refreshToken = require('../../refreshToken')

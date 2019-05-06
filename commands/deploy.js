@@ -1,4 +1,3 @@
-// TODO: route all api
 const fs = require('fs')
 const path = require('path')
 const log = require('consola')
