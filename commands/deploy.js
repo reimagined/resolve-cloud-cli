@@ -96,7 +96,7 @@ const handler = refreshToken(
     log.trace(`code package [${codePackage}], static package [${staticPackage}]`)
     log.trace(`updating deployment [${id}]`)
 
-    const { result: { url } } = await put(token, `deployments/${id}`, {
+    const { result: { appUrl } } = await put(token, `deployments/${id}`, {
       name,
       codePackage,
       staticPackage
@@ -109,9 +109,9 @@ const handler = refreshToken(
       log.trace(`skip awaiting for deployment ready state`)
     }
 
-    log.success(`application "${name}" successfully deployed`)
+    log.success(`"${name}" available at ${appUrl}`)
 
-    qr.generate(url, { small: true })
+    qr.generate(appUrl, { small: true })
   }
 )
 
