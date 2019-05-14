@@ -1,4 +1,6 @@
+const columnify = require('columnify')
 const yargs = require('yargs')
+const { out } = require('../../../../../utils/std')
 const {
   command,
   aliases,
@@ -12,10 +14,20 @@ const refreshToken = require('../../../../../refreshToken')
 jest.mock('../../../../../api/client', () => ({
   get: jest.fn()
 }))
-
+jest.mock('../../../../../utils/std', () => ({
+  out: jest.fn()
+}))
 jest.mock('../../../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
 
 const { positional } = yargs
+
+beforeAll(() => {
+  get.mockResolvedValue({
+    result: {
+      property: 'property'
+    }
+  })
+})
 
 test('command', () => {
   expect(command).toEqual('list <deployment> <saga>')
@@ -47,6 +59,20 @@ describe('handler', () => {
     await handler({})
 
     expect(refreshToken).toHaveBeenCalledWith(expect.any(Function))
+  })
+
+  test('formatted output', async () => {
+    columnify.mockReturnValue('result-output')
+
+    await handler({})
+
+    expect(columnify).toHaveBeenCalledWith(
+      {
+        property: 'property'
+      },
+      { minWidth: 30, columns: ['name', 'value'] }
+    )
+    expect(out).toHaveBeenCalledWith('result-output')
   })
 
   test('api call', async () => {
