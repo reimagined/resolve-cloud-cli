@@ -18,7 +18,7 @@ jest.mock('../../../../../refreshToken', () => jest.fn(h => (...args) => h('toke
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('add <deployment> <saga> <name> <value>')
+  expect(command).toEqual('add <deployment> <saga> <key> <value>')
   expect(commandDescription).toEqual(expect.any(String))
   expect(aliases).toEqual(['create'])
 })
@@ -61,7 +61,7 @@ describe('handler', () => {
     await handler({
       deployment: 'deployment-id',
       saga: 'saga-name',
-      name: 'prop-name',
+      key: 'prop-name',
       value: 'prop-value'
     })
 
@@ -69,7 +69,7 @@ describe('handler', () => {
       'token',
       'deployments/deployment-id/sagas/saga-name/properties',
       {
-        name: 'prop-name',
+        key: 'prop-name',
         value: 'prop-value'
       }
     )

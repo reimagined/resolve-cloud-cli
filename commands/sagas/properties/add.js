@@ -2,13 +2,13 @@ const chalk = require('chalk')
 const { post } = require('../../../api/client')
 const refreshToken = require('../../../refreshToken')
 
-const handler = refreshToken(async (token, { deployment, saga, name, value }) =>
-  post(token, `deployments/${deployment}/sagas/${saga}/properties`, { name, value })
+const handler = refreshToken(async (token, { deployment, saga, key, value }) =>
+  post(token, `deployments/${deployment}/sagas/${saga}/properties`, { key, value })
 )
 
 module.exports = {
   handler,
-  command: `add <deployment> <saga> <name> <value>`,
+  command: `add <deployment> <saga> <key> <value>`,
   aliases: ['create'],
   describe: chalk.green('add new saga property'),
   builder: yargs =>
