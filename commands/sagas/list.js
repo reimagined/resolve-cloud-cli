@@ -20,7 +20,13 @@ const handler = refreshToken(async (token, { deployment }) => {
         })),
         {
           minWidth: 30,
-          columns: ['name', 'state', 'last event', 'last error']
+          truncate: true,
+          columns: ['name', 'state', 'last event', 'last error'],
+          config: {
+            'last error': {
+              maxWidth: 160
+            }
+          }
         }
       )
     )
