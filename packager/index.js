@@ -3,6 +3,7 @@ const log = require('consola')
 
 const { build, install } = require('./yarn')
 const zip = require('./zip')
+const symlink = require('./symlinks')
 
 module.exports = async (config, deploymentId) => {
   log.trace('building application...')
@@ -10,6 +11,8 @@ module.exports = async (config, deploymentId) => {
 
   log.trace('installing cloud dependencies...')
   await install(serverPath)
+
+  await symlink(serverPath)
 
   log.trace('zipping...')
   await Promise.all([zip(serverPath, 'code'), zip(clientPath, 'static')])

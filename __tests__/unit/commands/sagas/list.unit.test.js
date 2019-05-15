@@ -79,7 +79,7 @@ describe('handler', () => {
           'last error': 'error-message'
         }
       ],
-      { minWidth: 30, columns: ['name', 'state', 'last event', 'last error'] }
+      expect.any(Object)
     )
     expect(dateFormat).toHaveBeenCalledWith(new Date(100), expect.any(String))
     expect(out).toHaveBeenCalledWith('result-output')

@@ -36,6 +36,7 @@
     "consola": "^1.4.3",
     "dateformat": "^3.0.3",
     "form-data": "^2.3.2",
+    "fs-extra": "^8.0.1",
     "inquirer": "^6.2.0",
     "lodash.get": "^4.4.2",
     "lodash.isempty": "^4.4.0",
