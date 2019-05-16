@@ -27,7 +27,7 @@ beforeAll(() => {
     result: [
       {
         name: 'saga-name',
-        state: 'state',
+        status: 'status',
         lastEvent: { type: 'event-type', timestamp: 100 },
         lastError: { message: 'error-message' }
       }
@@ -74,7 +74,7 @@ describe('handler', () => {
       [
         {
           name: 'saga-name',
-          state: 'state',
+          status: 'status',
           'last event': 'formatted-date event-type',
           'last error': 'error-message'
         }

@@ -27,7 +27,7 @@ beforeAll(() => {
     result: [
       {
         name: 'read-model-name',
-        state: 'state',
+        status: 'status',
         lastEvent: { type: 'event-type', timestamp: 100 },
         lastError: { message: 'error-message' }
       }
@@ -74,12 +74,12 @@ describe('handler', () => {
       [
         {
           name: 'read-model-name',
-          state: 'state',
+          status: 'status',
           'last event': 'formatted-date event-type',
           'last error': 'error-message'
         }
       ],
-      { minWidth: 30, columns: ['name', 'state', 'last event', 'last error'] }
+      { minWidth: 30, columns: ['name', 'status', 'last event', 'last error'] }
     )
     expect(dateFormat).toHaveBeenCalledWith(new Date(100), expect.any(String))
     expect(out).toHaveBeenCalledWith('result-output')
