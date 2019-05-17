@@ -1,12 +1,7 @@
-function FormData(options, data) {
-  this.options = options
-  this.data = data || {}
-}
+/* eslint-disable prefer-arrow-callback */
+const FormData = jest.fn(function constructor() {})
 
-FormData.prototype.append = jest.fn(function append(name, value) {
-  this.data[name] = value
-})
-
-FormData.prototype.getBoundary = jest.fn(() => 'data-boundary')
+FormData.prototype.append = jest.fn()
+FormData.prototype.getBoundary = jest.fn()
 
 module.exports = FormData

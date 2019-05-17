@@ -1,70 +1,55 @@
-const nanoid = require('nanoid')
-const { DEFAULT_REGION, DEFAULT_STAGE } = require('../../../constants')
+const yargs = require('yargs')
+const {
+  command,
+  aliases,
+  handler,
+  builder,
+  describe: commandDescription
+} = require('../../../commands/remove')
+const { del } = require('../../../api/client')
+const refreshToken = require('../../../refreshToken')
 
-jest.doMock('../../../utils/spinner', () => () => ({
-  spin: jest.fn(),
-  stop: jest.fn()
+jest.mock('../../../api/client', () => ({
+  del: jest.fn()
 }))
 
-const removeJobData = {
-  jobId: nanoid(),
-  deploymentId: nanoid()
-}
+jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
 
-const removeApp = jest.fn().mockReturnValue(removeJobData)
-const waitJob = jest.fn()
+const { positional } = yargs
 
-jest.doMock('../../../utils/api', () => ({
-  removeApp,
-  waitJob
-}))
-
-const handler = require('../../../commands/remove')
-
-beforeEach(() => {
-  removeApp.mockClear()
-  waitJob.mockClear()
+test('command', () => {
+  expect(command).toEqual('remove <deployment>')
+  expect(commandDescription).toEqual(expect.any(String))
+  expect(aliases).toEqual(['rm'])
 })
 
-const app = { name: 'name-from-package-json', version: '0.0.1' }
+test('options', () => {
+  builder(yargs)
 
-test('removing an app with default options', async () => {
-  await handler(app, null, {})
-  expect(removeApp).toHaveBeenCalledWith({
-    name: 'name-from-package-json',
-    stage: DEFAULT_STAGE,
-    region: DEFAULT_REGION
+  expect(positional).toHaveBeenCalledWith('deployment', {
+    describe: expect.any(String),
+    type: 'string'
   })
+  expect(positional).toHaveBeenCalledTimes(1)
 })
 
-test('removing another user app with default options', async () => {
-  await handler(app, 'app-2', {})
-  expect(removeApp).toHaveBeenCalledWith({
-    name: 'app-2',
-    stage: DEFAULT_STAGE,
-    region: DEFAULT_REGION
+describe('handler', () => {
+  afterEach(() => {
+    refreshToken.mockClear()
+    del.mockClear()
   })
-})
 
-test('removing an app at specified --stage', async () => {
-  await handler(app, null, { stage: 'specified-stage' })
-  expect(removeApp).toHaveBeenCalledWith({
-    name: 'name-from-package-json',
-    stage: 'specified-stage',
-    region: DEFAULT_REGION
+  test('wrapped with refreshToken', async () => {
+    await handler({})
+
+    expect(refreshToken).toHaveBeenCalledWith(expect.any(Function))
   })
-})
 
-test('ignore arguments', async () => {
-  await handler(app, null, { stage: 'specified-stage' })
-  expect(removeApp).toHaveBeenCalledWith({
-    name: 'name-from-package-json',
-    stage: 'specified-stage',
-    region: DEFAULT_REGION
+  test('api call', async () => {
+    await handler({
+      deployment: 'deployment-id'
+    })
+
+    expect(del).toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })
-})
-
-test('waiting for the job to complete', async () => {
-  await handler(app, null, {})
-  expect(waitJob).toHaveBeenCalledWith(removeJobData)
 })
