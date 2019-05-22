@@ -5,12 +5,12 @@ const {
   handler,
   builder,
   describe: commandDescription
-} = require('../../../../commands/secrets/remove')
-const { del } = require('../../../../api/client')
+} = require('../../../../commands/env/set')
+const { post } = require('../../../../api/client')
 const refreshToken = require('../../../../refreshToken')
 
 jest.mock('../../../../api/client', () => ({
-  del: jest.fn()
+  post: jest.fn()
 }))
 
 jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
@@ -18,9 +18,10 @@ jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token',
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('remove <deployment> <name>')
+  expect(command).toEqual('set <deployment> <variable> <value>')
   expect(commandDescription).toEqual(expect.any(String))
-  expect(aliases).toEqual(['rm'])
+  expect(aliases).toContain('create')
+  expect(aliases).toContain('add')
 })
 
 test('options', () => {
@@ -30,17 +31,21 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledWith('name', {
+  expect(positional).toHaveBeenCalledWith('variable', {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledTimes(2)
+  expect(positional).toHaveBeenCalledWith('value', {
+    describe: expect.any(String),
+    type: 'string'
+  })
+  expect(positional).toHaveBeenCalledTimes(3)
 })
 
 describe('handler', () => {
   afterEach(() => {
     refreshToken.mockClear()
-    del.mockClear()
+    post.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -52,10 +57,13 @@ describe('handler', () => {
   test('api call', async () => {
     await handler({
       deployment: 'deployment-id',
-      saga: 'saga-name',
-      name: 'secret-name'
+      variable: 'variable-name',
+      value: 'variable-value'
     })
 
-    expect(del).toHaveBeenCalledWith('token', 'deployments/deployment-id/secrets/secret-name')
+    expect(post).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment', {
+      variable: 'variable-name',
+      value: 'variable-value'
+    })
   })
 })

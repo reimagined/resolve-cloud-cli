@@ -5,12 +5,12 @@ const {
   handler,
   builder,
   describe: commandDescription
-} = require('../../../../commands/secrets/list')
-const { get } = require('../../../../api/client')
+} = require('../../../../commands/env/remove')
+const { del } = require('../../../../api/client')
 const refreshToken = require('../../../../refreshToken')
 
 jest.mock('../../../../api/client', () => ({
-  get: jest.fn()
+  del: jest.fn()
 }))
 
 jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
@@ -18,9 +18,9 @@ jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token',
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('list <deployment>')
+  expect(command).toEqual('remove <deployment> <variable>')
   expect(commandDescription).toEqual(expect.any(String))
-  expect(aliases).toEqual(['ls', '$0'])
+  expect(aliases).toEqual(['rm'])
 })
 
 test('options', () => {
@@ -30,13 +30,17 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledTimes(1)
+  expect(positional).toHaveBeenCalledWith('variable', {
+    describe: expect.any(String),
+    type: 'string'
+  })
+  expect(positional).toHaveBeenCalledTimes(2)
 })
 
 describe('handler', () => {
   afterEach(() => {
     refreshToken.mockClear()
-    get.mockClear()
+    del.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -47,9 +51,10 @@ describe('handler', () => {
 
   test('api call', async () => {
     await handler({
-      deployment: 'deployment-id'
+      deployment: 'deployment-id',
+      variable: 'variable-name'
     })
 
-    expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/secrets')
+    expect(del).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment/variable-name')
   })
 })
