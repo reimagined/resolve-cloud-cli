@@ -5,12 +5,12 @@ const {
   handler,
   builder,
   describe: commandDescription
-} = require('../../../../commands/env/update')
-const { put } = require('../../../../api/client')
+} = require('../../../../commands/env/set')
+const { post } = require('../../../../api/client')
 const refreshToken = require('../../../../refreshToken')
 
 jest.mock('../../../../api/client', () => ({
-  put: jest.fn()
+  post: jest.fn()
 }))
 
 jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
@@ -18,9 +18,10 @@ jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token',
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('update <deployment> <name> <value>')
+  expect(command).toEqual('set <deployment> <variable> <value>')
   expect(commandDescription).toEqual(expect.any(String))
-  expect(aliases).toEqual(['set'])
+  expect(aliases).toContain('create')
+  expect(aliases).toContain('add')
 })
 
 test('options', () => {
@@ -30,7 +31,7 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledWith('name', {
+  expect(positional).toHaveBeenCalledWith('variable', {
     describe: expect.any(String),
     type: 'string'
   })
@@ -44,7 +45,7 @@ test('options', () => {
 describe('handler', () => {
   afterEach(() => {
     refreshToken.mockClear()
-    put.mockClear()
+    post.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -56,13 +57,13 @@ describe('handler', () => {
   test('api call', async () => {
     await handler({
       deployment: 'deployment-id',
-      saga: 'saga-name',
-      name: 'secret-name',
-      value: 'secret-value'
+      variable: 'variable-name',
+      value: 'variable-value'
     })
 
-    expect(put).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment/secret-name', {
-      value: 'secret-value'
+    expect(post).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment', {
+      variable: 'variable-name',
+      value: 'variable-value'
     })
   })
 })

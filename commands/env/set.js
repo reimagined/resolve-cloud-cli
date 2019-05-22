@@ -2,22 +2,22 @@ const chalk = require('chalk')
 const { post } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
 
-const handler = refreshToken(async (token, { deployment, name, value }) =>
-  post(token, `deployments/${deployment}/environment`, { name, value })
+const handler = refreshToken(async (token, { deployment, variable, value }) =>
+  post(token, `deployments/${deployment}/environment`, { variable, value })
 )
 
 module.exports = {
   handler,
-  command: `add <deployment> <name> <value>`,
-  aliases: ['create'],
-  describe: chalk.green('add new environment variable'),
+  command: `set <deployment> <variable> <value>`,
+  aliases: ['create', 'add'],
+  describe: chalk.green('set environment variable'),
   builder: yargs =>
     yargs
       .positional('deployment', {
         describe: chalk.green('existing deployment id'),
         type: 'string'
       })
-      .positional('name', {
+      .positional('variable', {
         describe: chalk.green('variable name'),
         type: 'string'
       })
