@@ -3,22 +3,28 @@ const {
   command,
   handler,
   builder,
+  aliases,
   describe: commandDescription
 } = require('../../../../commands/logs/get')
 const { get } = require('../../../../api/client')
+const { out } = require('../../../../utils/std')
 const refreshToken = require('../../../../refreshToken')
 
 jest.mock('../../../../api/client', () => ({
-  get: jest.fn()
+  get: jest.fn(() => ({ result: 'logs-output' }))
 }))
 
 jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
+jest.mock('../../../../utils/std', () => ({
+  out: jest.fn()
+}))
 
 const { option, positional } = yargs
 
 test('command', () => {
   expect(command).toEqual('get <deployment>')
   expect(commandDescription).toEqual(expect.any(String))
+  expect(aliases).toContain('$0')
 })
 
 test('options', () => {
@@ -56,12 +62,26 @@ describe('handler', () => {
   afterEach(() => {
     refreshToken.mockClear()
     get.mockClear()
+    out.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
     await handler({})
 
     expect(refreshToken).toHaveBeenCalledWith(expect.any(Function))
+  })
+
+  test('console output', async () => {
+    await handler({ deployment: 'deployment-id' })
+
+    expect(out).toHaveBeenCalledWith('logs-output')
+  })
+  test('no output on null result', async () => {
+    get.mockResolvedValueOnce({ result: null })
+
+    await handler({ deployment: 'deployment-id' })
+
+    expect(out).not.toHaveBeenCalled()
   })
 
   test('api call: no optional flags', async () => {

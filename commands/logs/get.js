@@ -1,20 +1,26 @@
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { get } = require('../../api/client')
+const { out } = require('../../utils/std')
 
 const handler = refreshToken(
-  (token, { deployment, startTime, endTime, filterPattern, streamLimit }) =>
-    get(token, `deployments/${deployment}/logs`, {
+  async (token, { deployment, startTime, endTime, filterPattern, streamLimit }) => {
+    const { result } = await get(token, `deployments/${deployment}/logs`, {
       startTime,
       endTime,
       filterPattern,
       streamLimit
     })
+    if (result) {
+      out(result)
+    }
+  }
 )
 
 module.exports = {
   handler,
   command: 'get <deployment>',
+  aliases: ['$0'],
   describe: chalk.green('retrieve application logs from the cloud'),
   builder: yargs =>
     yargs
