@@ -5,7 +5,7 @@ const {
   handler,
   builder,
   describe: commandDescription
-} = require('../../../../commands/secrets/add')
+} = require('../../../../commands/env/add')
 const { post } = require('../../../../api/client')
 const refreshToken = require('../../../../refreshToken')
 
@@ -61,7 +61,7 @@ describe('handler', () => {
       value: 'secret-value'
     })
 
-    expect(post).toHaveBeenCalledWith('token', 'deployments/deployment-id/secrets', {
+    expect(post).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment', {
       name: 'secret-name',
       value: 'secret-value'
     })

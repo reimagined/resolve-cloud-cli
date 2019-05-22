@@ -5,12 +5,12 @@ const {
   handler,
   builder,
   describe: commandDescription
-} = require('../../../../commands/secrets/update')
-const { put } = require('../../../../api/client')
+} = require('../../../../commands/env/list')
+const { get } = require('../../../../api/client')
 const refreshToken = require('../../../../refreshToken')
 
 jest.mock('../../../../api/client', () => ({
-  put: jest.fn()
+  get: jest.fn()
 }))
 
 jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
@@ -18,9 +18,9 @@ jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token',
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('update <deployment> <name> <value>')
+  expect(command).toEqual('list <deployment>')
   expect(commandDescription).toEqual(expect.any(String))
-  expect(aliases).toEqual(['set'])
+  expect(aliases).toEqual(['ls', '$0'])
 })
 
 test('options', () => {
@@ -30,21 +30,13 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledWith('name', {
-    describe: expect.any(String),
-    type: 'string'
-  })
-  expect(positional).toHaveBeenCalledWith('value', {
-    describe: expect.any(String),
-    type: 'string'
-  })
-  expect(positional).toHaveBeenCalledTimes(3)
+  expect(positional).toHaveBeenCalledTimes(1)
 })
 
 describe('handler', () => {
   afterEach(() => {
     refreshToken.mockClear()
-    put.mockClear()
+    get.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -55,14 +47,9 @@ describe('handler', () => {
 
   test('api call', async () => {
     await handler({
-      deployment: 'deployment-id',
-      saga: 'saga-name',
-      name: 'secret-name',
-      value: 'secret-value'
+      deployment: 'deployment-id'
     })
 
-    expect(put).toHaveBeenCalledWith('token', 'deployments/deployment-id/secrets/secret-name', {
-      value: 'secret-value'
-    })
+    expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment')
   })
 })

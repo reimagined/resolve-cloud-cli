@@ -3,14 +3,14 @@ const refreshToken = require('../../refreshToken')
 const { get } = require('../../api/client')
 
 const handler = refreshToken((token, { deployment }) =>
-  get(token, `deployments/${deployment}/secrets`)
+  get(token, `deployments/${deployment}/environment`)
 )
 
 module.exports = {
   handler,
   command: 'list <deployment>',
   aliases: ['ls', '$0'],
-  describe: 'list all secrets names',
+  describe: chalk.green('list all environment variables'),
   builder: yargs =>
     yargs.positional('deployment', {
       describe: chalk.green('existing deployment id'),

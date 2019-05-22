@@ -3,14 +3,14 @@ const { put } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
 
 const handler = refreshToken((token, { deployment, name, value }) =>
-  put(token, `deployments/${deployment}/secrets/${name}`, { value })
+  put(token, `deployments/${deployment}/environment/${name}`, { value })
 )
 
 module.exports = {
   handler,
   command: 'update <deployment> <name> <value>',
   aliases: ['set'],
-  describe: 'update secret variable value',
+  describe: chalk.green('update existing environment variable value'),
   builder: yargs =>
     yargs
       .positional('deployment', {
@@ -18,11 +18,11 @@ module.exports = {
         type: 'string'
       })
       .positional('name', {
-        describe: chalk.green('existing secret variable name'),
+        describe: chalk.green('existing variable name'),
         type: 'string'
       })
       .positional('value', {
-        describe: chalk.green('secret variable new value'),
+        describe: chalk.green('new variable value'),
         type: 'string'
       })
 }
