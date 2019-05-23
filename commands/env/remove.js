@@ -2,13 +2,13 @@ const chalk = require('chalk')
 const { del } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
 
-const handler = refreshToken((token, { deployment, variable }) =>
-  del(token, `deployments/${deployment}/environment/${variable}`)
+const handler = refreshToken((token, { deployment, variables }) =>
+  del(token, `deployments/${deployment}/environment`, { variables })
 )
 
 module.exports = {
   handler,
-  command: 'remove <deployment> <variable>',
+  command: 'remove <deployment> <variables...>',
   aliases: ['rm'],
   describe: chalk.green('remove environment variable'),
   builder: yargs =>
@@ -17,8 +17,8 @@ module.exports = {
         describe: chalk.green('existing deployment id'),
         type: 'string'
       })
-      .positional('variable', {
-        describe: chalk.green('environment variable name'),
-        type: 'string'
+      .positional('variables', {
+        describe: chalk.green('environment variables name list'),
+        type: 'array'
       })
 }

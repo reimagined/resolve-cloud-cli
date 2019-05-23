@@ -1,15 +1,17 @@
+const dotenv = require('dotenv')
 const chalk = require('chalk')
 const { post } = require('../../api/client')
 const refreshToken = require('../../refreshToken')
 
-const handler = refreshToken(async (token, { deployment, variable, value }) =>
-  post(token, `deployments/${deployment}/environment`, { variable, value })
+const handler = refreshToken(async (token, { deployment, variables }) =>
+  post(token, `deployments/${deployment}/environment`, {
+    variables: dotenv.parse(Buffer.from(variables.join('\n')))
+  })
 )
 
 module.exports = {
   handler,
-  command: `set <deployment> <variable> <value>`,
-  aliases: ['create', 'add'],
+  command: `set <deployment> <variables...>`,
   describe: chalk.green('set environment variable'),
   builder: yargs =>
     yargs
@@ -17,12 +19,8 @@ module.exports = {
         describe: chalk.green('existing deployment id'),
         type: 'string'
       })
-      .positional('variable', {
-        describe: chalk.green('variable name'),
-        type: 'string'
-      })
-      .positional('value', {
-        describe: chalk.green('variable value'),
-        type: 'string'
+      .positional('variables', {
+        describe: chalk.green('a list of key=value pairs'),
+        type: 'array'
       })
 }
