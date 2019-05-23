@@ -18,7 +18,7 @@ jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token',
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('remove <deployment> <variable>')
+  expect(command).toEqual('remove <deployment> <variables...>')
   expect(commandDescription).toEqual(expect.any(String))
   expect(aliases).toEqual(['rm'])
 })
@@ -30,9 +30,9 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledWith('variable', {
+  expect(positional).toHaveBeenCalledWith('variables', {
     describe: expect.any(String),
-    type: 'string'
+    type: 'array'
   })
   expect(positional).toHaveBeenCalledTimes(2)
 })
@@ -52,9 +52,11 @@ describe('handler', () => {
   test('api call', async () => {
     await handler({
       deployment: 'deployment-id',
-      variable: 'variable-name'
+      variables: ['VAR_A', 'VAR_B']
     })
 
-    expect(del).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment/variable-name')
+    expect(del).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment', {
+      variables: ['VAR_A', 'VAR_B']
+    })
   })
 })

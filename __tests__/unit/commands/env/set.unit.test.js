@@ -1,7 +1,6 @@
 const yargs = require('yargs')
 const {
   command,
-  aliases,
   handler,
   builder,
   describe: commandDescription
@@ -18,10 +17,8 @@ jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token',
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('set <deployment> <variable> <value>')
+  expect(command).toEqual('set <deployment> <variables...>')
   expect(commandDescription).toEqual(expect.any(String))
-  expect(aliases).toContain('create')
-  expect(aliases).toContain('add')
 })
 
 test('options', () => {
@@ -31,15 +28,11 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledWith('variable', {
+  expect(positional).toHaveBeenCalledWith('variables', {
     describe: expect.any(String),
-    type: 'string'
+    type: 'array'
   })
-  expect(positional).toHaveBeenCalledWith('value', {
-    describe: expect.any(String),
-    type: 'string'
-  })
-  expect(positional).toHaveBeenCalledTimes(3)
+  expect(positional).toHaveBeenCalledTimes(2)
 })
 
 describe('handler', () => {
@@ -49,21 +42,19 @@ describe('handler', () => {
   })
 
   test('wrapped with refreshToken', async () => {
-    await handler({})
+    await handler({ deployment: 'deployment-id', variables: ['VAR_A=var_a', 'VAR_B=var_b'] })
 
     expect(refreshToken).toHaveBeenCalledWith(expect.any(Function))
   })
 
   test('api call', async () => {
-    await handler({
-      deployment: 'deployment-id',
-      variable: 'variable-name',
-      value: 'variable-value'
-    })
+    await handler({ deployment: 'deployment-id', variables: ['VAR_A=var_a', 'VAR_B=var_b'] })
 
     expect(post).toHaveBeenCalledWith('token', 'deployments/deployment-id/environment', {
-      variable: 'variable-name',
-      value: 'variable-value'
+      variables: {
+        VAR_A: 'var_a',
+        VAR_B: 'var_b'
+      }
     })
   })
 })
