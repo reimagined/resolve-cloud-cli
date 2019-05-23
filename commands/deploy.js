@@ -18,12 +18,14 @@ const upload = async (token, payload) =>
 const waitForDeploymentState = async (token, id, expectedState) => {
   const { result: { state } } = await get(token, `deployments/${id}`)
 
+  log.trace(`received deployment ${id} state: ${state}, expected state: ${expectedState}`)
+
   if (state === expectedState) {
     return state
   }
 
   await new Promise(resolve => setTimeout(resolve, DEPLOYMENT_STATE_AWAIT_INTERVAL_MS))
-  return waitForDeploymentState(token, id, state)
+  return waitForDeploymentState(token, id, expectedState)
 }
 
 const handler = refreshToken(
