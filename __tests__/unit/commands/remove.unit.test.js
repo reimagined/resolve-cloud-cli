@@ -1,70 +1,115 @@
-const nanoid = require('nanoid')
-const { DEFAULT_REGION, DEFAULT_STAGE } = require('../../../constants')
+const yargs = require('yargs')
+const {
+  command,
+  aliases,
+  handler,
+  builder,
+  describe: commandDescription
+} = require('../../../commands/remove')
+const { del, get } = require('../../../api/client')
+const refreshToken = require('../../../refreshToken')
 
-jest.doMock('../../../utils/spinner', () => () => ({
-  spin: jest.fn(),
-  stop: jest.fn()
+jest.mock('../../../api/client', () => ({
+  del: jest.fn(),
+  get: jest.fn()
+}))
+jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
+jest.mock('../../../constants', () => ({
+  DEPLOYMENT_STATE_AWAIT_INTERVAL_MS: 1
 }))
 
-const removeJobData = {
-  jobId: nanoid(),
-  deploymentId: nanoid()
-}
+const { positional, option } = yargs
 
-const removeApp = jest.fn().mockReturnValue(removeJobData)
-const waitJob = jest.fn()
-
-jest.doMock('../../../utils/api', () => ({
-  removeApp,
-  waitJob
-}))
-
-const handler = require('../../../commands/remove')
-
-beforeEach(() => {
-  removeApp.mockClear()
-  waitJob.mockClear()
+test('command', () => {
+  expect(command).toEqual('remove <deployment>')
+  expect(commandDescription).toEqual(expect.any(String))
+  expect(aliases).toEqual(['rm'])
 })
 
-const app = { name: 'name-from-package-json', version: '0.0.1' }
+test('options', () => {
+  builder(yargs)
 
-test('removing an app with default options', async () => {
-  await handler(app, null, {})
-  expect(removeApp).toHaveBeenCalledWith({
-    name: 'name-from-package-json',
-    stage: DEFAULT_STAGE,
-    region: DEFAULT_REGION
+  expect(positional).toHaveBeenCalledWith('deployment', {
+    describe: expect.any(String),
+    type: 'string'
   })
-})
-
-test('removing another user app with default options', async () => {
-  await handler(app, 'app-2', {})
-  expect(removeApp).toHaveBeenCalledWith({
-    name: 'app-2',
-    stage: DEFAULT_STAGE,
-    region: DEFAULT_REGION
+  expect(positional).toHaveBeenCalledTimes(1)
+  expect(option).toHaveBeenCalledWith('noWait', {
+    describe: expect.any(String),
+    type: 'boolean',
+    default: false
   })
+  expect(option).toHaveBeenCalledTimes(1)
 })
 
-test('removing an app at specified --stage', async () => {
-  await handler(app, null, { stage: 'specified-stage' })
-  expect(removeApp).toHaveBeenCalledWith({
-    name: 'name-from-package-json',
-    stage: 'specified-stage',
-    region: DEFAULT_REGION
+describe('handler', () => {
+  let routesGet
+
+  beforeAll(() => {
+    get.mockImplementation((_, route, ...args) =>
+      Promise.resolve({
+        result: routesGet[route](...args)
+      })
+    )
   })
-})
 
-test('ignore arguments', async () => {
-  await handler(app, null, { stage: 'specified-stage' })
-  expect(removeApp).toHaveBeenCalledWith({
-    name: 'name-from-package-json',
-    stage: 'specified-stage',
-    region: DEFAULT_REGION
+  beforeEach(() => {
+    routesGet = {
+      'deployments/deployment-id': () => ({ state: 'destroyed' })
+    }
   })
-})
 
-test('waiting for the job to complete', async () => {
-  await handler(app, null, {})
-  expect(waitJob).toHaveBeenCalledWith(removeJobData)
+  afterEach(() => {
+    refreshToken.mockClear()
+    del.mockClear()
+    get.mockClear()
+  })
+
+  test('wrapped with refreshToken', async () => {
+    await handler({
+      deployment: 'deployment-id'
+    })
+
+    expect(refreshToken).toHaveBeenCalledWith(expect.any(Function))
+  })
+
+  test('api call', async () => {
+    await handler({
+      deployment: 'deployment-id'
+    })
+
+    expect(del).toHaveBeenCalledWith('token', 'deployments/deployment-id')
+  })
+
+  test('awaiting for deployment destroyed', async () => {
+    const states = ['destroying', 'destroyed']
+
+    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+
+    await handler({
+      deployment: 'deployment-id'
+    })
+
+    expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id')
+  })
+
+  test('bug: awaiting for deployment destroyed only two iterations', async () => {
+    const states = ['destroying', 'destroying', 'destroyed']
+
+    const proxy = jest.fn(() => ({ state: states.shift() }))
+
+    routesGet['deployments/deployment-id'] = proxy
+
+    await handler({
+      deployment: 'deployment-id'
+    })
+
+    expect(proxy).toHaveBeenCalledTimes(3)
+  })
+
+  test('option: noWait', async () => {
+    await handler({ noWait: true })
+
+    expect(get).not.toHaveBeenCalledWith('token', 'deployments/deployment-id')
+  })
 })

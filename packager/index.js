@@ -1,19 +1,21 @@
 #!/usr/bin/env node
 const log = require('consola')
 
-const build = require('./builder')
+const { build, install } = require('./yarn')
 const zip = require('./zip')
-const install = require('./installer')
+const symlink = require('./symlinks')
 
 module.exports = async (config, deploymentId) => {
-  log.start('Building resolve application...')
+  log.trace('building application...')
   const { serverPath, clientPath } = await build(config, deploymentId)
 
-  log.debug('Installing cloud dependencies...')
+  log.trace('installing cloud dependencies...')
   await install(serverPath)
 
-  log.debug('Making zip...')
+  await symlink(serverPath)
+
+  log.trace('zipping...')
   await Promise.all([zip(serverPath, 'code'), zip(clientPath, 'static')])
 
-  log.success('Resolve app built')
+  log.trace('Resolve app built')
 }

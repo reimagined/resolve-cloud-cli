@@ -4,5 +4,6 @@ module.exports = {
   error: jest.fn(),
   debug: jest.fn(),
   start: jest.fn(),
-  success: jest.fn()
+  success: jest.fn(),
+  trace: jest.fn()
 }

@@ -1,94 +1,153 @@
 const fs = require('fs')
 const path = require('path')
 const log = require('consola')
-const createSpinner = require('../utils/spinner')
-const packager = require('../packager')
-const FormData = require('form-data')
+const chalk = require('chalk')
 const qr = require('qrcode-terminal')
+const FormData = require('form-data')
+const { post, get, put } = require('../api/client')
+const refreshToken = require('../refreshToken')
+const packager = require('../packager')
+const config = require('../config')
+const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS } = require('../constants')
 
-const { DEFAULT_CONFIG } = require('../constants')
-const { upload, requestDeploy, commitDeploy, waitJob } = require('../utils/api')
-const { validateSubdomainName } = require('../utils/verification')
+const upload = async (token, payload) =>
+  post(token, 'upload', payload, {
+    'Content-Type': `multipart/form-data; boundary=${payload.getBoundary()}`
+  })
 
-module.exports = async (
-  { name, version },
-  { config = DEFAULT_CONFIG, eventstore = undefined, skipBuild = false, verbose = false }
-) => {
-  try {
-    log.level = verbose ? 5 : 3
-    const start = Date.now()
+const waitForDeploymentState = async (token, id, expectedState) => {
+  const { result: { state } } = await get(token, `deployments/${id}`)
 
-    const validationErrors = validateSubdomainName(name)
+  log.trace(`received deployment ${id} state: ${state}, expected state: ${expectedState}`)
 
-    if (validationErrors.length > 0) {
-      log.error(validationErrors)
-      return 1
+  if (state === expectedState) {
+    return state
+  }
+
+  await new Promise(resolve => setTimeout(resolve, DEPLOYMENT_STATE_AWAIT_INTERVAL_MS))
+  return waitForDeploymentState(token, id, expectedState)
+}
+
+const handler = refreshToken(
+  async (token, { skipBuild, noWait, configuration, name: nameOverride, deploymentId }) => {
+    const name = nameOverride || config.getPackageValue('name', '')
+
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      throw Error('incorrect application name (wrong working directory?)')
     }
 
-    const { deploymentId } = await requestDeploy({
-      app: {
-        name,
-        version,
-        eventstore
-      }
-    })
+    log.start(`deploying application "${name}" to the cloud`)
+    log.trace(`requesting list of existing deployments`)
 
-    log.debug(`available deploymentId: ${deploymentId}`)
+    const { result: deployments } = await get(token, 'deployments')
+
+    log.trace(`deployment list arrived: ${deployments.length} items`)
+
+    let id
+
+    if (deploymentId) {
+      if (deployments.findIndex(item => item.id === deploymentId)) {
+        throw Error(`deployment "${deploymentId}" not found`)
+      }
+      id = deploymentId
+    } else {
+      const nameDeployments = deployments.reduce(
+        (acc, item) => (item.name === name ? acc.concat(item) : acc),
+        []
+      )
+      if (nameDeployments.length > 1) {
+        throw Error(`multiple deployments with same name "${name} found"`)
+      }
+      if (nameDeployments.length > 0) {
+        ;[{ id }] = nameDeployments
+      }
+    }
+
+    if (!id) {
+      log.trace(`deployment with name "${name}" not found`)
+      log.trace(`creating new deployment`)
+
+      const { result: { id: newId } } = await post(token, `deployments`, {
+        name
+      })
+      id = newId
+    }
+
+    log.trace(`deployment id obtained: ${id}`)
 
     if (!skipBuild) {
-      try {
-        // build, install, zip
-        await packager(config, deploymentId)
-      } catch (e) {
-        log.error(e)
-        return 1
-      }
+      await packager(configuration, id)
+    } else {
+      log.trace(`skipping application building`)
     }
 
-    const spinner = createSpinner()
+    log.trace(`opening code package stream`)
+    const codeStream = new FormData({})
+    codeStream.append('file', fs.createReadStream(path.resolve('code.zip')))
 
-    try {
-      spinner.spin()
+    log.trace(`opening static package stream`)
+    const staticStream = new FormData({})
+    staticStream.append('file', fs.createReadStream(path.resolve('static.zip')))
 
-      const codePayload = new FormData({})
-      codePayload.append('file', fs.createReadStream(path.resolve('code.zip')))
-      const staticPayload = new FormData({})
-      staticPayload.append('file', fs.createReadStream(path.resolve('static.zip')))
+    log.trace(`uploading packages to endpoint`)
+    const [{ result: { id: codePackage } }, { result: { id: staticPackage } }] = await Promise.all([
+      upload(token, codeStream),
+      upload(token, staticStream)
+    ])
 
-      const [{ id: uploadCodeId }, { id: uploadStaticId }] = await Promise.all([
-        upload(codePayload),
-        upload(staticPayload)
-      ])
+    log.trace(`code package [${codePackage}], static package [${staticPackage}]`)
+    log.trace(`updating deployment [${id}]`)
 
-      const { jobId } = await commitDeploy({
-        app: {
-          name,
-          version,
-          eventstore
-        },
-        deploymentId,
-        codeLocation: uploadCodeId,
-        staticLocation: uploadStaticId
-      })
+    const { result: { appUrl } } = await put(token, `deployments/${id}`, {
+      name,
+      codePackage,
+      staticPackage
+    })
 
-      const url = await waitJob({ jobId, deploymentId })
-
-      const duration = Math.round((Date.now() - start) / 1000)
-
-      log.info('\n')
-      qr.generate(url, { small: true })
-      log.success(`\rBuild time ${duration} sec. Your app is now available at: ${url}`)
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        log.error(error.response.data)
-      } else {
-        log.error(error)
-      }
-    } finally {
-      spinner.stop()
+    if (!noWait) {
+      log.trace(`waiting for deployment ready state`)
+      await waitForDeploymentState(token, id, 'ready')
+    } else {
+      log.trace(`skip awaiting for deployment ready state`)
     }
-  } catch (e) {
-    log.error(e)
+
+    log.success(`"${name}" available at ${appUrl}`)
+
+    qr.generate(appUrl, { small: true })
   }
-  return 0
+)
+
+module.exports = {
+  handler,
+  command: 'deploy',
+  aliases: ['$0'],
+  describe: chalk.green('deploy reSolve framework application to the cloud'),
+  builder: yargs =>
+    yargs
+      .option('skipBuild', {
+        describe: 'skip application building',
+        type: 'boolean',
+        default: false
+      })
+      .option('configuration', {
+        alias: 'c',
+        describe: 'configuration name',
+        type: 'string',
+        default: 'cloud'
+      })
+      .option('name', {
+        alias: 'n',
+        describe: 'application name (name within package.json by default)',
+        type: 'string'
+      })
+      .option('deployment-id', {
+        alias: 'd',
+        describe: 'update existing deployment by id',
+        type: 'string'
+      })
+      .option('noWait', {
+        describe: 'do not wait for deployment ready state',
+        type: 'boolean',
+        default: false
+      })
 }

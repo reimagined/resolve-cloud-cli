@@ -1,3 +1,4 @@
+// TODO: check deprecation
 const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 
 module.exports = () => {

@@ -1,7 +1,9 @@
+// TODO: test
 const inquirer = require('inquirer')
-const { login } = require('../utils/auth')
+const chalk = require('chalk')
+const { login } = require('../api/auth')
 
-module.exports = async () => {
+const handler = async () => {
   const { Username, Password } = await inquirer.prompt([
     {
       type: 'input',
@@ -17,4 +19,10 @@ module.exports = async () => {
   ])
 
   await login(Username, Password)
+}
+
+module.exports = {
+  handler,
+  command: 'login',
+  describe: chalk.green('interactively authenticate and authorize user')
 }

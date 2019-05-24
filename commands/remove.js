@@ -1,34 +1,49 @@
+const chalk = require('chalk')
 const log = require('consola')
-const createSpinner = require('../utils/spinner')
-const { waitJob, removeApp } = require('../utils/api')
-const { DEFAULT_REGION, DEFAULT_STAGE } = require('../constants')
+const refreshToken = require('../refreshToken')
+const { del, get } = require('../api/client')
+const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS } = require('../constants')
 
-module.exports = async ({ name }, applicationName, opts) => {
-  const spinner = createSpinner()
-  try {
-    const { region = DEFAULT_REGION, stage = DEFAULT_STAGE } = opts
+const waitForDeploymentState = async (token, id, expectedState) => {
+  const { result: { state } } = await get(token, `deployments/${id}`)
 
-    spinner.spin()
-    log.debug(`\rEnqueuing the '${name}' app removal`)
+  log.trace(`received deployment ${id} state: ${state}, expected state: ${expectedState}`)
 
-    const removeJob = await removeApp({
-      name: applicationName || name,
-      region,
-      stage
-    })
-    log.debug(`\rWaiting for the '${name}' app removal`)
-
-    await waitJob(removeJob)
-    log.success(`The '${name}' application removed successfully`)
-  } catch (e) {
-    if (e.response && e.response.status === 400) {
-      log.error(e.response.data)
-    } else {
-      log.error(e.message)
-    }
-    return 1
-  } finally {
-    spinner.stop()
+  if (state === expectedState) {
+    return state
   }
-  return 0
+
+  await new Promise(resolve => setTimeout(resolve, DEPLOYMENT_STATE_AWAIT_INTERVAL_MS))
+  return waitForDeploymentState(token, id, expectedState)
+}
+
+const handler = refreshToken(async (token, { deployment, noWait }) => {
+  log.trace(`requesting deployment removal`)
+
+  await del(token, `deployments/${deployment}`)
+
+  if (!noWait) {
+    log.trace(`waiting for deployment ready state`)
+    await waitForDeploymentState(token, deployment, 'destroyed')
+  } else {
+    log.trace(`skip awaiting for deployment ready state`)
+  }
+})
+
+module.exports = {
+  handler,
+  command: 'remove <deployment>',
+  aliases: ['rm'],
+  describe: chalk.green('remove specific deployment and all its data'),
+  builder: yargs =>
+    yargs
+      .positional('deployment', {
+        describe: chalk.green('existing deployment id'),
+        type: 'string'
+      })
+      .option('noWait', {
+        describe: 'do not wait for deployment ready state',
+        type: 'boolean',
+        default: false
+      })
 }
