@@ -6,16 +6,19 @@ const {
   builder,
   describe: commandDescription
 } = require('../../../commands/remove')
-const { del } = require('../../../api/client')
+const { del, get } = require('../../../api/client')
 const refreshToken = require('../../../refreshToken')
 
 jest.mock('../../../api/client', () => ({
-  del: jest.fn()
+  del: jest.fn(),
+  get: jest.fn()
+}))
+jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
+jest.mock('../../../constants', () => ({
+  DEPLOYMENT_STATE_AWAIT_INTERVAL_MS: 1
 }))
 
-jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
-
-const { positional } = yargs
+const { positional, option } = yargs
 
 test('command', () => {
   expect(command).toEqual('remove <deployment>')
@@ -31,16 +34,41 @@ test('options', () => {
     type: 'string'
   })
   expect(positional).toHaveBeenCalledTimes(1)
+  expect(option).toHaveBeenCalledWith('noWait', {
+    describe: expect.any(String),
+    type: 'boolean',
+    default: false
+  })
+  expect(option).toHaveBeenCalledTimes(1)
 })
 
 describe('handler', () => {
+  let routesGet
+
+  beforeAll(() => {
+    get.mockImplementation((_, route, ...args) =>
+      Promise.resolve({
+        result: routesGet[route](...args)
+      })
+    )
+  })
+
+  beforeEach(() => {
+    routesGet = {
+      'deployments/deployment-id': () => ({ state: 'destroyed' })
+    }
+  })
+
   afterEach(() => {
     refreshToken.mockClear()
     del.mockClear()
+    get.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
-    await handler({})
+    await handler({
+      deployment: 'deployment-id'
+    })
 
     expect(refreshToken).toHaveBeenCalledWith(expect.any(Function))
   })
@@ -51,5 +79,37 @@ describe('handler', () => {
     })
 
     expect(del).toHaveBeenCalledWith('token', 'deployments/deployment-id')
+  })
+
+  test('awaiting for deployment destroyed', async () => {
+    const states = ['destroying', 'destroyed']
+
+    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+
+    await handler({
+      deployment: 'deployment-id'
+    })
+
+    expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id')
+  })
+
+  test('bug: awaiting for deployment destroyed only two iterations', async () => {
+    const states = ['destroying', 'destroying', 'destroyed']
+
+    const proxy = jest.fn(() => ({ state: states.shift() }))
+
+    routesGet['deployments/deployment-id'] = proxy
+
+    await handler({
+      deployment: 'deployment-id'
+    })
+
+    expect(proxy).toHaveBeenCalledTimes(3)
+  })
+
+  test('option: noWait', async () => {
+    await handler({ noWait: true })
+
+    expect(get).not.toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })
 })

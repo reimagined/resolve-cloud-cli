@@ -1,10 +1,34 @@
 const chalk = require('chalk')
+const log = require('consola')
 const refreshToken = require('../refreshToken')
-const { del } = require('../api/client')
+const { del, get } = require('../api/client')
+const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS } = require('../constants')
 
-const handler = refreshToken(async (token, { deployment }) =>
-  del(token, `deployments/${deployment}`)
-)
+const waitForDeploymentState = async (token, id, expectedState) => {
+  const { result: { state } } = await get(token, `deployments/${id}`)
+
+  log.trace(`received deployment ${id} state: ${state}, expected state: ${expectedState}`)
+
+  if (state === expectedState) {
+    return state
+  }
+
+  await new Promise(resolve => setTimeout(resolve, DEPLOYMENT_STATE_AWAIT_INTERVAL_MS))
+  return waitForDeploymentState(token, id, expectedState)
+}
+
+const handler = refreshToken(async (token, { deployment, noWait }) => {
+  log.trace(`requesting deployment removal`)
+
+  await del(token, `deployments/${deployment}`)
+
+  if (!noWait) {
+    log.trace(`waiting for deployment ready state`)
+    await waitForDeploymentState(token, deployment, 'destroyed')
+  } else {
+    log.trace(`skip awaiting for deployment ready state`)
+  }
+})
 
 module.exports = {
   handler,
@@ -12,8 +36,14 @@ module.exports = {
   aliases: ['rm'],
   describe: chalk.green('remove specific deployment and all its data'),
   builder: yargs =>
-    yargs.positional('deployment', {
-      describe: chalk.green('existing deployment id'),
-      type: 'string'
-    })
+    yargs
+      .positional('deployment', {
+        describe: chalk.green('existing deployment id'),
+        type: 'string'
+      })
+      .option('noWait', {
+        describe: 'do not wait for deployment ready state',
+        type: 'boolean',
+        default: false
+      })
 }

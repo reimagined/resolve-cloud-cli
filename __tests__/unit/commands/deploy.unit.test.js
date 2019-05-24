@@ -223,6 +223,18 @@ describe('handler', () => {
     expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })
 
+  test('bug: awaiting for deployment ready only two iterations', async () => {
+    const states = ['deploying', 'deploying', 'ready']
+
+    const proxy = jest.fn(() => ({ state: states.shift() }))
+
+    routesGet['deployments/deployment-id'] = proxy
+
+    await handler({})
+
+    expect(proxy).toHaveBeenCalledTimes(3)
+  })
+
   test('packager invocation', async () => {
     await handler({ configuration: 'cloud' })
 
