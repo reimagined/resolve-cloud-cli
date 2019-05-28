@@ -25,15 +25,101 @@ yarn add resolve-cloud
 
 ### Log in to the reSolve Cloud Platform
 
+Use the `login` command to authenticate and authorize to the reSolve cloud platform.
+
+```
+yarn resolve-cloud login
+```
+
+The CLI manages a refresh token so you stay logged in between queries.
+
 ## Mange Deployments
 
-## Manage Read Models and Sagas
+```
+yarn resolve-cloud deploy
+```
 
-## Specify Environment Variables
+```
+yarn resolve-cloud remove <ID>
+```
 
 ## View Deployment information
 
+```
+yarn resolve-cloud list
+```
+
+```
+yarn resolve-cloud describe <ID>
+```
+
+## Manage Read Models
+
+Use the `read-models` command to manage the application's read models.
+
+```
+yarn resolve-cloud read-models list <ID>
+```
+
+```
+yarn resolve-cloud read-models pause <ID> <read model name>
+```
+
+```
+yarn resolve-cloud read-models resume <ID> <read model name>
+```
+
+```
+yarn resolve-cloud read-models reset <ID> <read model name>
+```
+
+## Manage Sagas
+
+Use the `sagas` command to manage the application's sagas.
+
+```
+yarn resolve-cloud sagas list <ID>
+```
+
+```
+yarn resolve-cloud sagas pause <ID> <saga name>
+```
+
+```
+yarn resolve-cloud sagas resume <ID> <saga name>
+```
+
+```
+yarn resolve-cloud sagas reset <ID> <saga name>
+```
+
+### Manage Saga Properties
+
+Use the `sagas properties` command to manage a saga's properties.
+
+```
+yarn resolve-cloud sagas properties add <ID> <saga name> <property name> <value>
+```
+
+```
+yarn resolve-cloud sagas properties list <ID> <saga name>
+```
+
+```
+yarn resolve-cloud sagas properties remove <ID> <saga name> <property name>
+```
+
+```
+yarn resolve-cloud sagas properties update <ID> <saga name> <property name> <new value>
+```
+
+## Specify Environment Variables
+
 ## View Logs
+
+```
+yarn resolve-cloud logs get <ID>
+```
 
 ## View Help
 
