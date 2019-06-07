@@ -1,6 +1,6 @@
 ## [ReSolve](https://github.com/reimagined/resolve) Cloud Platform Command Line Interface
 
-This package provides an interface used to deploy applications implemented using the [reSolve](https://github.com/reimagined/resolve) framework to the cloud.
+This package provides an interface used to deploy [reSolve](https://github.com/reimagined/resolve) applications to the cloud.
 
 ## Usage
 
@@ -33,7 +33,7 @@ yarn resolve-cloud login
 
 The CLI manages a refresh token so you stay logged in between queries.
 
-## Mange Deployments
+## Manage Deployments
 
 Use the `deploy` command to deploy an application to the cloud.
 
@@ -43,7 +43,7 @@ yarn resolve-cloud deploy
 
 The cloud platform assigns an ID to an application deployment.
 
-Pass a deployment ID to the `remove` command to remove a deployment.
+Pass a deployment's ID to the `remove` command to remove this deployment.
 
 ```
 yarn resolve-cloud remove <ID>
@@ -153,17 +153,31 @@ yarn resolve-cloud sagas properties update <ID> <saga name> <property name> <new
 
 ## Specify Environment Variables
 
-## View Logs
-
 The following commands allow you to manage environment variables available for a deployment:
 
-Set an environment variable:
+Set environment variables:
 
 ```
-yarn resolve-cloud logs set <ID>
+yarn resolve-cloud environment set <ID> <key=value pairs>
 ```
 
 Remove an environment variable:
+
+```
+yarn resolve-cloud environment remove <ID> <list of variable names>
+```
+
+## View Logs
+
+Use the `logs` command to view and manage application logs.
+
+View logs:
+
+```
+yarn resolve-cloud logs get <ID>
+```
+
+Remove logs:
 
 ```
 yarn resolve-cloud logs remove <ID>
