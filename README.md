@@ -25,7 +25,7 @@ yarn add resolve-cloud
 
 ### Log in to the reSolve Cloud Platform
 
-Use the `login` command to authenticate and authorize to the reSolve cloud platform.
+Use the `login` command to authenticate and authorize to the reSolve cloud platform:
 
 ```
 yarn resolve-cloud login
@@ -35,7 +35,7 @@ The CLI manages an authentication session so you stay logged in between queries.
 
 ## Manage Deployments
 
-Use the `deploy` command to deploy an application to the cloud.
+Use the `deploy` command to deploy an application to the cloud:
 
 ```
 yarn resolve-cloud deploy
@@ -43,7 +43,7 @@ yarn resolve-cloud deploy
 
 The cloud platform assigns an ID to an application deployment.
 
-Pass a deployment's ID to the `remove` command to remove this deployment.
+Pass a deployment's ID to the `remove` command to remove this deployment:
 
 ```
 yarn resolve-cloud remove <ID>
@@ -57,7 +57,7 @@ To view the list of all your deployments, type:
 yarn resolve-cloud list
 ```
 
-Use the `describe` command to view information on a specific deployment.
+Use the `describe` command to view information on a specific deployment:
 
 ```
 yarn resolve-cloud describe <ID>
@@ -67,13 +67,13 @@ yarn resolve-cloud describe <ID>
 
 The `read-models` command manages the application's read models.
 
-View a deployed application's read models:
+##### View a deployed application's read models:
 
 ```
 yarn resolve-cloud read-models list <ID>
 ```
 
-You can pause and resume read model updatess:
+##### Pause and resume read model updates:
 
 ```
 yarn resolve-cloud read-models pause <ID> <read model name>
@@ -83,7 +83,7 @@ yarn resolve-cloud read-models pause <ID> <read model name>
 yarn resolve-cloud read-models resume <ID> <read model name>
 ```
 
-Reset a read model's persistent state.
+##### Reset a read model's persistent state:
 
 ```
 yarn resolve-cloud read-models reset <ID> <read model name>
@@ -93,13 +93,13 @@ yarn resolve-cloud read-models reset <ID> <read model name>
 
 The `sagas` command manages the application's sagas.
 
-View a list of available sagas:
+##### View a list of available sagas:
 
 ```
 yarn resolve-cloud sagas list <ID>
 ```
 
-Pause and resume a saga.
+##### Pause and resume a saga:
 
 ```
 yarn resolve-cloud sagas pause <ID> <saga name>
@@ -109,7 +109,7 @@ yarn resolve-cloud sagas pause <ID> <saga name>
 yarn resolve-cloud sagas resume <ID> <saga name>
 ```
 
-Reset a saga's persistent state.
+##### Reset a saga's persistent state:
 
 ```
 yarn resolve-cloud sagas reset <ID> <saga name>
@@ -119,25 +119,25 @@ yarn resolve-cloud sagas reset <ID> <saga name>
 
 Use the `sagas properties` command to manage a saga's properties.
 
-Add a property:
+##### Add a property:
 
 ```
 yarn resolve-cloud sagas properties add <ID> <saga name> <property name> <value>
 ```
 
-View all saga's properties:
+##### View all saga's properties:
 
 ```
 yarn resolve-cloud sagas properties list <ID> <saga name>
 ```
 
-Remove a property:
+##### Remove a property:
 
 ```
 yarn resolve-cloud sagas properties remove <ID> <saga name> <property name>
 ```
 
-Update a property's value:
+##### Update a property's value:
 
 ```
 yarn resolve-cloud sagas properties update <ID> <saga name> <property name> <new value>
@@ -147,13 +147,13 @@ yarn resolve-cloud sagas properties update <ID> <saga name> <property name> <new
 
 The following commands allow you to manage environment variables available for a deployment:
 
-Set environment variables:
+##### Set environment variables:
 
 ```
 yarn resolve-cloud environment set <ID> <key=value pairs>
 ```
 
-Remove an environment variable:
+##### Remove an environment variable:
 
 ```
 yarn resolve-cloud environment remove <ID> <list of variable names>
@@ -163,13 +163,13 @@ yarn resolve-cloud environment remove <ID> <list of variable names>
 
 Use the `logs` command to view and manage application logs.
 
-View logs:
+##### View logs:
 
 ```
 yarn resolve-cloud logs get <ID>
 ```
 
-Remove logs:
+##### Remove logs:
 
 ```
 yarn resolve-cloud logs remove <ID>
