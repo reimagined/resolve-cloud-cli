@@ -31,7 +31,7 @@ Use the `login` command to authenticate and authorize to the reSolve cloud platf
 yarn resolve-cloud login
 ```
 
-The CLI manages a refresh token so you stay logged in between queries.
+The CLI manages an authentication session so you stay logged in between queries.
 
 ## Manage Deployments
 
@@ -57,7 +57,7 @@ To view the list of all your deployments, type:
 yarn resolve-cloud list
 ```
 
-Use the `describe` command to vie information on a specific deployment.
+Use the `describe` command to view information on a specific deployment.
 
 ```
 yarn resolve-cloud describe <ID>
@@ -65,29 +65,25 @@ yarn resolve-cloud describe <ID>
 
 ## Manage Read Models
 
-Use the `read-models` command to manage the application's read models.
+The `read-models` command manages the application's read models.
 
-Use the `read-models list` command to view a deployed application's read models.
+View a deployed application's read models:
 
 ```
 yarn resolve-cloud read-models list <ID>
 ```
 
-You can pause and resume read model update process as shown below.
-
-##### pause:
+You can pause and resume read model updatess:
 
 ```
 yarn resolve-cloud read-models pause <ID> <read model name>
 ```
 
-##### resume:
-
 ```
 yarn resolve-cloud read-models resume <ID> <read model name>
 ```
 
-The `reset` command allows you to reset a read model's persistent state.
+Reset a read model's persistent state.
 
 ```
 yarn resolve-cloud read-models reset <ID> <read model name>
@@ -95,29 +91,25 @@ yarn resolve-cloud read-models reset <ID> <read model name>
 
 ## Manage Sagas
 
-Use the `sagas` command to manage the application's sagas.
+The `sagas` command manages the application's sagas.
 
-You can view a list of available sagas ash shown below:
+View a list of available sagas:
 
 ```
 yarn resolve-cloud sagas list <ID>
 ```
 
-The following commands allow you to pause and resume a saga.
-
-##### pause:
+Pause and resume a saga.
 
 ```
 yarn resolve-cloud sagas pause <ID> <saga name>
 ```
 
-##### resume:
-
 ```
 yarn resolve-cloud sagas resume <ID> <saga name>
 ```
 
-The `reset` command allows you reset a saga's persistent state.
+Reset a saga's persistent state.
 
 ```
 yarn resolve-cloud sagas reset <ID> <saga name>
