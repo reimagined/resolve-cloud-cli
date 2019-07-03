@@ -1,6 +1,6 @@
 ## [ReSolve](https://github.com/reimagined/resolve) Cloud Platform Command Line Interface
 
-This package provides an interface used to deploy [reSolve](https://github.com/reimagined/resolve) applications to the cloud.
+This package provdeploymentIdes an interface used to deploy [reSolve](https://github.com/reimagined/resolve) applications to the cloud.
 
 ## Usage
 
@@ -41,12 +41,12 @@ Use the `deploy` command to deploy an application to the cloud:
 yarn resolve-cloud deploy
 ```
 
-The cloud platform assigns an ID to an application deployment.
+The cloud platform assigns an deploymentId to an application deployment.
 
-Pass a deployment's ID to the `remove` command to remove this deployment:
+Pass a deployment's deploymentId to the `remove` command to remove this deployment:
 
 ```
-yarn resolve-cloud remove <ID>
+yarn resolve-cloud remove <deploymentId>
 ```
 
 ## View Deployment information
@@ -60,7 +60,7 @@ yarn resolve-cloud list
 Use the `describe` command to view information on a specific deployment:
 
 ```
-yarn resolve-cloud describe <ID>
+yarn resolve-cloud describe <deploymentId>
 ```
 
 ## Manage Read Models
@@ -70,23 +70,23 @@ The `read-models` command manages the application's read models.
 ##### View a deployed application's read models:
 
 ```
-yarn resolve-cloud read-models list <ID>
+yarn resolve-cloud read-models list <deploymentId>
 ```
 
 ##### Pause and resume read model updates:
 
 ```
-yarn resolve-cloud read-models pause <ID> <read model name>
+yarn resolve-cloud read-models pause <deploymentId> <readModelName>
 ```
 
 ```
-yarn resolve-cloud read-models resume <ID> <read model name>
+yarn resolve-cloud read-models resume <deploymentId> <readModelName>
 ```
 
 ##### Reset a read model's persistent state:
 
 ```
-yarn resolve-cloud read-models reset <ID> <read model name>
+yarn resolve-cloud read-models reset <deploymentId> <readModelName>
 ```
 
 ## Manage Sagas
@@ -96,23 +96,23 @@ The `sagas` command manages the application's sagas.
 ##### View a list of available sagas:
 
 ```
-yarn resolve-cloud sagas list <ID>
+yarn resolve-cloud sagas list <deploymentId>
 ```
 
 ##### Pause and resume a saga:
 
 ```
-yarn resolve-cloud sagas pause <ID> <saga name>
+yarn resolve-cloud sagas pause <deploymentId> <sagaName>
 ```
 
 ```
-yarn resolve-cloud sagas resume <ID> <saga name>
+yarn resolve-cloud sagas resume <deploymentId> <sagaName>
 ```
 
 ##### Reset a saga's persistent state:
 
 ```
-yarn resolve-cloud sagas reset <ID> <saga name>
+yarn resolve-cloud sagas reset <deploymentId> <sagaName>
 ```
 
 ### Manage Saga Properties
@@ -122,41 +122,41 @@ Use the `sagas properties` command to manage a saga's properties.
 ##### Add a property:
 
 ```
-yarn resolve-cloud sagas properties add <ID> <saga name> <property name> <value>
+yarn resolve-cloud sagas properties add <deploymentId> <sagaName> <propertyName> <value>
 ```
 
 ##### View all saga's properties:
 
 ```
-yarn resolve-cloud sagas properties list <ID> <saga name>
+yarn resolve-cloud sagas properties list <deploymentId> <sagaName>
 ```
 
 ##### Remove a property:
 
 ```
-yarn resolve-cloud sagas properties remove <ID> <saga name> <property name>
+yarn resolve-cloud sagas properties remove <deploymentId> <sagaName> <propertyName>
 ```
 
 ##### Update a property's value:
 
 ```
-yarn resolve-cloud sagas properties update <ID> <saga name> <property name> <new value>
+yarn resolve-cloud sagas properties update <deploymentId> <sagaName> <propertyName> <newValue>
 ```
 
-## Specify Environment Variables
+## Manage Environment Variables
 
-The following commands allow you to manage environment variables available for a deployment:
+The following commands allow you to manage environment variables available for a deployment.
 
 ##### Set environment variables:
 
 ```
-yarn resolve-cloud environment set <ID> <key=value pairs>
+yarn resolve-cloud environment set <deploymentId> <keyValuePairs>
 ```
 
 ##### Remove an environment variable:
 
 ```
-yarn resolve-cloud environment remove <ID> <list of variable names>
+yarn resolve-cloud environment remove <deploymentId> <variableNameList>
 ```
 
 ## View Logs
@@ -166,13 +166,47 @@ Use the `logs` command to view and manage application logs.
 ##### View logs:
 
 ```
-yarn resolve-cloud logs get <ID>
+yarn resolve-cloud logs get <deploymentId>
 ```
 
 ##### Remove logs:
 
 ```
-yarn resolve-cloud logs remove <ID>
+yarn resolve-cloud logs remove <deploymentId>
+```
+
+## Trace Application Performance
+
+Use the `tracing` command to control application performance tracing.
+
+##### Enable Performance Tracing:
+
+```
+resolve-cloud tracing enable <deploymentId>
+```
+
+##### Disable Performance Tracing:
+
+```
+resolve-cloud tracing disable <deploymentId>
+```
+
+##### Check Whether Performance Tracing is Enabled:
+
+```
+resolve-cloud tracing status <deploymentId>
+```
+
+##### View the List of an Application's Performance Traces:
+
+```
+resolve-cloud tracing summary <deploymentId>
+```
+
+##### View a Trace:
+
+```
+resolve-cloud tracing get <deploymentId> <traceId>
 ```
 
 ## View Help
