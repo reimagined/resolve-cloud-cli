@@ -25,27 +25,27 @@ module.exports = {
   builder: yargs =>
     yargs
       .positional('deployment', {
-        describe: chalk.green('existing deployment id'),
+        describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
       .option('startTime', {
         alias: 's',
-        describe: 'logs start time',
+        describe: 'the earliest moment in time to query',
         type: 'string'
       })
       .option('endTime', {
         alias: 'e',
-        describe: 'logs end time',
+        describe: 'the latest moment in time to query',
         type: 'string'
       })
       .option('filterPattern', {
         alias: 'f',
-        describe: 'filter pattern',
+        describe: 'a pattern used to filter the output',
         type: 'string'
       })
       .option('streamLimit', {
         alias: 'l',
-        describe: 'set output limit',
+        describe: 'a number of streams used to fetch logs',
         type: 'number'
       })
 }
