@@ -41,9 +41,9 @@ Use the `deploy` command to deploy an application to the cloud:
 yarn resolve-cloud deploy
 ```
 
-The cloud platform assigns an deploymentId to an application deployment.
+The cloud platform assigns an ID to an application deployment.
 
-Pass a deployment's deploymentId to the `remove` command to remove this deployment:
+Pass a deployment's ID to the `remove` command to remove this deployment:
 
 ```
 yarn resolve-cloud remove <deploymentId>
