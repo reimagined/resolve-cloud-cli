@@ -179,31 +179,31 @@ yarn resolve-cloud logs remove <deploymentId>
 
 Use the `tracing` command to control application performance tracing.
 
-##### Enable Performance Tracing:
+##### Enable performance tracing:
 
 ```
 resolve-cloud tracing enable <deploymentId>
 ```
 
-##### Disable Performance Tracing:
+##### Disable performance tracing:
 
 ```
 resolve-cloud tracing disable <deploymentId>
 ```
 
-##### Check Whether Performance Tracing is Enabled:
+##### Check whether performance tracing is enabled:
 
 ```
 resolve-cloud tracing status <deploymentId>
 ```
 
-##### View the List of an Application's Performance Traces:
+##### View the list of an application's performance traces:
 
 ```
 resolve-cloud tracing summary <deploymentId>
 ```
 
-##### View a Trace:
+##### View a trace:
 
 ```
 resolve-cloud tracing get <deploymentId> <traceId>
