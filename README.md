@@ -1,6 +1,6 @@
 ## [ReSolve](https://github.com/reimagined/resolve) Cloud Platform Command Line Interface
 
-This package provdeploymentIdes an interface used to deploy [reSolve](https://github.com/reimagined/resolve) applications to the cloud.
+This package provides an interface used to deploy [reSolve](https://github.com/reimagined/resolve) applications to the cloud.
 
 ## Usage
 
