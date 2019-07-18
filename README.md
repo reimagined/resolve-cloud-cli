@@ -25,7 +25,7 @@ yarn add resolve-cloud
 
 ### Log in to the reSolve Cloud Platform
 
-Use the `login` command to authenticate and authorize to the reSolve cloud platform:
+Use the `login` command to authenticate and authorize in the reSolve cloud platform:
 
 ```
 yarn resolve-cloud login
