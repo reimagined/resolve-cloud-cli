@@ -28,7 +28,7 @@ const exec = async (cmd, args, options) =>
         .toString()
         .split('\n')
         .filter(notEmpty)
-        .map(m => log.trace(m))
+        .map(m => log.log(m))
     )
     proc.stderr.on('data', data =>
       data
