@@ -13,11 +13,11 @@ module.exports = {
   builder: yargs =>
     yargs
       .positional('deployment', {
-        describe: chalk.green('existing deployment id'),
+        describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
       .positional('readmodel', {
-        describe: chalk.green('existing read model name'),
+        describe: chalk.green("an existing read model's name"),
         type: 'string'
       })
 }

@@ -16,10 +16,10 @@ module.exports = {
   handler,
   command: 'describe <deployment>',
   aliases: ['get'],
-  describe: chalk.green('describe specific deployment'),
+  describe: chalk.green('display information on the specified deployment'),
   builder: yargs =>
     yargs.positional('deployment', {
-      describe: chalk.green('existing deployment id'),
+      describe: chalk.green("an existing deployment's id"),
       type: 'string'
     })
 }

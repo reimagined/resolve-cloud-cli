@@ -30,12 +30,12 @@ module.exports = {
       })
       .option('startTime', {
         alias: 's',
-        describe: 'the earliest moment in time to query',
+        describe: 'the timestamp at which the log should start',
         type: 'string'
       })
       .option('endTime', {
         alias: 'e',
-        describe: 'the latest moment in time to query',
+        describe: 'the timestamp at which the log should end',
         type: 'string'
       })
       .option('filterPattern', {

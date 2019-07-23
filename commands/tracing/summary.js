@@ -59,12 +59,12 @@ module.exports = {
       })
       .option('startTime', {
         alias: 's',
-        describe: 'the earliest moment in time for which to retrieve traces',
+        describe: 'the timestamp at which the traces should start',
         type: 'string'
       })
       .option('endTime', {
         alias: 'e',
-        describe: 'the latest moment in time for which to retrieve traces',
+        describe: 'the timestamp at which the traces should end',
         type: 'string'
       })
 }

@@ -20,15 +20,15 @@ module.exports = {
   handler,
   command: 'list <deployment> <saga>',
   aliases: ['ls', '$0'],
-  describe: chalk.green('show assigned saga properties'),
+  describe: chalk.green('show a list of assigned properties'),
   builder: yargs =>
     yargs
       .positional('deployment', {
-        describe: chalk.green('existing deployment id'),
+        describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
       .positional('saga', {
-        describe: chalk.green('existing saga name'),
+        describe: chalk.green("an existing saga's name"),
         type: 'string'
       })
 }
