@@ -291,6 +291,21 @@ describe('handler', () => {
     expect(get).toHaveBeenCalledWith('token', 'deployments/specific-deployment-id')
   })
 
+  test('bugfix - option: id only one deployment', async () => {
+    routesGet.deployments = () => [
+      {
+        id: 'specific-deployment-id',
+        name: 'anything'
+      }
+    ]
+    routesGet['deployments/specific-deployment-id'] = () => ({ state: 'ready' })
+    routesPut['deployments/specific-deployment-id'] = () => ({})
+
+    await handler({ deploymentId: 'specific-deployment-id' })
+
+    expect(post).toHaveBeenCalledTimes(2)
+  })
+
   test('option: id (no such deployment)', async () => {
     routesPost.deployments = () => ({ id: 'specific-deployment-id' })
     routesGet['deployments/specific-deployment-id'] = () => ({ state: 'ready' })

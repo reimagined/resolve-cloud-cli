@@ -46,7 +46,8 @@ const handler = refreshToken(
     let id
 
     if (deploymentId) {
-      if (deployments.findIndex(item => item.id === deploymentId) > 0) {
+      log.trace(`searching existing deployment with id "${deploymentId}"`)
+      if (deployments.findIndex(item => item.id === deploymentId) >= 0) {
         id = deploymentId
       }
     } else {
@@ -63,8 +64,6 @@ const handler = refreshToken(
     }
 
     if (!id) {
-      log.trace(`a deployment with the name "${name}" not found`)
-
       if (deploymentId) {
         log.trace(`creating new deployment with id ${deploymentId}`)
       } else {
