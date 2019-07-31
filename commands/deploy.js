@@ -46,10 +46,9 @@ const handler = refreshToken(
     let id
 
     if (deploymentId) {
-      if (deployments.findIndex(item => item.id === deploymentId)) {
-        throw Error(`a deployment "${deploymentId}" not found`)
+      if (deployments.findIndex(item => item.id === deploymentId) > 0) {
+        id = deploymentId
       }
-      id = deploymentId
     } else {
       const nameDeployments = deployments.reduce(
         (acc, item) => (item.name === name ? acc.concat(item) : acc),
@@ -65,10 +64,16 @@ const handler = refreshToken(
 
     if (!id) {
       log.trace(`a deployment with the name "${name}" not found`)
-      log.trace(`creating a new deployment`)
+
+      if (deploymentId) {
+        log.trace(`creating new deployment with id ${deploymentId}`)
+      } else {
+        log.trace(`creating a new deployment`)
+      }
 
       const { result: { id: newId } } = await post(token, `deployments`, {
-        name
+        name,
+        id: deploymentId
       })
       id = newId
     }
@@ -140,9 +145,9 @@ module.exports = {
         describe: 'the application name (the name from package.json is used by default)',
         type: 'string'
       })
-      .option('deployment-id', {
+      .option('deploymentId', {
         alias: 'd',
-        describe: 'update an existing deployment specified by its ID',
+        describe: 'create or update the deployment with specific global ID',
         type: 'string'
       })
       .option('noWait', {
