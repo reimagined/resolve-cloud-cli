@@ -26,7 +26,7 @@ const handler = refreshToken(async (token, { deployment, noWait }) => {
     log.trace(`waiting for deployment ready state`)
     await waitForDeploymentState(token, deployment, 'destroyed')
   } else {
-    log.trace(`skip awaiting for deployment ready state`)
+    log.trace(`skip waiting for deployment ready state`)
   }
 })
 
@@ -34,15 +34,15 @@ module.exports = {
   handler,
   command: 'remove <deployment>',
   aliases: ['rm'],
-  describe: chalk.green('remove specific deployment and all its data'),
+  describe: chalk.green('remove an application deployment with all its data'),
   builder: yargs =>
     yargs
       .positional('deployment', {
-        describe: chalk.green('existing deployment id'),
+        describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
       .option('noWait', {
-        describe: 'do not wait for deployment ready state',
+        describe: 'do not wait for the ready state',
         type: 'boolean',
         default: false
       })

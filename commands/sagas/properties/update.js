@@ -10,15 +10,15 @@ module.exports = {
   handler,
   command: 'update <deployment> <saga> <name> <value>',
   aliases: ['set'],
-  describe: chalk.green('remove saga property'),
+  describe: chalk.green('update a saga property'),
   builder: yargs =>
     yargs
       .positional('deployment', {
-        describe: chalk.green('existing deployment id'),
+        describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
       .positional('saga', {
-        describe: chalk.green('existing saga name'),
+        describe: chalk.green("an existing saga's name"),
         type: 'string'
       })
       .positional('name', {

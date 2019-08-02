@@ -31,10 +31,10 @@ module.exports = {
   handler,
   command: 'list <deployment>',
   aliases: ['ls', '$0'],
-  describe: chalk.green('show read model list'),
+  describe: chalk.green("display a list of an application's read models"),
   builder: yargs =>
     yargs.positional('deployment', {
-      describe: chalk.green('existing deployment id'),
+      describe: chalk.green("an existing deployment's id"),
       type: 'string'
     })
 }

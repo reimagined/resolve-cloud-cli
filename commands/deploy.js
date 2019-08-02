@@ -18,7 +18,7 @@ const upload = async (token, payload) =>
 const waitForDeploymentState = async (token, id, expectedState) => {
   const { result: { state } } = await get(token, `deployments/${id}`)
 
-  log.trace(`received deployment ${id} state: ${state}, expected state: ${expectedState}`)
+  log.trace(`received the ${id} deployment's state: ${state}, expected state: ${expectedState}`)
 
   if (state === expectedState) {
     return state
@@ -36,27 +36,27 @@ const handler = refreshToken(
       throw Error('incorrect application name (wrong working directory?)')
     }
 
-    log.start(`deploying application "${name}" to the cloud`)
-    log.trace(`requesting list of existing deployments`)
+    log.start(`deploying the "${name}" application to the cloud`)
+    log.trace(`requesting the list of existing deployments`)
 
     const { result: deployments } = await get(token, 'deployments')
 
-    log.trace(`deployment list arrived: ${deployments.length} items`)
+    log.trace(`deployment list received: ${deployments.length} items`)
 
     let id
 
     if (deploymentId) {
-      if (deployments.findIndex(item => item.id === deploymentId)) {
-        throw Error(`deployment "${deploymentId}" not found`)
+      log.trace(`searching existing deployment with id "${deploymentId}"`)
+      if (deployments.findIndex(item => item.id === deploymentId) >= 0) {
+        id = deploymentId
       }
-      id = deploymentId
     } else {
       const nameDeployments = deployments.reduce(
         (acc, item) => (item.name === name ? acc.concat(item) : acc),
         []
       )
       if (nameDeployments.length > 1) {
-        throw Error(`multiple deployments with same name "${name} found"`)
+        throw Error(`multiple deployments with the same name "${name} found"`)
       }
       if (nameDeployments.length > 0) {
         ;[{ id }] = nameDeployments
@@ -64,11 +64,15 @@ const handler = refreshToken(
     }
 
     if (!id) {
-      log.trace(`deployment with name "${name}" not found`)
-      log.trace(`creating new deployment`)
+      if (deploymentId) {
+        log.trace(`creating new deployment with id ${deploymentId}`)
+      } else {
+        log.trace(`creating a new deployment`)
+      }
 
       const { result: { id: newId } } = await post(token, `deployments`, {
-        name
+        name,
+        id: deploymentId
       })
       id = newId
     }
@@ -78,25 +82,25 @@ const handler = refreshToken(
     if (!skipBuild) {
       await packager(configuration, id)
     } else {
-      log.trace(`skipping application building`)
+      log.trace(`skipping the application build phase`)
     }
 
-    log.trace(`opening code package stream`)
+    log.trace(`opening a code package stream`)
     const codeStream = new FormData({})
     codeStream.append('file', fs.createReadStream(path.resolve('code.zip')))
 
-    log.trace(`opening static package stream`)
+    log.trace(`opening a static package stream`)
     const staticStream = new FormData({})
     staticStream.append('file', fs.createReadStream(path.resolve('static.zip')))
 
-    log.trace(`uploading packages to endpoint`)
+    log.trace(`uploading packages to the endpoint`)
     const [{ result: { id: codePackage } }, { result: { id: staticPackage } }] = await Promise.all([
       upload(token, codeStream),
       upload(token, staticStream)
     ])
 
     log.trace(`code package [${codePackage}], static package [${staticPackage}]`)
-    log.trace(`updating deployment [${id}]`)
+    log.trace(`updating the deployment [${id}]`)
 
     const { result: { appUrl } } = await put(token, `deployments/${id}`, {
       name,
@@ -105,10 +109,10 @@ const handler = refreshToken(
     })
 
     if (!noWait) {
-      log.trace(`waiting for deployment ready state`)
+      log.trace(`waiting for the deployment ready state`)
       await waitForDeploymentState(token, id, 'ready')
     } else {
-      log.trace(`skip awaiting for deployment ready state`)
+      log.trace(`skip waiting for the deployment ready state`)
     }
 
     log.success(`"${name}" available at ${appUrl}`)
@@ -121,32 +125,32 @@ module.exports = {
   handler,
   command: 'deploy',
   aliases: ['$0'],
-  describe: chalk.green('deploy reSolve framework application to the cloud'),
+  describe: chalk.green('deploy a reSolve application to the cloud to the cloud'),
   builder: yargs =>
     yargs
       .option('skipBuild', {
-        describe: 'skip application building',
+        describe: 'skip the application build phase',
         type: 'boolean',
         default: false
       })
       .option('configuration', {
         alias: 'c',
-        describe: 'configuration name',
+        describe: 'the name of the configuration to use',
         type: 'string',
         default: 'cloud'
       })
       .option('name', {
         alias: 'n',
-        describe: 'application name (name within package.json by default)',
+        describe: 'the application name (the name from package.json is used by default)',
         type: 'string'
       })
-      .option('deployment-id', {
+      .option('deploymentId', {
         alias: 'd',
-        describe: 'update existing deployment by id',
+        describe: 'create or update the deployment with specific global ID',
         type: 'string'
       })
       .option('noWait', {
-        describe: 'do not wait for deployment ready state',
+        describe: 'do not wait for the deployment to reach the ready state',
         type: 'boolean',
         default: false
       })

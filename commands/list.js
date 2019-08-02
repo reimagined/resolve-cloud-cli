@@ -20,5 +20,5 @@ module.exports = {
   handler,
   command: 'list',
   aliases: ['ls'],
-  describe: chalk.green('show deployment list')
+  describe: chalk.green('display a list of available deployments')
 }

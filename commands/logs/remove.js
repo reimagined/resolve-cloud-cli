@@ -13,7 +13,7 @@ module.exports = {
   describe: chalk.green('delete all application logs (cannot be undone)'),
   builder: yargs =>
     yargs.positional('deployment', {
-      describe: chalk.green('existing deployment id'),
+      describe: chalk.green("an existing deployment's id"),
       type: 'string'
     })
 }
