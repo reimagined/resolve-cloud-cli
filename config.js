@@ -10,7 +10,11 @@ const configFile = path.join(os.homedir(), '.resolverc')
 
 const load = () => {
   const conf = rc('resolve', {
-    api_url: 'https://api.resolve.sh'
+    api_url: 'https://api.resolve.sh',
+    auth: {
+      client_id: '1c5brjise0stlj0rs1vm01gdrh',
+      user_pool_id: 'eu-central-1_xF7lYKU2r'
+    }
   })
   return Object.entries(conf).reduce((obj, [key, value]) => {
     obj[key.toLowerCase()] = value

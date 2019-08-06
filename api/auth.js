@@ -6,11 +6,9 @@ const {
 } = require('amazon-cognito-identity-js')
 const config = require('../config')
 
-const { RESOLVE_CLIENT_ID, RESOLVE_USER_POOL_ID } = require('../constants')
-
 const Pool = new CognitoUserPool({
-  UserPoolId: RESOLVE_USER_POOL_ID,
-  ClientId: RESOLVE_CLIENT_ID
+  UserPoolId: config.get('auth.user_pool_id'),
+  ClientId: config.get('auth.client_id')
 })
 
 const login = async (Username, Password) => {
