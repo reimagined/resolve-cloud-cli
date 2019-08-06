@@ -57,7 +57,7 @@ test('options', () => {
     alias: 'n',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('deployment-id', {
+  expect(option).toHaveBeenCalledWith('deploymentId', {
     describe: expect.any(String),
     alias: 'd',
     type: 'string'
@@ -266,7 +266,32 @@ describe('handler', () => {
     expect(get).not.toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })
 
-  test('option: id', async () => {
+  test('option: id (existing deployment)', async () => {
+    routesGet.deployments = () => [
+      {
+        id: 'other-deployment-id',
+        name: 'anything'
+      },
+      {
+        id: 'specific-deployment-id',
+        name: 'anything'
+      }
+    ]
+    routesGet['deployments/specific-deployment-id'] = () => ({ state: 'ready' })
+    routesPut['deployments/specific-deployment-id'] = () => ({})
+
+    await handler({ deploymentId: 'specific-deployment-id' })
+
+    expect(post).toHaveBeenCalledTimes(2)
+    expect(put).toHaveBeenCalledWith(
+      'token',
+      'deployments/specific-deployment-id',
+      expect.any(Object)
+    )
+    expect(get).toHaveBeenCalledWith('token', 'deployments/specific-deployment-id')
+  })
+
+  test('bugfix - option: id only one deployment', async () => {
     routesGet.deployments = () => [
       {
         id: 'specific-deployment-id',
@@ -278,20 +303,25 @@ describe('handler', () => {
 
     await handler({ deploymentId: 'specific-deployment-id' })
 
+    expect(post).toHaveBeenCalledTimes(2)
+  })
+
+  test('option: id (no such deployment)', async () => {
+    routesPost.deployments = () => ({ id: 'specific-deployment-id' })
+    routesGet['deployments/specific-deployment-id'] = () => ({ state: 'ready' })
+    routesPut['deployments/specific-deployment-id'] = () => ({})
+
+    await handler({ deploymentId: 'specific-deployment-id' })
+
+    expect(post).toHaveBeenCalledWith('token', 'deployments', {
+      name: 'package-json-name',
+      id: 'specific-deployment-id'
+    })
     expect(put).toHaveBeenCalledWith(
       'token',
       'deployments/specific-deployment-id',
       expect.any(Object)
     )
     expect(get).toHaveBeenCalledWith('token', 'deployments/specific-deployment-id')
-  })
-
-  test('option: id (no such deployment)', async () => {
-    await expect(handler({ deploymentId: 'specific-deployment-id' })).rejects.toThrow(
-      expect.any(Error)
-    )
-
-    expect(put).not.toHaveBeenCalled()
-    expect(post).not.toHaveBeenCalled()
   })
 })

@@ -1,10 +1,10 @@
-const config = require('../config')
 global.fetch = require('node-fetch')
 const {
   CognitoUserPool,
   CognitoUser,
   AuthenticationDetails
 } = require('amazon-cognito-identity-js')
+const config = require('../config')
 
 const { RESOLVE_CLIENT_ID, RESOLVE_USER_POOL_ID } = require('../constants')
 

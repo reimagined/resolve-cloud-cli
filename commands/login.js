@@ -24,5 +24,5 @@ const handler = async () => {
 module.exports = {
   handler,
   command: 'login',
-  describe: chalk.green('interactively authenticate and authorize user')
+  describe: chalk.green('interactively authenticate and authorize in the reSolve cloud platform')
 }

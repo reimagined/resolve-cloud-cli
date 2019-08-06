@@ -9,15 +9,15 @@ const handler = refreshToken(async (token, { deployment, saga }) =>
 module.exports = {
   handler,
   command: 'reset <deployment> <saga>',
-  describe: chalk.green('reset a saga'),
+  describe: chalk.green("reset a saga's state"),
   builder: yargs =>
     yargs
       .positional('deployment', {
-        describe: chalk.green('existing deployment id'),
+        describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
       .positional('saga', {
-        describe: chalk.green('application saga name'),
+        describe: chalk.green("an existing saga's name"),
         type: 'string'
       })
 }

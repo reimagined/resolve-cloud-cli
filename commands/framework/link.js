@@ -1,9 +1,8 @@
 const path = require('path')
 const fs = require('fs')
 const log = require('consola')
-const { set, get } = require('../../config')
-
 const chalk = require('chalk')
+const { set, get } = require('../../config')
 
 const handler = async () => {
   const currentDirectory = path.resolve()
@@ -25,9 +24,7 @@ const handler = async () => {
     set('symlinks.resolve', currentDirectory)
 
     log.trace(
-      `[experimental]: symlink to (${packageJson.name}) framework v${
-        packageJson.version
-      } created successfully`
+      `[experimental]: symlink to (${packageJson.name}) framework v${packageJson.version} created successfully`
     )
   } else {
     const resolveSymlink = get('symlinks.resolve')
