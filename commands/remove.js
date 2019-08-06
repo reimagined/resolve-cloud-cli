@@ -5,7 +5,9 @@ const { del, get } = require('../api/client')
 const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS } = require('../constants')
 
 const waitForDeploymentState = async (token, id, expectedState) => {
-  const { result: { state } } = await get(token, `deployments/${id}`)
+  const {
+    result: { state }
+  } = await get(token, `deployments/${id}`)
 
   log.trace(`received deployment ${id} state: ${state}, expected state: ${expectedState}`)
 
