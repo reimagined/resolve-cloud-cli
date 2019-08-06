@@ -1,5 +1,3 @@
 module.exports = {
-  RESOLVE_CLIENT_ID: '743elq8as56v0vnen9j8np5ov3',
-  RESOLVE_USER_POOL_ID: 'us-east-1_NPyyahLdT',
   DEPLOYMENT_STATE_AWAIT_INTERVAL_MS: 3000
 }
