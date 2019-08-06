@@ -12,8 +12,8 @@ const load = () => {
   const conf = rc('resolve', {
     api_url: 'https://api.resolve.sh',
     auth: {
-      client_id: '1c5brjise0stlj0rs1vm01gdrh',
-      user_pool_id: 'eu-central-1_xF7lYKU2r'
+      client_id: '3hsjmqkeoajn6pg29nniugivcl',
+      user_pool_id: 'eu-west-1_mUugUIqHh'
     }
   })
   return Object.entries(conf).reduce((obj, [key, value]) => {
