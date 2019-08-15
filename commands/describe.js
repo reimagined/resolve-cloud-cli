@@ -8,7 +8,15 @@ const handler = refreshToken(async (token, { deployment }) => {
   const { result } = await get(token, `deployments/${deployment}`)
 
   if (result) {
-    out(columnify(result, { minWidth: 20, showHeaders: false }))
+    out(
+      columnify(
+        {
+          ...result,
+          error: result.error || 'N\\A'
+        },
+        { minWidth: 20, showHeaders: false }
+      )
+    )
   }
 })
 
