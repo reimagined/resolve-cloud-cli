@@ -235,6 +235,22 @@ describe('handler', () => {
     expect(proxy).toHaveBeenCalledTimes(3)
   })
 
+  test('deployment fall to error state', async () => {
+    const states = ['deploying', 'error']
+
+    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+
+    await expect(handler({})).rejects.toBeInstanceOf(Error)
+  })
+
+  test('deployment fall to inconsistent state', async () => {
+    const states = ['deploying', 'inconsistent']
+
+    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+
+    await expect(handler({})).rejects.toBeInstanceOf(Error)
+  })
+
   test('packager invocation', async () => {
     await handler({ configuration: 'cloud' })
 
