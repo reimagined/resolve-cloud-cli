@@ -10,7 +10,11 @@ const configFile = path.join(os.homedir(), '.resolverc')
 
 const load = () => {
   const conf = rc('resolve', {
-    api_url: 'https://api.resolve.sh'
+    api_url: 'https://api.resolve.sh',
+    auth: {
+      client_id: '3hsjmqkeoajn6pg29nniugivcl',
+      user_pool_id: 'eu-west-1_mUugUIqHh'
+    }
   })
   return Object.entries(conf).reduce((obj, [key, value]) => {
     obj[key.toLowerCase()] = value
@@ -32,12 +36,14 @@ const saveFile = conf => {
 
 const get = (...selectors) => {
   const conf = load()
-  return selectors.map(selector => lodashGet(conf, selector)).reduce((acc, value) => {
-    if (acc === null) {
-      return value
-    }
-    return [].concat(acc, value)
-  }, null)
+  return selectors
+    .map(selector => lodashGet(conf, selector))
+    .reduce((acc, value) => {
+      if (acc === null) {
+        return value
+      }
+      return [].concat(acc, value)
+    }, null)
 }
 
 const set = (selector, value) => {

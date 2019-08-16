@@ -16,7 +16,9 @@ const upload = async (token, payload) =>
   })
 
 const waitForDeploymentState = async (token, id, expectedState) => {
-  const { result: { state } } = await get(token, `deployments/${id}`)
+  const {
+    result: { state }
+  } = await get(token, `deployments/${id}`)
 
   log.trace(`received the ${id} deployment's state: ${state}, expected state: ${expectedState}`)
 
@@ -70,7 +72,9 @@ const handler = refreshToken(
         log.trace(`creating a new deployment`)
       }
 
-      const { result: { id: newId } } = await post(token, `deployments`, {
+      const {
+        result: { id: newId }
+      } = await post(token, `deployments`, {
         name,
         id: deploymentId
       })
@@ -94,15 +98,21 @@ const handler = refreshToken(
     staticStream.append('file', fs.createReadStream(path.resolve('static.zip')))
 
     log.trace(`uploading packages to the endpoint`)
-    const [{ result: { id: codePackage } }, { result: { id: staticPackage } }] = await Promise.all([
-      upload(token, codeStream),
-      upload(token, staticStream)
-    ])
+    const [
+      {
+        result: { id: codePackage }
+      },
+      {
+        result: { id: staticPackage }
+      }
+    ] = await Promise.all([upload(token, codeStream), upload(token, staticStream)])
 
     log.trace(`code package [${codePackage}], static package [${staticPackage}]`)
     log.trace(`updating the deployment [${id}]`)
 
-    const { result: { appUrl } } = await put(token, `deployments/${id}`, {
+    const {
+      result: { appUrl }
+    } = await put(token, `deployments/${id}`, {
       name,
       codePackage,
       staticPackage

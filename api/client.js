@@ -23,7 +23,9 @@ const request = async (token, method, url, data, params, headers) => {
     })).data
   } catch (e) {
     if (e.response) {
-      const { response: { status, data: message } } = e
+      const {
+        response: { status, data: message }
+      } = e
       throw new Error(`${status}: ${message}`)
     }
     throw e

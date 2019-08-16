@@ -1,6 +1,6 @@
 const columnify = require('columnify')
-const { out } = require('../../../utils/std')
 const yargs = require('yargs')
+const { out } = require('../../../utils/std')
 const {
   command,
   aliases,

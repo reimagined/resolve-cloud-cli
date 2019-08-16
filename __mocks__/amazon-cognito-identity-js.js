@@ -14,21 +14,27 @@ class CognitoUser {
   static get userAuthSuccess() {
     return userAuthSuccess
   }
+
   static set userAuthSuccess(success) {
     userAuthSuccess = success
   }
+
   static get userRefreshSessionSuccess() {
     return userRefreshSessionSuccess
   }
+
   static set userRefreshSessionSuccess(success) {
     userRefreshSessionSuccess = success
   }
+
   static get userConstructorMock() {
     return userConstructorMock
   }
+
   static get userRefreshSessionMock() {
     return userRefreshSessionMock
   }
+
   static get userAuthenticateMock() {
     return userAuthenticateMock
   }
