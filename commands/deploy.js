@@ -15,19 +15,21 @@ const upload = async (token, payload) =>
     'Content-Type': `multipart/form-data; boundary=${payload.getBoundary()}`
   })
 
-const waitForDeploymentState = async (token, id, expectedState) => {
+const waitForDeploymentState = async (token, id, expectedStates) => {
   const {
-    result: { state }
+    result: { state, error }
   } = await get(token, `deployments/${id}`)
 
-  log.trace(`received the ${id} deployment's state: ${state}, expected state: ${expectedState}`)
+  log.trace(
+    `received the ${id} deployment's state: ${state}, expected states: ${expectedStates.join(',')}`
+  )
 
-  if (state === expectedState) {
-    return state
+  if (expectedStates.includes(state)) {
+    return { state, error }
   }
 
   await new Promise(resolve => setTimeout(resolve, DEPLOYMENT_STATE_AWAIT_INTERVAL_MS))
-  return waitForDeploymentState(token, id, expectedState)
+  return waitForDeploymentState(token, id, expectedStates)
 }
 
 const handler = refreshToken(
@@ -120,7 +122,14 @@ const handler = refreshToken(
 
     if (!noWait) {
       log.trace(`waiting for the deployment ready state`)
-      await waitForDeploymentState(token, id, 'ready')
+      const { state, error } = await waitForDeploymentState(token, id, [
+        'ready',
+        'error',
+        'inconsistent'
+      ])
+      if (state !== 'ready') {
+        throw Error(`unexpected deployment state "${state}" with error: ${error || 'none'}"`)
+      }
     } else {
       log.trace(`skip waiting for the deployment ready state`)
     }
