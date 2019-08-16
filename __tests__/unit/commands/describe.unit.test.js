@@ -25,7 +25,8 @@ const { positional } = yargs
 beforeAll(() => {
   get.mockResolvedValue({
     result: {
-      data: 'data'
+      data: 'data',
+      error: 'error'
     }
   })
 })
@@ -65,8 +66,24 @@ describe('handler', () => {
 
     await handler({})
 
-    expect(columnify).toHaveBeenCalledWith({ data: 'data' }, { minWidth: 20, showHeaders: false })
+    expect(columnify).toHaveBeenCalledWith(
+      { data: 'data', error: 'error' },
+      { minWidth: 20, showHeaders: false }
+    )
     expect(out).toHaveBeenCalledWith('result-output')
+  })
+
+  test('print "not available" if no error returned', async () => {
+    get.mockResolvedValueOnce({
+      result: {
+        data: 'data',
+        error: undefined
+      }
+    })
+
+    await handler({})
+
+    expect(columnify).toHaveBeenCalledWith({ data: 'data', error: 'N\\A' }, expect.anything())
   })
 
   test('api call', async () => {
