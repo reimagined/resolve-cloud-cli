@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const log = require('consola')
 
-const { build, install } = require('./yarn')
+const { build } = require('./yarn')
 const zip = require('./zip')
 const symlink = require('./symlinks')
 
@@ -10,8 +10,6 @@ module.exports = async (config, deploymentId) => {
   const { serverPath, clientPath } = await build(config, deploymentId)
 
   log.trace('installing cloud dependencies...')
-  await install(serverPath)
-
   await symlink(serverPath)
 
   log.trace('zipping...')
