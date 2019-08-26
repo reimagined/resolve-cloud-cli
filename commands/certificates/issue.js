@@ -6,35 +6,28 @@ const { post } = require('../../api/client')
 
 const readFile = promisify(fs.readFile)
 
-const handler = refreshToken(
-  async (token, { names, certificateFile, keyFile, chainFile, id = null }) => {
-    const [certificate, key, chain] = await Promise.all([
-      readFile(certificateFile, 'utf8'),
-      readFile(keyFile, 'utf8'),
-      readFile(chainFile, 'utf8')
-    ])
+const handler = refreshToken(async (token, { certificateFile, keyFile, chainFile, id = null }) => {
+  const [certificate, key, chain] = await Promise.all([
+    readFile(certificateFile, 'utf8'),
+    readFile(keyFile, 'utf8'),
+    readFile(chainFile, 'utf8')
+  ])
 
-    return post(token, `certificates`, {
-      names,
-      certificate,
-      key,
-      chain,
-      id
-    })
-  }
-)
+  return post(token, `certificates`, {
+    certificate,
+    key,
+    chain,
+    id
+  })
+})
 
 module.exports = {
   handler,
-  command: 'issue <names..>',
+  command: 'issue',
   aliases: ['import'],
   describe: chalk.green('issue a new SLL certificate for specified domain names'),
   builder: yargs =>
     yargs
-      .positional('names', {
-        describe: chalk.green('one or multiple CNAMEs to associate with a certificate'),
-        type: 'string'
-      })
       .option('certificateFile', {
         alias: 'crt',
         describe: 'a PEM-encoded file with a certificate',
