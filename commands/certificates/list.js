@@ -11,17 +11,29 @@ const handler = refreshToken(async token => {
   if (result) {
     out(
       columnify(
-        result.map(({ id, domainName, additionalNames, issuer, importedAt }) => ({
-          id,
-          'domain name': domainName,
-          'additional names': isEmpty(additionalNames) ? 'N/A' : additionalNames.join(', '),
-          issuer,
-          imported: dateFormat(new Date(importedAt), 'm/d/yy HH:MM:ss')
-        })),
+        result.map(
+          ({ id, domainName, additionalNames, issuer, importedAt, notBefore, notAfter }) => ({
+            id,
+            'domain name': domainName,
+            'additional names': isEmpty(additionalNames) ? 'N/A' : additionalNames.join(', '),
+            issuer,
+            imported: dateFormat(new Date(importedAt), 'm/d/yy HH:MM:ss'),
+            'not before': dateFormat(new Date(notBefore), 'm/d/yy HH:MM:ss'),
+            'not after': dateFormat(new Date(notAfter), 'm/d/yy HH:MM:ss')
+          })
+        ),
         {
-          minWidth: 30,
+          minWidth: 20,
           truncate: true,
-          columns: ['id', 'domain name', 'issuer', 'imported', 'additional names'],
+          columns: [
+            'id',
+            'domain name',
+            'issuer',
+            'imported',
+            'not before',
+            'not after',
+            'additional names'
+          ],
           config: {
             'additional names': {
               maxWidth: 160
