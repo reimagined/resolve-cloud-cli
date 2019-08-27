@@ -1,24 +1,29 @@
 const columnify = require('columnify')
+const dateFormat = require('dateformat')
+const isEmpty = require('lodash.isempty')
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { get } = require('../../api/client')
 const { out } = require('../../utils/std')
 
-const handler = refreshToken(async (token, { deployment }) => {
-  const { result } = await get(token, `deployments/${deployment}/sagas`)
+const handler = refreshToken(async token => {
+  const { result } = await get(token, `certificates`)
   if (result) {
     out(
       columnify(
-        result.map(({ name, status }) => ({
-          name,
-          status
+        result.map(({ id, domainName, additionalNames, issuer, importedAt }) => ({
+          id,
+          'domain name': domainName,
+          'additional names': isEmpty(additionalNames) ? 'N/A' : additionalNames.join(', '),
+          issuer,
+          imported: dateFormat(new Date(importedAt), 'm/d/yy HH:MM:ss')
         })),
         {
           minWidth: 30,
           truncate: true,
-          columns: ['name', 'status', 'last event', 'last error'],
+          columns: ['id', 'domain name', 'issuer', 'imported', 'additional names'],
           config: {
-            'last error': {
+            'additional names': {
               maxWidth: 160
             }
           }
