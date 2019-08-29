@@ -28,6 +28,6 @@ module.exports = {
       .option('certificate', {
         alias: 'cert',
         describe: 'an id of imported SSL certificate',
-        type: 'number'
+        type: 'string'
       })
 }
