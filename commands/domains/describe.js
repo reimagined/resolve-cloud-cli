@@ -1,4 +1,5 @@
 const { escape } = require('querystring')
+const dateFormat = require('dateformat')
 const columnify = require('columnify')
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
@@ -13,7 +14,8 @@ const handler = refreshToken(async (token, { domain }) => {
       columnify(
         {
           ...result,
-          challenge: result.verified ? 'completed' : result.challenge
+          challenge: result.verified ? 'completed' : result.challenge,
+          addedAt: dateFormat(new Date(result.addedAt), 'm/d/yy HH:MM:ss')
         },
         {
           minWidth: 20,
