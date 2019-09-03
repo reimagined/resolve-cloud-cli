@@ -30,7 +30,8 @@ beforeAll(() => {
       domain: 'domain-within-response',
       verified: false,
       challenge: 'verification-challenge',
-      addedAt: dateAdded
+      addedAt: dateAdded,
+      assignedTo: 'assigned-to-deployment'
     }
   })
 })
@@ -66,7 +67,8 @@ describe('handler', () => {
         domain: 'domain-within-response',
         verified: false,
         addedAt: 'formatted-date',
-        challenge: 'verification-challenge'
+        challenge: 'verification-challenge',
+        assignedTo: 'assigned-to-deployment'
       },
       expect.any(Object)
     )
@@ -80,7 +82,8 @@ describe('handler', () => {
         domain: 'domain-within-response',
         verified: true,
         challenge: 'verification-challenge',
-        addedAt: dateAdded
+        addedAt: dateAdded,
+        assignedTo: 'assigned-to-deployment'
       }
     })
 
