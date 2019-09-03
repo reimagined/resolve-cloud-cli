@@ -1,8 +1,11 @@
+const { escape } = require('querystring')
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { post } = require('../../api/client')
 
-const handler = refreshToken(async (token, { domain }) => post(token, `domains`, { domain }))
+const handler = refreshToken(async (token, { domain, deployment }) =>
+  post(token, `domains/${escape(domain)}/assign`, { deployment })
+)
 
 module.exports = {
   handler,
@@ -15,7 +18,7 @@ module.exports = {
         describe: chalk.green('domain name to assign'),
         type: 'string'
       })
-      .positional('domain', {
+      .positional('deployment', {
         describe: chalk.green("existing deployment's id"),
         type: 'string'
       })

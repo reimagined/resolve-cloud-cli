@@ -1,11 +1,12 @@
 const yargs = require('yargs')
+const { escape } = require('querystring')
 const {
   command,
   aliases,
   handler,
   builder,
   describe: commandDescription
-} = require('../../../../commands/domains/add')
+} = require('../../../../commands/domains/assign')
 const { post } = require('../../../../api/client')
 const refreshToken = require('../../../../refreshToken')
 
@@ -13,18 +14,15 @@ jest.mock('../../../../api/client', () => ({
   post: jest.fn()
 }))
 jest.mock('../../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
-jest.mock('util', () => ({
-  promisify: fn => fn
-}))
-jest.mock('fs', () => ({
-  readFile: jest.fn(name => name)
+jest.mock('querystring', () => ({
+  escape: jest.fn(() => 'escaped-string')
 }))
 
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('add <domain>')
-  expect(aliases).toEqual(expect.arrayContaining(['register']))
+  expect(command).toEqual('assign <domain> <deployment>')
+  expect(aliases).toEqual(expect.arrayContaining(['bind']))
   expect(commandDescription).toEqual(expect.any(String))
 })
 
@@ -35,13 +33,18 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledTimes(1)
+  expect(positional).toHaveBeenCalledWith('deployment', {
+    describe: expect.any(String),
+    type: 'string'
+  })
+  expect(positional).toHaveBeenCalledTimes(2)
 })
 
 describe('handler', () => {
   afterEach(() => {
     refreshToken.mockClear()
     post.mockClear()
+    escape.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -52,11 +55,13 @@ describe('handler', () => {
 
   test('api call', async () => {
     await handler({
-      domain: 'custom-domain'
+      domain: 'custom-domain',
+      deployment: 'existing-deployment'
     })
 
-    expect(post).toHaveBeenCalledWith('token', 'domains', {
-      domain: 'custom-domain'
+    expect(escape).toHaveBeenCalledWith('custom-domain')
+    expect(post).toHaveBeenCalledWith('token', 'domains/escaped-string/assign', {
+      deployment: 'existing-deployment'
     })
   })
 })
