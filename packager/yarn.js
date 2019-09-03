@@ -52,12 +52,6 @@ const build = async (config, deploymentId) => {
   }
 }
 
-const install = async cloudEntry =>
-  exec(yarn, [], {
-    cwd: path.resolve(cloudEntry)
-  })
-
 module.exports = {
-  build,
-  install
+  build
 }
