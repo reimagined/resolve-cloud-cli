@@ -41,6 +41,7 @@
     "inquirer": "^6.2.0",
     "lodash.get": "^4.4.2",
     "lodash.isempty": "^4.4.0",
+    "lodash.omit": "^4.5.0",
     "lodash.set": "^4.3.2",
     "lodash.unset": "^4.5.2",
     "node-fetch": "^2.2.0",

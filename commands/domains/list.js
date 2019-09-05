@@ -10,16 +10,16 @@ const handler = refreshToken(async token => {
   if (result) {
     out(
       columnify(
-        result.map(({ domain, addedAt, verified, assignedTo }) => ({
+        result.map(({ domain, addedAt, verified, bindings = {} }) => ({
           domain,
           verified,
           'added at': dateFormat(new Date(addedAt), 'm/d/yy HH:MM:ss'),
-          assignedTo
+          bindings: Object.keys(bindings).join(',')
         })),
         {
           minWidth: 20,
           truncate: true,
-          columns: ['domain', 'verified', 'added at', 'assigned to']
+          columns: ['domain', 'verified', 'added at', 'bindings']
         }
       )
     )
