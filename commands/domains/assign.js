@@ -3,8 +3,11 @@ const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { post } = require('../../api/client')
 
-const handler = refreshToken(async (token, { domain, deployment }) =>
-  post(token, `domains/${escape(domain)}/assign`, { deployment })
+const handler = refreshToken(async (token, { domain, deployment, certificate }) =>
+  post(token, `domains/${escape(domain)}/assign`, {
+    deploymentId: deployment,
+    certificateId: certificate
+  })
 )
 
 module.exports = {
@@ -20,6 +23,11 @@ module.exports = {
       })
       .positional('deployment', {
         describe: chalk.green("existing deployment's id"),
+        type: 'string'
+      })
+      .option('certificate', {
+        alias: 'cert',
+        describe: 'SSL certificate id to use',
         type: 'string'
       })
 }
