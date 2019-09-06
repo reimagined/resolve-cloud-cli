@@ -38,7 +38,7 @@ const handler = refreshToken(async (token, { name, deployment, certificate }) =>
     throw Error(`Unable to retrieve domain binding info.`)
   }
 
-  out(`Add CNAME "${subdomain}" record with "${binding.cname}" value to your hosted zone`)
+  out(`Add CNAME "${subdomain}" record with "${binding.cname}" value to your DNS zone`)
 })
 
 module.exports = {
