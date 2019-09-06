@@ -25,9 +25,12 @@ beforeAll(() => {
     result: [
       {
         domain: 'domain-name',
-        assignedTo: 'assigned-to-deployment',
         addedAt: dateAdded,
-        verified: true
+        verified: true,
+        bindings: {
+          aliasA: {},
+          aliasB: {}
+        }
       }
     ]
   })
@@ -63,9 +66,9 @@ describe('handler', () => {
       [
         {
           domain: 'domain-name',
-          assignedTo: 'assigned-to-deployment',
           'added at': 'formatted-date',
-          verified: true
+          verified: true,
+          bindings: 'aliasA,aliasB'
         }
       ],
       expect.any(Object)

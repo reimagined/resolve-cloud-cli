@@ -31,7 +31,18 @@ beforeAll(() => {
       verified: false,
       challenge: 'verification-challenge',
       addedAt: dateAdded,
-      assignedTo: 'assigned-to-deployment'
+      bindings: {
+        aliasA: {
+          deploymentId: 'alias-deployment-id-a',
+          certificateId: 'alias-certificate-id-a',
+          cname: 'alias-cname-a'
+        },
+        aliasB: {
+          deploymentId: 'alias-deployment-id-b',
+          certificateId: 'alias-certificate-id-b',
+          cname: 'alias-cname-b'
+        }
+      }
     }
   })
 })
@@ -67,13 +78,34 @@ describe('handler', () => {
         domain: 'domain-within-response',
         verified: false,
         addedAt: 'formatted-date',
-        challenge: 'verification-challenge',
-        assignedTo: 'assigned-to-deployment'
+        challenge: 'verification-challenge'
       },
       expect.any(Object)
     )
     expect(dateFormat).toHaveBeenCalledWith(new Date(dateAdded), expect.any(String))
     expect(out).toHaveBeenCalledWith('result-output')
+  })
+
+  test('formatted bindings output', async () => {
+    await handler({ domain: 'domain-to-describe' })
+
+    expect(columnify).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        {
+          alias: 'aliasA',
+          cname: 'alias-cname-a',
+          deployment: 'alias-deployment-id-a',
+          certificate: 'alias-certificate-id-a'
+        },
+        {
+          alias: 'aliasB',
+          cname: 'alias-cname-b',
+          deployment: 'alias-deployment-id-b',
+          certificate: 'alias-certificate-id-b'
+        }
+      ]),
+      expect.any(Object)
+    )
   })
 
   test('hide challenge for a verified domain', async () => {
@@ -83,7 +115,11 @@ describe('handler', () => {
         verified: true,
         challenge: 'verification-challenge',
         addedAt: dateAdded,
-        assignedTo: 'assigned-to-deployment'
+        bindings: {
+          aliasA: {
+            deploymentId: 'alias-deployment-id'
+          }
+        }
       }
     })
 
