@@ -1,5 +1,6 @@
 const log = require('consola')
 const axios = require('axios')
+const isEmpty = require('lodash.isempty')
 const config = require('../config')
 
 const apiVersion = 'v0'
@@ -8,8 +9,11 @@ const request = async (token, method, url, data, params, headers) => {
   const baseURL = `${config.get('api_url')}/${apiVersion}/`
 
   try {
-    log.trace(`${method}: ${baseURL}${url}`)
-    return (await axios.request({
+    log.trace(`> ${method}: ${baseURL}${url}`)
+    if (!isEmpty(data)) {
+      log.trace(data)
+    }
+    const { data: response, status } = await axios.request({
       method,
       baseURL,
       url,
@@ -20,7 +24,12 @@ const request = async (token, method, url, data, params, headers) => {
         Authorization: `Bearer ${token}`,
         ...headers
       }
-    })).data
+    })
+    log.trace(`< [${status}] ${method}: ${baseURL}${url}`)
+    if (!isEmpty(response.result)) {
+      log.trace(response.result)
+    }
+    return response
   } catch (e) {
     if (e.response) {
       const {

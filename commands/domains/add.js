@@ -2,6 +2,7 @@ const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { post } = require('../../api/client')
 
+// TODO: add domain verification
 const handler = refreshToken(async (token, { domain }) => post(token, `domains`, { domain }))
 
 module.exports = {
