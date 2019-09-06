@@ -21,7 +21,7 @@ jest.mock('querystring', () => ({
 const { positional } = yargs
 
 test('command', () => {
-  expect(command).toEqual('release <domain>')
+  expect(command).toEqual('release <name>')
   expect(aliases).toEqual(expect.arrayContaining(['unbind']))
   expect(commandDescription).toEqual(expect.any(String))
 })
@@ -29,7 +29,7 @@ test('command', () => {
 test('options', () => {
   builder(yargs)
 
-  expect(positional).toHaveBeenCalledWith('domain', {
+  expect(positional).toHaveBeenCalledWith('name', {
     describe: expect.any(String),
     type: 'string'
   })
@@ -44,17 +44,53 @@ describe('handler', () => {
   })
 
   test('wrapped with refreshToken', async () => {
-    await handler({})
+    await handler({
+      name: 'sub.root.org'
+    })
 
     expect(refreshToken).toHaveBeenCalledWith(expect.any(Function))
   })
 
   test('api call', async () => {
     await handler({
-      domain: 'custom-domain'
+      name: 'sub.root.org'
     })
 
-    expect(escape).toHaveBeenCalledWith('custom-domain')
-    expect(post).toHaveBeenCalledWith('token', 'domains/escaped-string/release', {})
+    expect(escape).toHaveBeenCalledWith('root.org')
+    expect(post).toHaveBeenCalledWith('token', 'domains/escaped-string/release', {
+      subdomain: 'sub'
+    })
+  })
+
+  test('invalid name: not a domain at all', async () => {
+    await expect(
+      handler({
+        name: 'not-a-domain'
+      })
+    ).rejects.toBeInstanceOf(Error)
+  })
+
+  test('invalid name: no subdomain specifier', async () => {
+    await expect(
+      handler({
+        name: 'root.org'
+      })
+    ).rejects.toBeInstanceOf(Error)
+  })
+
+  test('invalid name: no subdomain specifier', async () => {
+    await expect(
+      handler({
+        name: 'root.org'
+      })
+    ).rejects.toBeInstanceOf(Error)
+  })
+
+  test('invalid name: unknown top-level domain', async () => {
+    await expect(
+      handler({
+        name: 'sub.root.unk'
+      })
+    ).rejects.toBeInstanceOf(Error)
   })
 })
