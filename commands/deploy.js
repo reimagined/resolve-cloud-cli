@@ -10,10 +10,17 @@ const packager = require('../packager')
 const config = require('../config')
 const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS } = require('../constants')
 
-const upload = async (token, payload) =>
-  post(token, 'upload', payload, {
-    'Content-Type': `multipart/form-data; boundary=${payload.getBoundary()}`
+const upload = async ({ url, headers, fields }, file) => {
+  const payload = new FormData()
+  Object.keys(fields).forEach(field => payload.append(field, fields[field]))
+
+  payload.append('file', fs.createReadStream(path.resolve(file)))
+
+  return post(null, url, payload, {
+    'Content-Type': `multipart/form-data; boundary=${payload.getBoundary()}`,
+    ...headers
   })
+}
 
 const waitForDeploymentState = async (token, id, expectedStates) => {
   const {
@@ -46,7 +53,7 @@ const handler = refreshToken(
     const { result: deployments } = await get(token, 'deployments')
 
     log.trace(`deployment list received: ${deployments.length} items`)
-
+    /*
     let id
 
     if (deploymentId) {
@@ -90,16 +97,12 @@ const handler = refreshToken(
     } else {
       log.trace(`skipping the application build phase`)
     }
+*/
+    log.trace(`requesting upload`)
 
-    log.trace(`opening a code package stream`)
-    const codeStream = new FormData({})
-    codeStream.append('file', fs.createReadStream(path.resolve('code.zip')))
+    const { result: uploadSpecs } = await get(token, 'upload/url?type=events')
 
-    log.trace(`opening a static package stream`)
-    const staticStream = new FormData({})
-    staticStream.append('file', fs.createReadStream(path.resolve('static.zip')))
-
-    log.trace(`uploading packages to the endpoint`)
+    log.trace(`uploading packages to the endpoint ${uploadSpecs.url}`)
     const [
       {
         result: { id: codePackage }
@@ -107,10 +110,11 @@ const handler = refreshToken(
       {
         result: { id: staticPackage }
       }
-    ] = await Promise.all([upload(token, codeStream), upload(token, staticStream)])
+    ] = await Promise.all([upload(uploadSpecs, 'code.zip')])//, upload(uploadSpecs, 'static.zip')])
 
     log.trace(`code package [${codePackage}], static package [${staticPackage}]`)
     log.trace(`updating the deployment [${id}]`)
+    return
 
     const {
       result: { appUrl }
