@@ -35,7 +35,7 @@ const handler = refreshToken(async (token, { domain: rawDomain }) => {
   }
 
   out(
-    `To verify you domain add a "${challengeRecordName}" TXT record with the "${challenge}" value to your DNS zone`
+    `To verify your domain add a "${challengeRecordName}" TXT record with the "${challenge}" value to your DNS zone`
   )
 })
 
