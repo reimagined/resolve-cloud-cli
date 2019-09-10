@@ -12,7 +12,7 @@ module.exports = {
   describe: chalk.green('removes an existing domain'),
   builder: yargs =>
     yargs.positional('domain', {
-      describe: chalk.green('a name of registered domain'),
+      describe: chalk.green('a registered domain name'),
       type: 'string'
     })
 }

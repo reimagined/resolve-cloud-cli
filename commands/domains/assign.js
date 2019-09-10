@@ -16,7 +16,7 @@ const handler = refreshToken(async (token, { name, deployment, certificate }) =>
     isEmpty(nameData.tld)
   ) {
     throw Error(
-      `Invalid domain name "${name}". Name should be a full-qualified subdomain name (e.g. store.root-domain.org) with known top-level domain!`
+      `Invalid domain name "${name}". The name should be a fully qualified second level domain name (e.g. root-domain.org) with a known top-level domain!`
     )
   }
 
@@ -38,7 +38,7 @@ const handler = refreshToken(async (token, { name, deployment, certificate }) =>
     throw Error(`Unable to retrieve domain binding info.`)
   }
 
-  out(`Add CNAME "${subdomain}" record with "${binding.cname}" value to your DNS zone`)
+  out(`Add a CNAME "${subdomain}" record with the "${binding.cname}" value to your DNS zone`)
 })
 
 module.exports = {
@@ -50,17 +50,17 @@ module.exports = {
     yargs
       .positional('name', {
         describe: chalk.green(
-          'custom full-qualified name of available domains name to assign (e.g. store.root-domain.org)'
+          'an existing custom domain name in fully qualified format (e.g. store.root-domain.org)'
         ),
         type: 'string'
       })
       .positional('deployment', {
-        describe: chalk.green("existing deployment's id"),
+        describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
       .option('certificate', {
         alias: 'cert',
-        describe: 'SSL certificate id to use',
+        describe: 'the id of an SSL certificate to use',
         type: 'string'
       })
 }

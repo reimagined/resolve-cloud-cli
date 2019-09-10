@@ -11,7 +11,7 @@ const handler = refreshToken(async (token, { domain: rawDomain }) => {
 
   if (nameData == null || isEmpty(nameData.domain) || isEmpty(nameData.tld)) {
     throw Error(
-      `Invalid domain name "${rawDomain}". Name should be a full-qualified second level domain name (e.g. root-domain.org) with known top-level domain!`
+      `Invalid domain name "${rawDomain}". The name should be a fully qualified second level domain name (e.g. root-domain.org) with a known top-level domain!`
     )
   }
 
@@ -35,7 +35,7 @@ const handler = refreshToken(async (token, { domain: rawDomain }) => {
   }
 
   out(
-    `To verify you domain add a "${challengeRecordName}" TXT record with "${challenge}" value to your DNS zone`
+    `To verify you domain add a "${challengeRecordName}" TXT record with the "${challenge}" value to your DNS zone`
   )
 })
 
@@ -43,10 +43,10 @@ module.exports = {
   handler,
   command: 'add <domain>',
   aliases: ['register'],
-  describe: chalk.green("add a new domain name to user's registry"),
+  describe: chalk.green("add a new domain name to the user's registry"),
   builder: yargs =>
     yargs.positional('domain', {
-      describe: chalk.green('custom domain name to add'),
+      describe: chalk.green('a custom domain name to add'),
       type: 'string'
     })
 }

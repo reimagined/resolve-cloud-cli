@@ -25,29 +25,29 @@ module.exports = {
   handler,
   command: 'issue',
   aliases: ['import'],
-  describe: chalk.green('issue a new SLL certificate for specified domain names'),
+  describe: chalk.green('issue a new SLL certificate for the specified domain names'),
   builder: yargs =>
     yargs
       .option('certificateFile', {
         alias: 'crt',
-        describe: 'a PEM-encoded file with a certificate',
+        describe: 'a PEM-encoded file containing a certificate',
         type: 'string',
         demand: 'a certificate file is required'
       })
       .option('keyFile', {
         alias: 'key',
-        describe: "a PEM-encoded file with a certificate's private key",
+        describe: "a PEM-encoded file containing a certificate's private key",
         type: 'string',
         demand: 'a certificate private key file is required'
       })
       .option('chainFile', {
         alias: 'ca',
-        describe: 'a PEM-encoded file with a certificate chain',
+        describe: 'a PEM-encoded file containing a certificate chain',
         type: 'string',
         demand: 'a certificate chain file is required'
       })
       .option('id', {
-        describe: 'an identifier for a certificate',
+        describe: "the certificate's identifier",
         type: 'string'
       })
 }

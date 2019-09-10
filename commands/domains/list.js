@@ -30,6 +30,6 @@ module.exports = {
   handler,
   command: 'list',
   aliases: ['ls', '$0'],
-  describe: chalk.green("display a list of user's domains"),
+  describe: chalk.green("display a list of the user's domains"),
   builder: () => {}
 }

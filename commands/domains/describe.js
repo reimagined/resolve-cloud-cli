@@ -54,7 +54,7 @@ module.exports = {
   describe: chalk.green('display information on the specified domain'),
   builder: yargs =>
     yargs.positional('domain', {
-      describe: chalk.green('registered domain name'),
+      describe: chalk.green('a registered domain name'),
       type: 'string'
     })
 }

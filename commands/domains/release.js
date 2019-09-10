@@ -15,7 +15,7 @@ const handler = refreshToken(async (token, { name }) => {
     isEmpty(nameData.tld)
   ) {
     throw Error(
-      `Invalid domain name "${name}". Name should be a full-qualified subdomain name (e.g. store.root-domain.org) with known top-level domain!`
+      `Invalid domain name "${name}". The name should be a fully qualified second level domain name (e.g. root-domain.org) with a known top-level domain!`
     )
   }
 
@@ -34,7 +34,7 @@ module.exports = {
   describe: chalk.green('release a custom domain name'),
   builder: yargs =>
     yargs.positional('name', {
-      describe: chalk.green('custom domain name to release'),
+      describe: chalk.green('a custom domain name to release'),
       type: 'string'
     })
 }

@@ -8,7 +8,7 @@ module.exports = {
   handler,
   command: 'rm <id>',
   aliases: ['remove', 'delete'],
-  describe: chalk.green('removes an existing SSL certificate by its id'),
+  describe: chalk.green('remove an existing SSL certificate by its id'),
   builder: yargs =>
     yargs.positional('id', {
       describe: chalk.green('an id of an existing certificate'),
