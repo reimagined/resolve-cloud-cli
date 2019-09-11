@@ -1,5 +1,6 @@
 const path = require('path')
 const FormData = require('form-data')
+const nanoid = require('nanoid')
 const { createReadStream } = require('fs')
 const yargs = require('yargs')
 const { post, get, put } = require('../../../api/client')
@@ -67,7 +68,11 @@ test('options', () => {
     type: 'boolean',
     default: false
   })
-  expect(option).toHaveBeenCalledTimes(5)
+  expect(option).toHaveBeenCalledWith('events', {
+    describe: expect.any(String),
+    type: 'string'
+  })
+  expect(option).toHaveBeenCalledTimes(6)
 })
 
 describe('handler', () => {
@@ -103,11 +108,22 @@ describe('handler', () => {
   beforeEach(() => {
     routesGet = {
       deployments: () => [],
-      'deployments/deployment-id': () => ({ state: 'ready' })
+      'deployments/deployment-id': () => ({ state: 'ready' }),
+      'upload/url?type=deployment&key=nanoid-value': () => ({
+        url: 'deployment-upload-url'
+      }),
+      'upload/url?type=events&key=nanoid-value': () => ({ url: 'events-upload-url' }),
+      'upload/url?type=events&key=key-c': () => ({ url: 'events-upload-url-c' }),
+      'upload/url?type=deployment&key=key-a': () => ({ url: 'deployment-upload-url-a' }),
+      'upload/url?type=deployment&key=key-b': () => ({ url: 'deployment-upload-url-b' })
     }
     routesPost = {
       deployments: () => ({ id: 'deployment-id' }),
-      upload: ({ file }) => ({ id: `id-${file}` })
+      'deployment-upload-url': () => {},
+      'deployment-upload-url-a': () => {},
+      'deployment-upload-url-b': () => {},
+      'events-upload-url': () => {},
+      'events-upload-url-c': () => {}
     }
     routesPut = {
       'deployments/deployment-id': () => ({})
@@ -125,6 +141,7 @@ describe('handler', () => {
     formDataGetBoundary.mockClear()
     FormData.mockClear()
     packager.mockClear()
+    nanoid.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -139,17 +156,55 @@ describe('handler', () => {
     expect(getPackageValue).toHaveBeenCalledWith('name', '')
   })
 
-  test('files uploading', async () => {
+  test('deployment files uploading', async () => {
+    nanoid.mockReturnValueOnce('key-a')
+    nanoid.mockReturnValueOnce('key-b')
+
     await handler({})
 
-    const headers = { 'Content-Type': `multipart/form-data; boundary=data-boundary` }
+    const headers = {
+      'Content-Type': `multipart/form-data; boundary=data-boundary`,
+      'Content-Length': 333
+    }
+
+    expect(get).toHaveBeenCalledWith('token', 'upload/url?type=deployment&key=key-a')
+    expect(get).toHaveBeenCalledWith('token', 'upload/url?type=deployment&key=key-b')
 
     expect(FormData).toHaveBeenCalledTimes(2)
     expect(createReadStream).toHaveBeenCalledWith(path.resolve('code.zip'))
     expect(createReadStream).toHaveBeenCalledWith(path.resolve('static.zip'))
 
-    expect(post).toHaveBeenCalledWith('token', 'upload', { file: 'code.zip' }, headers)
-    expect(post).toHaveBeenCalledWith('token', 'upload', { file: 'static.zip' }, headers)
+    expect(post).toHaveBeenCalledWith(
+      null,
+      'deployment-upload-url-a',
+      { file: 'code.zip' },
+      headers
+    )
+    expect(post).toHaveBeenCalledWith(
+      null,
+      'deployment-upload-url-b',
+      { file: 'static.zip' },
+      headers
+    )
+  })
+
+  test('initial events file uploading', async () => {
+    nanoid.mockReturnValueOnce('key-a')
+    nanoid.mockReturnValueOnce('key-b')
+    nanoid.mockReturnValueOnce('key-c')
+
+    await handler({
+      events: 'events.txt'
+    })
+
+    const headers = {
+      'Content-Type': `multipart/form-data; boundary=data-boundary`,
+      'Content-Length': 333
+    }
+
+    expect(get).toHaveBeenCalledWith('token', 'upload/url?type=events&key=key-c')
+    expect(createReadStream).toHaveBeenCalledWith(path.resolve('events.txt'))
+    expect(post).toHaveBeenCalledWith(null, 'events-upload-url-c', { file: 'events.txt' }, headers)
   })
 
   test('new deployment created', async () => {
@@ -167,12 +222,16 @@ describe('handler', () => {
   })
 
   test('new deployment updated', async () => {
+    nanoid.mockReturnValueOnce('key-a')
+    nanoid.mockReturnValueOnce('key-b')
+
     await handler({})
 
     expect(put).toHaveBeenCalledWith('token', 'deployments/deployment-id', {
       name: 'package-json-name',
-      codePackage: 'id-code.zip',
-      staticPackage: 'id-static.zip'
+      codePackage: 'key-a',
+      staticPackage: 'key-b',
+      initialEvents: null
     })
   })
 
@@ -190,8 +249,9 @@ describe('handler', () => {
 
     expect(put).toHaveBeenCalledWith('token', 'deployments/existing-deployment-id', {
       name: 'package-json-name',
-      codePackage: 'id-code.zip',
-      staticPackage: 'id-static.zip'
+      codePackage: 'nanoid-value',
+      staticPackage: 'nanoid-value',
+      initialEvents: null
     })
   })
 

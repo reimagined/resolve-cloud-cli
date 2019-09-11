@@ -2,18 +2,45 @@ const fs = require('fs')
 const path = require('path')
 const log = require('consola')
 const chalk = require('chalk')
+const nanoid = require('nanoid')
+const isEmpty = require('lodash.isempty')
 const qr = require('qrcode-terminal')
 const FormData = require('form-data')
 const { post, get, put } = require('../api/client')
 const refreshToken = require('../refreshToken')
 const packager = require('../packager')
 const config = require('../config')
+
 const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS } = require('../constants')
 
-const upload = async (token, payload) =>
-  post(token, 'upload', payload, {
-    'Content-Type': `multipart/form-data; boundary=${payload.getBoundary()}`
+const upload = async (token, type, file) => {
+  const key = nanoid()
+  const {
+    result: { url, headers = {}, fields = {} }
+  } = await get(token, `upload/url?type=${type}&key=${key}`)
+
+  const form = new FormData()
+  Object.keys(fields).forEach(field => form.append(field, fields[field]))
+
+  form.append('file', fs.createReadStream(path.resolve(file)))
+
+  const contentLength = await new Promise((resolve, reject) =>
+    form.getLength((err, length) => {
+      if (err) {
+        return reject(err)
+      }
+      return resolve(length)
+    })
+  )
+
+  await post(null, url, form, {
+    'Content-Type': `multipart/form-data; boundary=${form.getBoundary()}`,
+    'Content-Length': contentLength,
+    ...headers
   })
+
+  return key
+}
 
 const waitForDeploymentState = async (token, id, expectedStates) => {
   const {
@@ -33,7 +60,7 @@ const waitForDeploymentState = async (token, id, expectedStates) => {
 }
 
 const handler = refreshToken(
-  async (token, { skipBuild, noWait, configuration, name: nameOverride, deploymentId }) => {
+  async (token, { skipBuild, noWait, configuration, name: nameOverride, deploymentId, events }) => {
     const name = nameOverride || config.getPackageValue('name', '')
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -46,7 +73,6 @@ const handler = refreshToken(
     const { result: deployments } = await get(token, 'deployments')
 
     log.trace(`deployment list received: ${deployments.length} items`)
-
     let id
 
     if (deploymentId) {
@@ -90,26 +116,18 @@ const handler = refreshToken(
     } else {
       log.trace(`skipping the application build phase`)
     }
+    log.trace(`uploading deployment resources`)
 
-    log.trace(`opening a code package stream`)
-    const codeStream = new FormData({})
-    codeStream.append('file', fs.createReadStream(path.resolve('code.zip')))
-
-    log.trace(`opening a static package stream`)
-    const staticStream = new FormData({})
-    staticStream.append('file', fs.createReadStream(path.resolve('static.zip')))
-
-    log.trace(`uploading packages to the endpoint`)
-    const [
-      {
-        result: { id: codePackage }
-      },
-      {
-        result: { id: staticPackage }
-      }
-    ] = await Promise.all([upload(token, codeStream), upload(token, staticStream)])
+    const [codePackage, staticPackage, initialEvents] = await Promise.all([
+      upload(token, 'deployment', 'code.zip'),
+      upload(token, 'deployment', 'static.zip'),
+      isEmpty(events) ? Promise.resolve(null) : upload(token, 'events', events)
+    ])
 
     log.trace(`code package [${codePackage}], static package [${staticPackage}]`)
+    if (initialEvents) {
+      log.trace(`initial events are uploaded as [${initialEvents}]`)
+    }
     log.trace(`updating the deployment [${id}]`)
 
     const {
@@ -117,7 +135,8 @@ const handler = refreshToken(
     } = await put(token, `deployments/${id}`, {
       name,
       codePackage,
-      staticPackage
+      staticPackage,
+      initialEvents
     })
 
     if (!noWait) {
@@ -172,5 +191,9 @@ module.exports = {
         describe: 'do not wait for the deployment to reach the ready state',
         type: 'boolean',
         default: false
+      })
+      .option('events', {
+        describe: 'initial events snapshot (new deployments only)',
+        type: 'string'
       })
 }

@@ -6,13 +6,22 @@ const config = require('../config')
 const apiVersion = 'v0'
 
 const request = async (token, method, url, data, params, headers) => {
-  const baseURL = `${config.get('api_url')}/${apiVersion}/`
+  const baseURL = url.startsWith('http') ? '' : `${config.get('api_url')}/${apiVersion}/`
 
   try {
     log.trace(`> ${method}: ${baseURL}${url}`)
     if (!isEmpty(data)) {
       log.trace(data)
     }
+
+    const requestHeaders = {
+      ...headers
+    }
+
+    if (!isEmpty(token)) {
+      requestHeaders.Authorization = `Bearer ${token}`
+    }
+
     const { data: response, status } = await axios.request({
       method,
       baseURL,
@@ -20,10 +29,7 @@ const request = async (token, method, url, data, params, headers) => {
       params,
       data,
       maxContentLength: 200 * 1024 * 1024,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...headers
-      }
+      headers: requestHeaders
     })
     log.trace(`< [${status}] ${method}: ${baseURL}${url}`)
     if (!isEmpty(response.result)) {

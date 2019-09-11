@@ -29,6 +29,7 @@
   ],
   "dependencies": {
     "amazon-cognito-identity-js": "^3.0.15",
+    "nanoid": "^2.0.3",
     "archiver": "^3.0.0",
     "axios": "^0.19.0",
     "chalk": "^2.4.1",
@@ -61,7 +62,6 @@
     "eslint-plugin-prettier": "^3.1.0",
     "husky": "^3.0.2",
     "jest": "24.8.0",
-    "nanoid": "^2.0.3",
     "prettier": "1.18.2",
     "pretty-quick": "^1.6.0"
   },
