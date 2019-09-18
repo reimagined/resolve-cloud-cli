@@ -1,5 +1,6 @@
 const fs = require('fs')
 const { promisify } = require('util')
+const isEmpty = require('lodash.isempty')
 const chalk = require('chalk')
 const refreshToken = require('../../refreshToken')
 const { post } = require('../../api/client')
@@ -10,7 +11,7 @@ const handler = refreshToken(async (token, { certificateFile, keyFile, chainFile
   const [certificate, key, chain] = await Promise.all([
     readFile(certificateFile, 'utf8'),
     readFile(keyFile, 'utf8'),
-    readFile(chainFile, 'utf8')
+    isEmpty(chainFile) ? Promise.resolve(undefined) : readFile(chainFile, 'utf8')
   ])
 
   return post(token, `certificates`, {
