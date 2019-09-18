@@ -17,7 +17,7 @@ jest.mock('util', () => ({
   promisify: fn => fn
 }))
 jest.mock('fs', () => ({
-  readFile: jest.fn(name => name)
+  readFile: jest.fn(name => `contents-of-${name}`)
 }))
 
 const { option } = yargs
@@ -76,14 +76,30 @@ describe('handler', () => {
     })
 
     expect(post).toHaveBeenCalledWith('token', 'certificates', {
-      certificate: 'certificate-file',
-      key: 'key-file',
-      chain: 'chain-file',
+      certificate: 'contents-of-certificate-file',
+      key: 'contents-of-key-file',
+      chain: 'contents-of-chain-file',
       id: 'id'
     })
     expect(readFile).toHaveBeenCalledWith('certificate-file', 'utf8')
     expect(readFile).toHaveBeenCalledWith('key-file', 'utf8')
     expect(readFile).toHaveBeenCalledWith('chain-file', 'utf8')
     expect(readFile).toHaveBeenCalledTimes(3)
+  })
+
+  test('bug: readFile exception if no chain option provided', async () => {
+    await handler({
+      certificateFile: 'certificate-file',
+      keyFile: 'key-file',
+      id: 'id'
+    })
+
+    expect(post).toHaveBeenCalledWith('token', 'certificates', {
+      certificate: 'contents-of-certificate-file',
+      key: 'contents-of-key-file',
+      chain: undefined,
+      id: 'id'
+    })
+    expect(readFile).toHaveBeenCalledTimes(2)
   })
 })
