@@ -45,8 +45,7 @@ test('options', () => {
   expect(option).toHaveBeenCalledWith('chainFile', {
     alias: 'ca',
     describe: expect.any(String),
-    type: 'string',
-    demand: expect.any(String)
+    type: 'string'
   })
   expect(option).toHaveBeenCalledWith('id', {
     describe: expect.any(String),
