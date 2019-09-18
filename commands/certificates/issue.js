@@ -43,8 +43,7 @@ module.exports = {
       .option('chainFile', {
         alias: 'ca',
         describe: 'a PEM-encoded file containing a certificate chain',
-        type: 'string',
-        demand: 'a certificate chain file is required'
+        type: 'string'
       })
       .option('id', {
         describe: "the certificate's identifier",
