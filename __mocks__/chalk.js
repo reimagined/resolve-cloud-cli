@@ -1,7 +1,8 @@
 module.exports = {
-  yellow: i => i,
-  green: i => i,
+  yellow: jest.fn(str => str),
+  yellowBright: jest.fn(str => str),
+  green: jest.fn(str => str),
   bold: {
-    blue: i => i
+    blue: jest.fn(str => str)
   }
 }

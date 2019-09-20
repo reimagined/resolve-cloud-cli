@@ -9,7 +9,7 @@ const request = async (token, method, url, data, params, headers) => {
   const baseURL = url.startsWith('http') ? '' : `${config.get('api_url')}/${apiVersion}/`
 
   try {
-    log.trace(`> ${method}: ${baseURL}${url}`)
+    log.debug(`> ${method}: ${baseURL}${url}`)
     if (!isEmpty(data)) {
       log.trace(data)
     }
@@ -31,7 +31,7 @@ const request = async (token, method, url, data, params, headers) => {
       maxContentLength: 200 * 1024 * 1024,
       headers: requestHeaders
     })
-    log.trace(`< [${status}] ${method}: ${baseURL}${url}`)
+    log.debug(`< [${status}] ${method}: ${baseURL}${url}`)
     if (!isEmpty(response.result)) {
       log.trace(response.result)
     }
