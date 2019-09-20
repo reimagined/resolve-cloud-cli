@@ -24,9 +24,14 @@ yargs
   .option('help', { hidden: true })
   .option('version', { hidden: true })
   .option('verbose', {
-    describe: 'enable verbose output',
+    describe: `${chalk.yellow('(deprecated)')} enable verbose output (same as --verbosity=debug)`,
     type: 'boolean',
     default: false
+  })
+  .option('verbosity', {
+    describe: 'set output verbosity level',
+    type: 'string',
+    choices: ['silent', 'normal', 'debug', 'trace']
   })
   .fail((msg, err) => {
     if (msg) {

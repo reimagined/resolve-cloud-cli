@@ -60,7 +60,18 @@ const waitForDeploymentState = async (token, id, expectedStates) => {
 }
 
 const handler = refreshToken(
-  async (token, { skipBuild, noWait, configuration, name: nameOverride, deploymentId, events }) => {
+  async (
+    token,
+    {
+      skipBuild,
+      noWait,
+      configuration,
+      name: nameOverride,
+      deploymentId,
+      events,
+      qr: generateQrCode
+    }
+  ) => {
     const name = nameOverride || config.getPackageValue('name', '')
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -155,7 +166,9 @@ const handler = refreshToken(
 
     log.success(`"${name}" available at ${appUrl}`)
 
-    qr.generate(appUrl, { small: true })
+    if (generateQrCode) {
+      qr.generate(appUrl, { small: true })
+    }
   }
 )
 
@@ -195,5 +208,10 @@ module.exports = {
       .option('events', {
         describe: 'initial events snapshot (new deployments only)',
         type: 'string'
+      })
+      .option('qr', {
+        describe: 'generate QR code',
+        type: 'boolean',
+        default: false
       })
 }
