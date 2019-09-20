@@ -1,3 +1,4 @@
+/* eslint-disable */
 class CognitoUserPool {
   constructor(params) {
     this.params = params

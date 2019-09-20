@@ -5,5 +5,6 @@ module.exports = {
   debug: jest.fn(),
   start: jest.fn(),
   success: jest.fn(),
-  trace: jest.fn()
+  trace: jest.fn(),
+  warn: jest.fn()
 }

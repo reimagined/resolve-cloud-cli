@@ -8,14 +8,7 @@ const notEmpty = val => !isEmpty(val)
 
 const exec = async (cmd, args, options) =>
   new Promise((resolve, reject) => {
-    const proc = spawn(
-      cmd,
-      args,
-      Object.assign({
-        stdio: 'pipe',
-        ...options
-      })
-    )
+    const proc = spawn(cmd, args, { stdio: 'pipe', ...options })
 
     proc.on('close', code => {
       if (code !== 0) {
@@ -41,9 +34,7 @@ const exec = async (cmd, args, options) =>
 
 const build = async (config, deploymentId) => {
   await exec(yarn, [config], {
-    env: Object.assign({}, process.env, {
-      CLOUD_STATIC_URL: `https://static.resolve.sh/${deploymentId}`
-    })
+    env: { ...process.env, CLOUD_STATIC_URL: `https://static.resolve.sh/${deploymentId}` }
   })
 
   return {

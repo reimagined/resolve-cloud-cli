@@ -98,7 +98,7 @@ describe('handler', () => {
     )
     getPackageValue.mockReturnValue('package-json-name')
     createReadStream.mockImplementation(name => path.basename(name))
-    // eslint-disable-next-line func-names, eslint-disable prefer-arrow-callback
+    // eslint-disable-next-line func-names
     formDataAppend.mockImplementation(function(k, v) {
       this[k] = v
     })
