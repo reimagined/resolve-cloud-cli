@@ -11,7 +11,7 @@ const refreshToken = require('../refreshToken')
 const packager = require('../packager')
 const config = require('../config')
 
-const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS } = require('../constants')
+const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS, LATEST_RUNTIME_SPECIFIER } = require('../constants')
 
 const upload = async (token, type, file) => {
   const key = nanoid()
@@ -69,7 +69,8 @@ const handler = refreshToken(
       name: nameOverride,
       deploymentId,
       events,
-      qr: generateQrCode
+      qr: generateQrCode,
+      runtime
     }
   ) => {
     const name = nameOverride || config.getPackageValue('name', '')
@@ -115,9 +116,12 @@ const handler = refreshToken(
         result: { id: newId }
       } = await post(token, `deployments`, {
         name,
-        id: deploymentId
+        id: deploymentId,
+        runtime
       })
       id = newId
+    } else if (!isEmpty(runtime) && runtime !== LATEST_RUNTIME_SPECIFIER) {
+      throw Error(`cannot change runtime of the existing deployment`)
     }
 
     log.trace(`deployment id obtained: ${id}`)
@@ -213,5 +217,10 @@ module.exports = {
         describe: 'generate QR code',
         type: 'boolean',
         default: false
+      })
+      .option('runtime', {
+        describe: 'target runtime specifier',
+        type: 'string',
+        default: LATEST_RUNTIME_SPECIFIER
       })
 }
