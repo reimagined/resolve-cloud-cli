@@ -1,5 +1,6 @@
 const columnify = require('columnify')
 const { out } = require('../../../utils/std')
+const { update: describeUpdate } = require('../../../utils/describe')
 const {
   command,
   aliases,
@@ -16,13 +17,16 @@ jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ..
 jest.mock('../../../utils/std', () => ({
   out: jest.fn()
 }))
+jest.mock('../../../utils/describe', () => ({
+  update: jest.fn(() => ({ versionText: 'version-text', updateText: 'update-text' }))
+}))
 
 beforeAll(() => {
   get.mockResolvedValue({
     result: [
       {
         version: '0.1.0',
-        latestVersion: '0.1.0'
+        latestVersion: '0.2.0'
       }
     ]
   })
@@ -40,6 +44,7 @@ describe('handler', () => {
     get.mockClear()
     out.mockClear()
     columnify.mockClear()
+    describeUpdate.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -53,48 +58,11 @@ describe('handler', () => {
 
     await handler({})
 
-    expect(columnify).toHaveBeenCalledWith([{ version: '0.1.0', update: 'up-to-date' }], {
+    expect(columnify).toHaveBeenCalledWith([{ version: 'version-text', update: 'update-text' }], {
       minWidth: 30
     })
     expect(out).toHaveBeenCalledWith('result-output')
-  })
-
-  test('formatted output: update available', async () => {
-    get.mockResolvedValueOnce({
-      result: [
-        {
-          version: '0.1.0',
-          latestVersion: '0.2.0'
-        }
-      ]
-    })
-    columnify.mockReturnValue('result-output')
-
-    await handler({})
-
-    expect(columnify).toHaveBeenCalledWith([{ version: '0.1.0', update: '-> 0.2.0' }], {
-      minWidth: 30
-    })
-    expect(out).toHaveBeenCalledWith('result-output')
-  })
-
-  test('formatted output: deprecated', async () => {
-    get.mockResolvedValueOnce({
-      result: [
-        {
-          version: '0.1.0',
-          latestVersion: undefined
-        }
-      ]
-    })
-    columnify.mockReturnValue('result-output')
-
-    await handler({})
-
-    expect(columnify).toHaveBeenCalledWith([{ version: '0.1.0', update: 'deprecated' }], {
-      minWidth: 30
-    })
-    expect(out).toHaveBeenCalledWith('result-output')
+    expect(describeUpdate).toHaveBeenLastCalledWith({ version: '0.1.0', latestVersion: '0.2.0' })
   })
 
   test('api call', async () => {
