@@ -1,4 +1,5 @@
 const columnify = require('columnify')
+const semver = require('semver')
 const chalk = require('chalk')
 const refreshToken = require('../refreshToken')
 const { get } = require('../api/client')
@@ -9,9 +10,35 @@ const handler = refreshToken(async token => {
 
   if (result) {
     out(
-      columnify(result, {
-        minWidth: 30
-      })
+      columnify(
+        result.map(({ id, name, version, latestVersion }) => {
+          let versionChalk
+          let latestText
+
+          if (latestVersion) {
+            if (semver.gt(latestVersion, version)) {
+              versionChalk = chalk.yellowBright
+              latestText = `-> ${latestVersion}`
+            } else {
+              versionChalk = chalk.green
+              latestText = `up-to-date`
+            }
+          } else {
+            versionChalk = chalk.redBright
+            latestText = 'deprecated'
+          }
+
+          return {
+            id,
+            name,
+            version: versionChalk(version),
+            update: versionChalk(latestText)
+          }
+        }),
+        {
+          minWidth: 30
+        }
+      )
     )
   }
 })

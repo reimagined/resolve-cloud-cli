@@ -21,7 +21,8 @@ beforeAll(() => {
   get.mockResolvedValue({
     result: [
       {
-        data: 'data'
+        version: '0.1.0',
+        latestVersion: '0.1.0'
       }
     ]
   })
@@ -47,12 +48,52 @@ describe('handler', () => {
     expect(refreshToken).toHaveBeenCalledWith(expect.any(Function))
   })
 
-  test('formatted output', async () => {
+  test('formatted output: up-to-date', async () => {
     columnify.mockReturnValue('result-output')
 
     await handler({})
 
-    expect(columnify).toHaveBeenCalledWith([{ data: 'data' }], { minWidth: 30 })
+    expect(columnify).toHaveBeenCalledWith([{ version: '0.1.0', update: 'up-to-date' }], {
+      minWidth: 30
+    })
+    expect(out).toHaveBeenCalledWith('result-output')
+  })
+
+  test('formatted output: update available', async () => {
+    get.mockResolvedValueOnce({
+      result: [
+        {
+          version: '0.1.0',
+          latestVersion: '0.2.0'
+        }
+      ]
+    })
+    columnify.mockReturnValue('result-output')
+
+    await handler({})
+
+    expect(columnify).toHaveBeenCalledWith([{ version: '0.1.0', update: '-> 0.2.0' }], {
+      minWidth: 30
+    })
+    expect(out).toHaveBeenCalledWith('result-output')
+  })
+
+  test('formatted output: deprecated', async () => {
+    get.mockResolvedValueOnce({
+      result: [
+        {
+          version: '0.1.0',
+          latestVersion: undefined
+        }
+      ]
+    })
+    columnify.mockReturnValue('result-output')
+
+    await handler({})
+
+    expect(columnify).toHaveBeenCalledWith([{ version: '0.1.0', update: 'deprecated' }], {
+      minWidth: 30
+    })
     expect(out).toHaveBeenCalledWith('result-output')
   })
 

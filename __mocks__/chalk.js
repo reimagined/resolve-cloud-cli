@@ -4,5 +4,6 @@ module.exports = {
   green: jest.fn(str => str),
   bold: {
     blue: jest.fn(str => str)
-  }
+  },
+  redBright: jest.fn(str => str)
 }
