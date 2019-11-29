@@ -1,32 +1,58 @@
-pipeline:
-  install:
-    image: reimagined/resolve-docker
+kind: pipeline
+type: docker
+name: build
+
+steps:
+  - name: pull-from-ecr
+    image: omerxx/drone-ecr-auth
+    pull: always
+    privileged: true
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: ecr_aws_access_key_id
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: ecr_aws_secret_access_key
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock
+
+    commands:
+      - $(aws ecr get-login --no-include-email --region us-east-1)
+      - docker pull 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
+
+  - name: install
+    image: 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
+    pull: never
     commands:
       - yarn
 
-  testing:
-    image: reimagined/resolve-docker
+  - name: testing
+    image: 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
+    pull: never
     group: testing
     commands:
       - yarn test
 
-  lint:
-    image: reimagined/resolve-docker
+  - name: lint
+    image: 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
+    pull: never
     group: testing
     commands:
       - yarn lint
 
-  release:
+  - name: release
     when:
       event: push
       branch: release*
-    image: reimagined/resolve-docker
-    pull: true
-    secrets:
-      [ github_resolve_bot_base64, npm_reimagined_npmrc_base64 ]
+    image: 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
+    pull: never
+    environment:
+      GITHUB_RESOLVE_BOT_BASE64:
+        from_secret: github_resolve_bot_base64
+      NPM_TOKEN:
+        from_secret: publish_npm_token
     commands:
       - echo $GITHUB_RESOLVE_BOT_BASE64 | base64 --decode >> ~/.ssh/github-resolve-bot
-      - echo $NPM_REIMAGINED_NPMRC_BASE64 | base64 --decode >> ~/.npmrc
       - ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
       - chmod 400 ~/.ssh/github-resolve-bot
       - git remote set-url origin git@github:${DRONE_REPO}.git
