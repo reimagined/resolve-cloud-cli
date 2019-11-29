@@ -75,4 +75,3 @@ volumes:
   - name: docker-sock
     host:
       path: /var/run/docker.sock
-  xhajzzefqft31m16dmfrsywo3hv0xh
