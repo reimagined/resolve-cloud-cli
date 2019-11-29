@@ -61,6 +61,7 @@ steps:
       NPM_AUTH_TOKEN:
         from_secret: publish_npm_token
     commands:
+      - echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > ~/.npmrc
       - echo $GITHUB_RESOLVE_BOT_BASE64 | base64 --decode >> ~/.ssh/github-resolve-bot
       - ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
       - chmod 400 ~/.ssh/github-resolve-bot
