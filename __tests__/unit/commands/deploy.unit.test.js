@@ -28,7 +28,8 @@ jest.mock('../../../config', () => ({
   getPackageValue: jest.fn()
 }))
 jest.mock('../../../constants', () => ({
-  DEPLOYMENT_STATE_AWAIT_INTERVAL_MS: 1
+  DEPLOYMENT_STATE_AWAIT_INTERVAL_MS: 1,
+  LATEST_RUNTIME_SPECIFIER: 'latest-runtime'
 }))
 
 const { option } = yargs
@@ -78,7 +79,12 @@ test('options', () => {
     type: 'boolean',
     default: false
   })
-  expect(option).toHaveBeenCalledTimes(7)
+  expect(option).toHaveBeenCalledWith('runtime', {
+    describe: expect.any(String),
+    type: 'string',
+    default: 'latest-runtime'
+  })
+  expect(option).toHaveBeenCalledTimes(8)
 })
 
 describe('handler', () => {
@@ -262,6 +268,25 @@ describe('handler', () => {
       staticPackage: 'nanoid-value',
       initialEvents: null
     })
+  })
+
+  test('cannot change existing deployment runtime', async () => {
+    routesGet.deployments = () => [
+      {
+        name: 'package-json-name',
+        id: 'existing-deployment-id'
+      }
+    ]
+    routesGet['deployments/existing-deployment-id'] = () => ({ state: 'ready' })
+    routesPut['deployments/existing-deployment-id'] = () => ({})
+
+    await expect(
+      handler({
+        runtime: 'new-runtime'
+      })
+    ).rejects.toBeInstanceOf(Error)
+
+    expect(put).not.toHaveBeenCalled()
   })
 
   test('multiple deployments with the same name existing', async () => {

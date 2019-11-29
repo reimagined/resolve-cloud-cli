@@ -1,6 +1,7 @@
 const columnify = require('columnify')
 const yargs = require('yargs')
 const { out } = require('../../../utils/std')
+const { update: describeUpdate } = require('../../../utils/describe')
 const {
   command,
   aliases,
@@ -19,6 +20,9 @@ jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ..
 jest.mock('../../../utils/std', () => ({
   out: jest.fn()
 }))
+jest.mock('../../../utils/describe', () => ({
+  update: jest.fn(() => ({ versionText: 'version-text', updateText: 'update-text' }))
+}))
 
 const { positional } = yargs
 
@@ -26,7 +30,9 @@ beforeAll(() => {
   get.mockResolvedValue({
     result: {
       data: 'data',
-      error: 'error'
+      error: 'error',
+      version: '0.1.0',
+      latestVersion: '0.2.0'
     }
   })
 })
@@ -53,6 +59,7 @@ describe('handler', () => {
     get.mockClear()
     out.mockClear()
     columnify.mockClear()
+    describeUpdate.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -67,7 +74,7 @@ describe('handler', () => {
     await handler({})
 
     expect(columnify).toHaveBeenCalledWith(
-      { data: 'data', error: 'error' },
+      { data: 'data', error: 'error', version: 'version-text', update: 'update-text' },
       { minWidth: 20, showHeaders: false }
     )
     expect(out).toHaveBeenCalledWith('result-output')
@@ -83,7 +90,10 @@ describe('handler', () => {
 
     await handler({})
 
-    expect(columnify).toHaveBeenCalledWith({ data: 'data', error: 'N\\A' }, expect.anything())
+    expect(columnify).toHaveBeenCalledWith(
+      expect.objectContaining({ data: 'data', error: 'N\\A' }),
+      expect.anything()
+    )
   })
 
   test('api call', async () => {
