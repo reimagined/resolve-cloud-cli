@@ -23,6 +23,8 @@ steps:
   - name: install
     image: 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
     pull: never
+    depends_on:
+      - pull-from-ecr
     commands:
       - yarn
 
