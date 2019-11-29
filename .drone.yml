@@ -29,21 +29,28 @@ steps:
   - name: testing
     image: 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
     pull: never
-    group: testing
+    depends_on:
+      - install
     commands:
       - yarn test
 
   - name: lint
     image: 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
     pull: never
-    group: testing
+    depends_on:
+      - install
     commands:
       - yarn lint
 
   - name: release
+    depends_on:
+      - testing
+      - lint
     when:
-      event: push
-      branch: release*
+      event:
+        - push
+      branch:
+        - release*
     image: 650139044964.dkr.ecr.us-east-1.amazonaws.com/resolve-docker
     pull: never
     environment:
@@ -60,3 +67,8 @@ steps:
       - /scripts/package_json make-public
       - npm publish --access=public
       - /scripts/package_json git-release-tag ${DRONE_BRANCH} $RELEASE_VERSION
+
+volumes:
+  - name: docker-sock
+    host:
+      path: /var/run/docker.sock
