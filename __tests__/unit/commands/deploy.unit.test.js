@@ -84,7 +84,12 @@ test('options', () => {
     type: 'string',
     default: 'latest-runtime'
   })
-  expect(option).toHaveBeenCalledTimes(8)
+  expect(option).toHaveBeenCalledWith('environment', {
+    describe: expect.any(String),
+    alias: 'env',
+    type: 'array'
+  })
+  expect(option).toHaveBeenCalledTimes(9)
 })
 
 describe('handler', () => {
@@ -246,7 +251,8 @@ describe('handler', () => {
       name: 'package-json-name',
       codePackage: 'key-a',
       staticPackage: 'key-b',
-      initialEvents: null
+      initialEvents: null,
+      environment: null
     })
   })
 
@@ -266,7 +272,8 @@ describe('handler', () => {
       name: 'package-json-name',
       codePackage: 'nanoid-value',
       staticPackage: 'nanoid-value',
-      initialEvents: null
+      initialEvents: null,
+      environment: null
     })
   })
 
@@ -445,5 +452,24 @@ describe('handler', () => {
     await handler({ qr: true })
 
     expect(qr.generate).toHaveBeenCalledWith('app-url-from-deployment-update', expect.any(Object))
+  })
+
+  test('option: environment variables', async () => {
+    await handler({ qr: true })
+
+    await handler({
+      environment: ['a=a', 'b=b']
+    })
+
+    expect(put).toHaveBeenCalledWith(
+      'token',
+      'deployments/deployment-id',
+      expect.objectContaining({
+        environment: {
+          a: 'a',
+          b: 'b'
+        }
+      })
+    )
   })
 })

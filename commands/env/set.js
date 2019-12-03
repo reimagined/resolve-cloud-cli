@@ -12,7 +12,7 @@ const handler = refreshToken(async (token, { deployment, variables }) =>
 module.exports = {
   handler,
   command: `set <deployment> <variables...>`,
-  describe: chalk.green('set an environment variable'),
+  describe: chalk.green('set an environment variables'),
   builder: yargs =>
     yargs
       .positional('deployment', {

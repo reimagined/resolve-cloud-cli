@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const dotenv = require('dotenv')
 const log = require('consola')
 const chalk = require('chalk')
 const nanoid = require('nanoid')
@@ -70,7 +71,8 @@ const handler = refreshToken(
       deploymentId,
       events,
       qr: generateQrCode,
-      runtime
+      runtime,
+      environment
     }
   ) => {
     const name = nameOverride || config.getPackageValue('name', '')
@@ -151,7 +153,8 @@ const handler = refreshToken(
       name,
       codePackage,
       staticPackage,
-      initialEvents
+      initialEvents,
+      environment: !isEmpty(environment) ? dotenv.parse(Buffer.from(environment.join('\n'))) : null
     })
 
     if (!noWait) {
@@ -201,7 +204,9 @@ module.exports = {
       })
       .option('deploymentId', {
         alias: 'd',
-        describe: 'create or update the deployment with specific global ID',
+        describe: `${chalk.yellow(
+          '(deprecated)'
+        )} create or update the deployment with specific global ID`,
         type: 'string'
       })
       .option('noWait', {
@@ -222,5 +227,10 @@ module.exports = {
         describe: 'target runtime specifier',
         type: 'string',
         default: LATEST_RUNTIME_SPECIFIER
+      })
+      .option('environment', {
+        describe: 'a list of key=value pairs describing environment variables',
+        alias: 'env',
+        type: 'array'
       })
 }
