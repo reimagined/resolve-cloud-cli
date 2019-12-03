@@ -201,7 +201,9 @@ module.exports = {
       })
       .option('deploymentId', {
         alias: 'd',
-        describe: 'create or update the deployment with specific global ID',
+        describe: `${chalk.yellow(
+          '(deprecated)'
+        )} create or update the deployment with specific global ID`,
         type: 'string'
       })
       .option('noWait', {
