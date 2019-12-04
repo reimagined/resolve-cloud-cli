@@ -352,6 +352,14 @@ describe('handler', () => {
     await expect(handler({})).rejects.toBeInstanceOf(Error)
   })
 
+  test('deployment fall to deploy-error state', async () => {
+    const states = ['deploying', 'deploy-error']
+
+    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+
+    await expect(handler({})).rejects.toBeInstanceOf(Error)
+  })
+
   test('packager invocation', async () => {
     await handler({ configuration: 'cloud' })
 
