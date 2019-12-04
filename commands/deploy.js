@@ -162,6 +162,7 @@ const handler = refreshToken(
       const { state, error } = await waitForDeploymentState(token, id, [
         'ready',
         'error',
+        'deploy-error',
         'inconsistent'
       ])
       if (state !== 'ready') {
