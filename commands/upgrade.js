@@ -6,9 +6,8 @@ const refreshToken = require('../refreshToken')
 const handler = refreshToken(async (token, { deployment, upgradeVersion }) => {
   log.start(`start application upgrading`)
 
-  await post(token, `deployments/${deployment}/upgrade`, {
-    version: upgradeVersion
-  })
+  const postfix = upgradeVersion ? `/${upgradeVersion}` : ''
+  await post(token, `deployments/${deployment}/upgrade${postfix}`)
 
   log.success(`application is upgraded`)
 })
