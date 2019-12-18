@@ -14,6 +14,6 @@ const handler = refreshToken(async (token, { deployment, upgradeVersion }) => {
 
 module.exports = {
   handler,
-  command: 'upgrade <deployment> <upgradeVersion>',
+  command: 'upgrade <deployment> [upgradeVersion]',
   describe: chalk.green('upgrades deployed application')
 }
