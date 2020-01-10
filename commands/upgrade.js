@@ -12,12 +12,12 @@ const handler = refreshToken(async (token, { deployment, runtime }) => {
 
   if (runtime !== 'latest') {
     if (semver.major(runtime) !== semver.major(result.version)) {
-      throw new Error('Application must be upgrade only by the same major version')
+      throw new Error('Application must be upgrade within currently used major version')
     }
 
     if (semver.minor(runtime) > semver.minor(result.latestVersion)) {
       throw new Error(
-        `Version ${runtime} is not found: ${result.latestVersion} is the latest version`
+        `Version ${runtime} is not found: ${result.latestVersion} is the latest minor version within the currently used major version`
       )
     }
   }
