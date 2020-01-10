@@ -29,11 +29,11 @@ module.exports = {
   handler,
   command: 'upgrade <deployment>',
   describe: chalk.green(
-    'upgrades deployed application to new minor version in the same major version'
+    'upgrades a deployed application to the latest minor version of the reSolve cloud runtime within the currently used major version'
   ),
   builder: yargs =>
     yargs.option('runtime', {
-      describe: 'minor application version to which application is going to be upgraded',
+      describe: "the cloud runtime's minor version within the currently used major version",
       type: 'string',
       default: 'latest'
     })
