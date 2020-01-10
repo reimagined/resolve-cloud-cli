@@ -49,13 +49,13 @@ Pass a deployment's ID to the `remove` command to remove this deployment:
 yarn resolve-cloud remove <deploymentId>
 ```
 
-Use the `upgrade` command to upgrade an application to a latest minor version within current major version:
+Use the `upgrade` command to upgrade an application to the latest minor version within current major version:
 
 ```
 yarn resolve-cloud upgrade <deploymentId>
 ```
 
-Specify the `runtime` option to upgrade to the specific version. It should be within current major version:
+Specify the `runtime` option to upgrade to a specific version. It should be within current major version:
 
 ```
 yarn resolve-cloud upgrade <deploymentId> --runtime=0.2.0
