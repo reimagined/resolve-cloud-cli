@@ -3,6 +3,6 @@ const { command, describe: commandDescription } = require('../../../commands/upg
 jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
 
 test('command', () => {
-  expect(command).toEqual('upgrade <deployment> [upgradeVersion]')
+  expect(command).toEqual('upgrade <deployment>')
   expect(commandDescription).toEqual(expect.any(String))
 })
