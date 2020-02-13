@@ -43,21 +43,21 @@ const upload = async (token, type, file) => {
   return key
 }
 
-const waitForDeploymentState = async (token, id, expectedStates) => {
+const waitForDeploymentStatus = async (token, id, expectedStates) => {
   const {
-    result: { state, error }
+    result: { status, errors }
   } = await get(token, `deployments/${id}`)
 
   log.trace(
-    `received the ${id} deployment's state: ${state}, expected states: ${expectedStates.join(',')}`
+    `received the ${id} deployment's state: ${status}, expected states: ${expectedStates.join(',')}`
   )
 
-  if (expectedStates.includes(state)) {
-    return { state, error }
+  if (expectedStates.includes(status)) {
+    return { status, errors }
   }
 
   await new Promise(resolve => setTimeout(resolve, DEPLOYMENT_STATE_AWAIT_INTERVAL_MS))
-  return waitForDeploymentState(token, id, expectedStates)
+  return waitForDeploymentStatus(token, id, expectedStates)
 }
 
 const handler = refreshToken(
@@ -159,14 +159,14 @@ const handler = refreshToken(
 
     if (!noWait) {
       log.trace(`waiting for the deployment ready state`)
-      const { state, error } = await waitForDeploymentState(token, id, [
+      const { status, errors } = await waitForDeploymentStatus(token, id, [
         'ready',
         'error',
         'deploy-error',
         'inconsistent'
       ])
-      if (state !== 'ready') {
-        throw Error(`unexpected deployment state "${state}" with error: ${error || 'none'}"`)
+      if (status !== 'ready') {
+        throw Error(`unexpected deployment state "${status}" with error: ${errors || 'none'}"`)
       }
     } else {
       log.trace(`skip waiting for the deployment ready state`)
