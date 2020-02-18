@@ -10,11 +10,7 @@ const handler = refreshToken(async (token, { deployment }) => {
   const { result } = await get(token, `deployments/${deployment}`)
 
   result.error =
-    result.error != null
-      ? result.error
-      : result.errors != null
-      ? result.errors[result.errors.length - 1]
-      : 'N\\A'
+    result.error != null ? result.error : result.errors != null ? result.errors[0] : 'N\\A'
   delete result.status
   delete result.errors
 
