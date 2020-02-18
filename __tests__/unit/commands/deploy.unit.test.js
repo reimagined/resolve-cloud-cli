@@ -125,7 +125,7 @@ describe('handler', () => {
   beforeEach(() => {
     routesGet = {
       deployments: () => [],
-      'deployments/deployment-id': () => ({ state: 'ready' }),
+      'deployments/deployment-id': () => ({ status: 'ready' }),
       'upload/url?type=deployment&key=nanoid-value': () => ({
         url: 'deployment-upload-url'
       }),
@@ -263,7 +263,7 @@ describe('handler', () => {
         id: 'existing-deployment-id'
       }
     ]
-    routesGet['deployments/existing-deployment-id'] = () => ({ state: 'ready' })
+    routesGet['deployments/existing-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/existing-deployment-id'] = () => ({})
 
     await handler({})
@@ -284,7 +284,7 @@ describe('handler', () => {
         id: 'existing-deployment-id'
       }
     ]
-    routesGet['deployments/existing-deployment-id'] = () => ({ state: 'ready' })
+    routesGet['deployments/existing-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/existing-deployment-id'] = () => ({})
 
     await expect(
@@ -317,7 +317,7 @@ describe('handler', () => {
   test('awaiting for deployment ready', async () => {
     const states = ['deploying', 'ready']
 
-    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+    routesGet['deployments/deployment-id'] = () => ({ status: states.shift() })
 
     await handler({})
 
@@ -327,7 +327,7 @@ describe('handler', () => {
   test('bug: awaiting for deployment ready only two iterations', async () => {
     const states = ['deploying', 'deploying', 'ready']
 
-    const proxy = jest.fn(() => ({ state: states.shift() }))
+    const proxy = jest.fn(() => ({ status: states.shift() }))
 
     routesGet['deployments/deployment-id'] = proxy
 
@@ -339,7 +339,7 @@ describe('handler', () => {
   test('deployment fall to error state', async () => {
     const states = ['deploying', 'error']
 
-    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+    routesGet['deployments/deployment-id'] = () => ({ status: states.shift() })
 
     await expect(handler({})).rejects.toBeInstanceOf(Error)
   })
@@ -347,7 +347,7 @@ describe('handler', () => {
   test('deployment fall to inconsistent state', async () => {
     const states = ['deploying', 'inconsistent']
 
-    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+    routesGet['deployments/deployment-id'] = () => ({ status: states.shift() })
 
     await expect(handler({})).rejects.toBeInstanceOf(Error)
   })
@@ -355,7 +355,7 @@ describe('handler', () => {
   test('deployment fall to deploy-error state', async () => {
     const states = ['deploying', 'deploy-error']
 
-    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+    routesGet['deployments/deployment-id'] = () => ({ status: states.shift() })
 
     await expect(handler({})).rejects.toBeInstanceOf(Error)
   })
@@ -402,7 +402,7 @@ describe('handler', () => {
         name: 'anything'
       }
     ]
-    routesGet['deployments/specific-deployment-id'] = () => ({ state: 'ready' })
+    routesGet['deployments/specific-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/specific-deployment-id'] = () => ({})
 
     await handler({ deploymentId: 'specific-deployment-id' })
@@ -423,7 +423,7 @@ describe('handler', () => {
         name: 'anything'
       }
     ]
-    routesGet['deployments/specific-deployment-id'] = () => ({ state: 'ready' })
+    routesGet['deployments/specific-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/specific-deployment-id'] = () => ({})
 
     await handler({ deploymentId: 'specific-deployment-id' })
@@ -433,7 +433,7 @@ describe('handler', () => {
 
   test('option: id (no such deployment)', async () => {
     routesPost.deployments = () => ({ id: 'specific-deployment-id' })
-    routesGet['deployments/specific-deployment-id'] = () => ({ state: 'ready' })
+    routesGet['deployments/specific-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/specific-deployment-id'] = () => ({})
 
     await handler({ deploymentId: 'specific-deployment-id' })
