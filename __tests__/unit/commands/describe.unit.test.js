@@ -75,7 +75,7 @@ describe('handler', () => {
 
     expect(columnify).toHaveBeenCalledWith(
       { data: 'data', error: 'error', version: 'version-text', update: 'update-text' },
-      { minWidth: 20, showHeaders: false }
+      { minWidth: 20, showHeaders: false, preserveNewLines: true }
     )
     expect(out).toHaveBeenCalledWith('result-output')
   })

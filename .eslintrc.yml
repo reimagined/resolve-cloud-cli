@@ -12,4 +12,5 @@ rules:
   no-param-reassign: ['error', { props: false }]
   class-methods-use-this: 'off'
   semi: 'off'
+  no-nested-ternary: 'off'
   curly: [ 'error', 'all' ]
