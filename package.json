@@ -1,6 +1,6 @@
 {
   "name": "resolve-cloud",
-  "version": "0.11.0",
+  "version": "0.13.0",
   "description": "",
   "engines": {
     "node": ">=8.10"
