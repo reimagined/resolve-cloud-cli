@@ -154,7 +154,8 @@ const handler = refreshToken(
       codePackage,
       staticPackage,
       initialEvents,
-      environment: !isEmpty(environment) ? dotenv.parse(Buffer.from(environment.join('\n'))) : null
+      environment: !isEmpty(environment) ? dotenv.parse(Buffer.from(environment.join('\n'))) : null,
+      skipBuild
     })
 
     if (!noWait) {
@@ -166,7 +167,11 @@ const handler = refreshToken(
         'inconsistent'
       ])
       if (status !== 'ready') {
-        throw Error(`unexpected deployment state "${status}" with error: ${errors || 'none'}"`)
+        throw Error(
+          `unexpected deployment state "${status}" with error: "${
+            errors == null || errors.length === 0 ? 'none' : errors
+          }"`
+        )
       }
     } else {
       log.trace(`skip waiting for the deployment ready state`)
