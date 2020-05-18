@@ -89,7 +89,11 @@ test('options', () => {
     alias: 'env',
     type: 'array'
   })
-  expect(option).toHaveBeenCalledTimes(9)
+  expect(option).toHaveBeenCalledWith('npmRegistry', {
+    describe: expect.any(String),
+    type: 'string'
+  })
+  expect(option).toHaveBeenCalledTimes(10)
 })
 
 describe('handler', () => {
@@ -463,8 +467,6 @@ describe('handler', () => {
   })
 
   test('option: environment variables', async () => {
-    await handler({ qr: true })
-
     await handler({
       environment: ['a=a', 'b=b']
     })
@@ -477,6 +479,18 @@ describe('handler', () => {
           a: 'a',
           b: 'b'
         }
+      })
+    )
+  })
+
+  test('option: npmRegistry', async () => {
+    await handler({ npmRegistry: 'http://custom.registry.org' })
+
+    expect(put).toHaveBeenCalledWith(
+      'token',
+      'deployments/deployment-id',
+      expect.objectContaining({
+        npmRegistry: 'http://custom.registry.org'
       })
     )
   })
