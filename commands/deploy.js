@@ -72,7 +72,8 @@ const handler = refreshToken(
       events,
       qr: generateQrCode,
       runtime,
-      environment
+      environment,
+      npmRegistry
     }
   ) => {
     const name = nameOverride || config.getPackageValue('name', '')
@@ -155,7 +156,8 @@ const handler = refreshToken(
       staticPackage,
       initialEvents,
       environment: !isEmpty(environment) ? dotenv.parse(Buffer.from(environment.join('\n'))) : null,
-      skipBuild
+      skipBuild,
+      npmRegistry
     })
 
     if (!noWait) {
@@ -238,5 +240,9 @@ module.exports = {
         describe: 'a list of key=value pairs describing environment variables',
         alias: 'env',
         type: 'array'
+      })
+      .option('npmRegistry', {
+        describe: 'custom NPM registry link',
+        type: 'string'
       })
 }
