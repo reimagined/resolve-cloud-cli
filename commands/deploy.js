@@ -69,6 +69,7 @@ const handler = refreshToken(
       configuration,
       name: nameOverride,
       deploymentId,
+      eventStoreId,
       events,
       qr: generateQrCode,
       runtime,
@@ -109,6 +110,23 @@ const handler = refreshToken(
     }
 
     if (!id) {
+      let esId
+
+      if (eventStoreId == null) {
+        log.trace(`creating new event store`)
+        ;({
+          result: { id: esId }
+        } = await post(token, 'eventStores', {
+          runtime
+        }))
+      } else {
+        const eventStore = await get(token, `eventStores/${eventStoreId}`)
+
+        if (eventStore == null) {
+          throw new Error('Event store does not exist')
+        }
+      }
+
       if (deploymentId) {
         log.trace(`creating new deployment with id ${deploymentId}`)
       } else {
@@ -120,11 +138,18 @@ const handler = refreshToken(
       } = await post(token, `deployments`, {
         name,
         id: deploymentId,
-        runtime
+        runtime,
+        eventStoreId: esId
       })
       id = newId
-    } else if (!isEmpty(runtime) && runtime !== LATEST_RUNTIME_SPECIFIER) {
-      throw Error(`cannot change runtime of the existing deployment`)
+    } else {
+      if (!isEmpty(runtime) && runtime !== LATEST_RUNTIME_SPECIFIER) {
+        throw new Error(`cannot change runtime of the existing deployment`)
+      }
+
+      if (eventStoreId != null) {
+        throw new Error(`cannot change event store of the existing deployment`)
+      }
     }
 
     log.trace(`deployment id obtained: ${id}`)
@@ -215,6 +240,11 @@ module.exports = {
         describe: `${chalk.yellow(
           '(deprecated)'
         )} create or update the deployment with specific global ID`,
+        type: 'string'
+      })
+      .option('eventStoreId', {
+        alias: 'es',
+        describe: `event store id`,
         type: 'string'
       })
       .option('noWait', {
