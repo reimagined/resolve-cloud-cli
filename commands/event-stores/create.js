@@ -6,12 +6,12 @@ const { LATEST_RUNTIME_SPECIFIER } = require('../../constants')
 
 const handler = refreshToken(async (token, { runtime }) => {
   const {
-    result: { id }
+    result: { eventStoreId }
   } = await post(token, `eventStores`, {
     runtime
   })
 
-  log.success(`Event store with "${id}" id has been created`)
+  log.success(`Event store with "${eventStoreId}" id has been created`)
 })
 
 module.exports = {
