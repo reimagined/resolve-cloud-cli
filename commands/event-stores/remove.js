@@ -4,16 +4,13 @@ const refreshToken = require('../../refreshToken')
 const { del } = require('../../api/client')
 
 const handler = refreshToken(async (token, { eventStoreId }) => {
-  await del(token, `eventStores`, {
-    eventStoreId
-  })
-
+  await del(token, `eventStores/${eventStoreId}`)
   log.success(`Event store has been removed`)
 })
 
 module.exports = {
   handler,
-  command: 'remove',
+  command: 'remove <eventStoreId>',
   aliases: ['rm'],
   describe: chalk.green("removes the user's event store"),
   builder: yargs =>

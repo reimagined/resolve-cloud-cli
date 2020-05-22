@@ -6,12 +6,15 @@ const { out } = require('../../utils/std')
 
 const handler = refreshToken(async token => {
   const { result } = await get(token, `eventStores`)
+
   if (result) {
+    const eventStores = result.filter(store => store.status !== 'destroyed')
+
     out(
-      columnify(result, {
+      columnify(eventStores, {
         minWidth: 20,
         truncate: true,
-        columns: ['domain', 'verified', 'added at', 'bindings']
+        columns: ['eventStoreId', 'major', 'createdAt', 'deploymentCount', 'userId']
       })
     )
   }
