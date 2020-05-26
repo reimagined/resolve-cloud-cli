@@ -1,47 +1,15 @@
-const fs = require('fs')
-const path = require('path')
 const dotenv = require('dotenv')
 const log = require('consola')
 const chalk = require('chalk')
-const nanoid = require('nanoid')
 const isEmpty = require('lodash.isempty')
 const qr = require('qrcode-terminal')
-const FormData = require('form-data')
 const { post, get, put } = require('../api/client')
+const upload = require('../api/upload')
 const refreshToken = require('../refreshToken')
 const packager = require('../packager')
 const config = require('../config')
 
 const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS, LATEST_RUNTIME_SPECIFIER } = require('../constants')
-
-const upload = async (token, type, file) => {
-  const key = nanoid()
-  const {
-    result: { url, headers = {}, fields = {} }
-  } = await get(token, `upload/url?type=${type}&key=${key}`)
-
-  const form = new FormData()
-  Object.keys(fields).forEach(field => form.append(field, fields[field]))
-
-  form.append('file', fs.createReadStream(path.resolve(file)))
-
-  const contentLength = await new Promise((resolve, reject) =>
-    form.getLength((err, length) => {
-      if (err) {
-        return reject(err)
-      }
-      return resolve(length)
-    })
-  )
-
-  await post(null, url, form, {
-    'Content-Type': `multipart/form-data; boundary=${form.getBoundary()}`,
-    'Content-Length': contentLength,
-    ...headers
-  })
-
-  return key
-}
 
 const waitForDeploymentStatus = async (token, id, expectedStates) => {
   const {
@@ -109,15 +77,25 @@ const handler = refreshToken(
       }
     }
 
+    let initialEvents = null
+
     if (!id) {
       let esId
 
       if (eventStoreId == null) {
         log.trace(`creating new event store`)
+
+        if (events != null) {
+          log.trace(`initial events uploading...`)
+          initialEvents = await upload(token, 'events', events)
+          log.trace(`initial events are uploaded as [${initialEvents}]`)
+        }
+
         ;({
-          result: { id: esId }
+          result: { eventStoreId: esId }
         } = await post(token, 'eventStores', {
-          runtime
+          runtime,
+          initialEvents
         }))
       } else {
         const eventStore = await get(token, `eventStores/${eventStoreId}`)
@@ -125,6 +103,8 @@ const handler = refreshToken(
         if (eventStore == null) {
           throw new Error('Event store does not exist')
         }
+
+        esId = eventStoreId
       }
 
       if (deploymentId) {
@@ -161,20 +141,17 @@ const handler = refreshToken(
     }
     log.trace(`uploading deployment resources`)
 
-    const [codePackage, staticPackage, initialEvents] = await Promise.all([
+    const [codePackage, staticPackage] = await Promise.all([
       upload(token, 'deployment', 'code.zip'),
-      upload(token, 'deployment', 'static.zip'),
-      isEmpty(events) ? Promise.resolve(null) : upload(token, 'events', events)
+      upload(token, 'deployment', 'static.zip')
     ])
 
     log.trace(`code package [${codePackage}], static package [${staticPackage}]`)
-    if (initialEvents) {
-      log.trace(`initial events are uploaded as [${initialEvents}]`)
-    }
+
     log.trace(`updating the deployment [${id}]`)
 
     const {
-      result: { appUrl }
+      result: { applicationUrl }
     } = await put(token, `deployments/${id}`, {
       name,
       codePackage,
@@ -204,10 +181,10 @@ const handler = refreshToken(
       log.trace(`skip waiting for the deployment ready state`)
     }
 
-    log.success(`"${name}" available at ${appUrl}`)
+    log.success(`"${name}" available at ${applicationUrl}`)
 
     if (generateQrCode) {
-      qr.generate(appUrl, { small: true })
+      qr.generate(applicationUrl, { small: true })
     }
   }
 )
