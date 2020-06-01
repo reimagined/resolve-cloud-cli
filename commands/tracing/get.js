@@ -3,7 +3,7 @@ const refreshToken = require('../../refreshToken')
 const { get } = require('../../api/client')
 const { out } = require('../../utils/std')
 
-const handler = refreshToken(async (token, { deployment, traceId }) => {
+const handler = refreshToken(async (token, { deployment, 'trace-id': traceId }) => {
   const { result } = await get(token, `deployments/${deployment}/tracing/details`, {
     traceIds: traceId
   })
@@ -23,7 +23,7 @@ module.exports = {
         describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
-      .positional('traceId', {
+      .positional('trace-id', {
         describe: chalk.green("a trace's id"),
         type: 'string'
       })

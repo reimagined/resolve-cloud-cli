@@ -32,17 +32,17 @@ const handler = refreshToken(
   async (
     token,
     {
-      skipBuild,
-      noWait,
+      'skip-build': skipBuild,
+      'no-wait': noWait,
       configuration,
       name: nameOverride,
-      deploymentId,
-      eventStoreId,
+      'deployment-id': deploymentId,
+      'evenstore-id': eventStoreId,
       events,
       qr: generateQrCode,
       runtime,
       environment,
-      npmRegistry
+      'npm-registry': npmRegistry
     }
   ) => {
     const name = nameOverride || config.getPackageValue('name', '')
@@ -196,7 +196,7 @@ module.exports = {
   describe: chalk.green('deploy a reSolve application to the cloud to the cloud'),
   builder: yargs =>
     yargs
-      .option('skipBuild', {
+      .option('skip-build', {
         describe: 'skip the application build phase',
         type: 'boolean',
         default: false
@@ -212,19 +212,19 @@ module.exports = {
         describe: 'the application name (the name from package.json is used by default)',
         type: 'string'
       })
-      .option('deploymentId', {
+      .option('deployment-id', {
         alias: 'd',
         describe: `${chalk.yellow(
           '(deprecated)'
         )} create or update the deployment with specific global ID`,
         type: 'string'
       })
-      .option('eventStoreId', {
+      .option('eventstore-id', {
         alias: 'es',
-        describe: `event store id`,
+        describe: `eventstore id`,
         type: 'string'
       })
-      .option('noWait', {
+      .option('no-wait', {
         describe: 'do not wait for the deployment to reach the ready state',
         type: 'boolean',
         default: false
@@ -248,7 +248,7 @@ module.exports = {
         alias: 'env',
         type: 'array'
       })
-      .option('npmRegistry', {
+      .option('npm-registry', {
         describe: 'custom NPM registry link',
         type: 'string'
       })
