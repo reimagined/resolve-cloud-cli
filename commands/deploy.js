@@ -119,7 +119,8 @@ const handler = refreshToken(
         name,
         id: deploymentId,
         runtime,
-        eventStoreId: esId
+        eventStoreId: esId,
+        initialEvents
       })
       id = newId
     } else {
