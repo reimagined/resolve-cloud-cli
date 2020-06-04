@@ -34,7 +34,7 @@ test('options', () => {
     type: 'string'
   })
   expect(positional).toHaveBeenCalledTimes(1)
-  expect(option).toHaveBeenCalledWith('noWait', {
+  expect(option).toHaveBeenCalledWith('no-wait', {
     describe: expect.any(String),
     type: 'boolean',
     default: false
@@ -55,7 +55,7 @@ describe('handler', () => {
 
   beforeEach(() => {
     routesGet = {
-      'deployments/deployment-id': () => ({ state: 'destroyed' })
+      'deployments/deployment-id': () => ({ status: 'destroyed' })
     }
   })
 
@@ -82,9 +82,9 @@ describe('handler', () => {
   })
 
   test('awaiting for deployment destroyed', async () => {
-    const states = ['destroying', 'destroyed']
+    const statuses = ['destroying', 'destroyed']
 
-    routesGet['deployments/deployment-id'] = () => ({ state: states.shift() })
+    routesGet['deployments/deployment-id'] = () => ({ status: statuses.shift() })
 
     await handler({
       deployment: 'deployment-id'
@@ -94,9 +94,9 @@ describe('handler', () => {
   })
 
   test('bug: awaiting for deployment destroyed only two iterations', async () => {
-    const states = ['destroying', 'destroying', 'destroyed']
+    const statuses = ['destroying', 'destroying', 'destroyed']
 
-    const proxy = jest.fn(() => ({ state: states.shift() }))
+    const proxy = jest.fn(() => ({ status: statuses.shift() }))
 
     routesGet['deployments/deployment-id'] = proxy
 
@@ -108,7 +108,7 @@ describe('handler', () => {
   })
 
   test('option: noWait', async () => {
-    await handler({ noWait: true })
+    await handler({ 'no-wait': true })
 
     expect(get).not.toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })

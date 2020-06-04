@@ -44,7 +44,7 @@ test('command', () => {
 test('options', () => {
   builder(yargs)
 
-  expect(option).toHaveBeenCalledWith('skipBuild', {
+  expect(option).toHaveBeenCalledWith('skip-build', {
     describe: expect.any(String),
     type: 'boolean',
     default: false
@@ -60,12 +60,12 @@ test('options', () => {
     alias: 'n',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('deploymentId', {
+  expect(option).toHaveBeenCalledWith('deployment-id', {
     describe: expect.any(String),
     alias: 'd',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('noWait', {
+  expect(option).toHaveBeenCalledWith('no-wait', {
     describe: expect.any(String),
     type: 'boolean',
     default: false
@@ -89,11 +89,16 @@ test('options', () => {
     alias: 'env',
     type: 'array'
   })
-  expect(option).toHaveBeenCalledWith('npmRegistry', {
+  expect(option).toHaveBeenCalledWith('npm-registry', {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(option).toHaveBeenCalledTimes(10)
+  expect(option).toHaveBeenCalledWith('eventstore-id', {
+    describe: expect.any(String),
+    type: 'string',
+    alias: 'es'
+  })
+  expect(option).toHaveBeenCalledTimes(11)
 })
 
 describe('handler', () => {
@@ -136,7 +141,8 @@ describe('handler', () => {
       'upload/url?type=events&key=nanoid-value': () => ({ url: 'events-upload-url' }),
       'upload/url?type=events&key=key-c': () => ({ url: 'events-upload-url-c' }),
       'upload/url?type=deployment&key=key-a': () => ({ url: 'deployment-upload-url-a' }),
-      'upload/url?type=deployment&key=key-b': () => ({ url: 'deployment-upload-url-b' })
+      'upload/url?type=deployment&key=key-b': () => ({ url: 'deployment-upload-url-b' }),
+      'eventStores/event-store-id': () => ({ eventStoreId: 'event-store-id' })
     }
     routesPost = {
       deployments: () => ({ id: 'deployment-id' }),
@@ -144,11 +150,12 @@ describe('handler', () => {
       'deployment-upload-url-a': () => {},
       'deployment-upload-url-b': () => {},
       'events-upload-url': () => {},
-      'events-upload-url-c': () => {}
+      'events-upload-url-c': () => {},
+      eventStores: () => ({ eventStoreId: 'event-store-id' })
     }
     routesPut = {
       'deployments/deployment-id': () => ({
-        appUrl: 'app-url-from-deployment-update'
+        applicationUrl: 'app-url-from-deployment-update'
       })
     }
   })
@@ -213,9 +220,9 @@ describe('handler', () => {
   })
 
   test('initial events file uploading', async () => {
+    nanoid.mockReturnValueOnce('key-c')
     nanoid.mockReturnValueOnce('key-a')
     nanoid.mockReturnValueOnce('key-b')
-    nanoid.mockReturnValueOnce('key-c')
 
     await handler({
       events: 'events.txt'
@@ -235,8 +242,27 @@ describe('handler', () => {
     await handler({})
 
     expect(post).toHaveBeenCalledWith('token', 'deployments', {
-      name: 'package-json-name'
+      name: 'package-json-name',
+      initialEvents: null,
+      eventStoreId: 'event-store-id',
+      runtime: undefined,
+      id: undefined
     })
+  })
+
+  test('creates event store for new deployment', async () => {
+    await handler({})
+
+    expect(post).toHaveBeenCalledWith('token', 'eventStores', {
+      initialEvents: null,
+      runtime: undefined
+    })
+  })
+
+  test('uses existing event store for new deployment', async () => {
+    await handler({ 'eventstore-id': 'event-store-id' })
+
+    expect(post).not.toHaveBeenCalledWith('token', 'eventStores', expect.any(Object))
   })
 
   test('list of the user deployments requested', async () => {
@@ -373,7 +399,13 @@ describe('handler', () => {
   test('option: name', async () => {
     await handler({ name: 'name-override' })
 
-    expect(post).toHaveBeenCalledWith('token', 'deployments', { name: 'name-override' })
+    expect(post).toHaveBeenCalledWith('token', 'deployments', {
+      name: 'name-override',
+      eventStoreId: 'event-store-id',
+      initialEvents: null,
+      id: undefined,
+      runtime: undefined
+    })
     expect(put).toHaveBeenCalledWith(
       'token',
       'deployments/deployment-id',
@@ -384,13 +416,13 @@ describe('handler', () => {
   })
 
   test('option: skipBuild', async () => {
-    await handler({ skipBuild: true })
+    await handler({ 'skip-build': true })
 
     expect(packager).not.toHaveBeenCalled()
   })
 
   test('option: noWait', async () => {
-    await handler({ noWait: true })
+    await handler({ 'no-wait': true })
 
     expect(get).not.toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })
@@ -409,7 +441,7 @@ describe('handler', () => {
     routesGet['deployments/specific-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/specific-deployment-id'] = () => ({})
 
-    await handler({ deploymentId: 'specific-deployment-id' })
+    await handler({ 'deployment-id': 'specific-deployment-id' })
 
     expect(post).toHaveBeenCalledTimes(2)
     expect(put).toHaveBeenCalledWith(
@@ -430,7 +462,7 @@ describe('handler', () => {
     routesGet['deployments/specific-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/specific-deployment-id'] = () => ({})
 
-    await handler({ deploymentId: 'specific-deployment-id' })
+    await handler({ 'deployment-id': 'specific-deployment-id' })
 
     expect(post).toHaveBeenCalledTimes(2)
   })
@@ -444,7 +476,10 @@ describe('handler', () => {
 
     expect(post).toHaveBeenCalledWith('token', 'deployments', {
       name: 'package-json-name',
-      id: 'specific-deployment-id'
+      id: undefined,
+      runtime: undefined,
+      eventStoreId: 'event-store-id',
+      initialEvents: null
     })
     expect(put).toHaveBeenCalledWith(
       'token',
@@ -483,8 +518,8 @@ describe('handler', () => {
     )
   })
 
-  test('option: npmRegistry', async () => {
-    await handler({ npmRegistry: 'http://custom.registry.org' })
+  test('option: npm-registry', async () => {
+    await handler({ 'npm-registry': 'http://custom.registry.org' })
 
     expect(put).toHaveBeenCalledWith(
       'token',

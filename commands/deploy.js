@@ -37,7 +37,7 @@ const handler = refreshToken(
       configuration,
       name: nameOverride,
       'deployment-id': deploymentId,
-      'evenstore-id': eventStoreId,
+      'eventstore-id': eventStoreId,
       events,
       qr: generateQrCode,
       runtime,

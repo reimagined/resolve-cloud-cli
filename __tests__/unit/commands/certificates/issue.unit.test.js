@@ -30,19 +30,19 @@ test('command', () => {
 test('options', () => {
   builder(yargs)
 
-  expect(option).toHaveBeenCalledWith('certificateFile', {
+  expect(option).toHaveBeenCalledWith('certificate-file', {
     alias: 'crt',
     describe: expect.any(String),
     type: 'string',
     demand: expect.any(String)
   })
-  expect(option).toHaveBeenCalledWith('keyFile', {
+  expect(option).toHaveBeenCalledWith('key-file', {
     alias: 'key',
     describe: expect.any(String),
     type: 'string',
     demand: expect.any(String)
   })
-  expect(option).toHaveBeenCalledWith('chainFile', {
+  expect(option).toHaveBeenCalledWith('chain-file', {
     alias: 'ca',
     describe: expect.any(String),
     type: 'string'
@@ -69,9 +69,9 @@ describe('handler', () => {
 
   test('api call', async () => {
     await handler({
-      certificateFile: 'certificate-file',
-      keyFile: 'key-file',
-      chainFile: 'chain-file',
+      'certificate-file': 'certificate-file',
+      'key-file': 'key-file',
+      'chain-file': 'chain-file',
       id: 'id'
     })
 
@@ -89,8 +89,8 @@ describe('handler', () => {
 
   test('bug: readFile exception if no chain option provided', async () => {
     await handler({
-      certificateFile: 'certificate-file',
-      keyFile: 'key-file',
+      'certificate-file': 'certificate-file',
+      'key-file': 'key-file',
       id: 'id'
     })
 

@@ -34,7 +34,7 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(positional).toHaveBeenCalledWith('traceId', {
+  expect(positional).toHaveBeenCalledWith('trace-id', {
     describe: expect.any(String),
     type: 'string'
   })
@@ -62,7 +62,7 @@ describe('handler', () => {
   })
 
   test('api call', async () => {
-    await handler({ deployment: 'deployment-id', traceId: 'trace-id' })
+    await handler({ deployment: 'deployment-id', 'trace-id': 'trace-id' })
 
     expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/tracing/details', {
       traceIds: 'trace-id'
