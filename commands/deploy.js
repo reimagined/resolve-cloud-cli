@@ -1,47 +1,15 @@
-const fs = require('fs')
-const path = require('path')
 const dotenv = require('dotenv')
 const log = require('consola')
 const chalk = require('chalk')
-const nanoid = require('nanoid')
 const isEmpty = require('lodash.isempty')
 const qr = require('qrcode-terminal')
-const FormData = require('form-data')
 const { post, get, put } = require('../api/client')
+const upload = require('../api/upload')
 const refreshToken = require('../refreshToken')
 const packager = require('../packager')
 const config = require('../config')
 
 const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS, LATEST_RUNTIME_SPECIFIER } = require('../constants')
-
-const upload = async (token, type, file) => {
-  const key = nanoid()
-  const {
-    result: { url, headers = {}, fields = {} }
-  } = await get(token, `upload/url?type=${type}&key=${key}`)
-
-  const form = new FormData()
-  Object.keys(fields).forEach(field => form.append(field, fields[field]))
-
-  form.append('file', fs.createReadStream(path.resolve(file)))
-
-  const contentLength = await new Promise((resolve, reject) =>
-    form.getLength((err, length) => {
-      if (err) {
-        return reject(err)
-      }
-      return resolve(length)
-    })
-  )
-
-  await post(null, url, form, {
-    'Content-Type': `multipart/form-data; boundary=${form.getBoundary()}`,
-    'Content-Length': contentLength,
-    ...headers
-  })
-
-  return key
-}
 
 const waitForDeploymentStatus = async (token, id, expectedStates) => {
   const {
@@ -64,16 +32,17 @@ const handler = refreshToken(
   async (
     token,
     {
-      skipBuild,
-      noWait,
+      'skip-build': skipBuild,
+      'no-wait': noWait,
       configuration,
       name: nameOverride,
-      deploymentId,
+      'deployment-id': deploymentId,
+      'eventstore-id': eventStoreId,
       events,
       qr: generateQrCode,
       runtime,
       environment,
-      npmRegistry
+      'npm-registry': npmRegistry
     }
   ) => {
     const name = nameOverride || config.getPackageValue('name', '')
@@ -108,7 +77,36 @@ const handler = refreshToken(
       }
     }
 
+    let initialEvents = null
+
     if (!id) {
+      let esId
+
+      if (eventStoreId == null) {
+        log.trace(`creating new event store`)
+
+        if (events != null) {
+          log.trace(`initial events uploading...`)
+          initialEvents = await upload(token, 'events', events)
+          log.trace(`initial events are uploaded as [${initialEvents}]`)
+        }
+
+        ;({
+          result: { eventStoreId: esId }
+        } = await post(token, 'eventStores', {
+          runtime,
+          initialEvents
+        }))
+      } else {
+        const eventStore = await get(token, `eventStores/${eventStoreId}`)
+
+        if (eventStore == null) {
+          throw new Error('Event store does not exist')
+        }
+
+        esId = eventStoreId
+      }
+
       if (deploymentId) {
         log.trace(`creating new deployment with id ${deploymentId}`)
       } else {
@@ -120,11 +118,19 @@ const handler = refreshToken(
       } = await post(token, `deployments`, {
         name,
         id: deploymentId,
-        runtime
+        runtime,
+        eventStoreId: esId,
+        initialEvents
       })
       id = newId
-    } else if (!isEmpty(runtime) && runtime !== LATEST_RUNTIME_SPECIFIER) {
-      throw Error(`cannot change runtime of the existing deployment`)
+    } else {
+      if (!isEmpty(runtime) && runtime !== LATEST_RUNTIME_SPECIFIER) {
+        throw new Error(`cannot change runtime of the existing deployment`)
+      }
+
+      if (eventStoreId != null) {
+        throw new Error(`cannot change event store of the existing deployment`)
+      }
     }
 
     log.trace(`deployment id obtained: ${id}`)
@@ -136,20 +142,17 @@ const handler = refreshToken(
     }
     log.trace(`uploading deployment resources`)
 
-    const [codePackage, staticPackage, initialEvents] = await Promise.all([
+    const [codePackage, staticPackage] = await Promise.all([
       upload(token, 'deployment', 'code.zip'),
-      upload(token, 'deployment', 'static.zip'),
-      isEmpty(events) ? Promise.resolve(null) : upload(token, 'events', events)
+      upload(token, 'deployment', 'static.zip')
     ])
 
     log.trace(`code package [${codePackage}], static package [${staticPackage}]`)
-    if (initialEvents) {
-      log.trace(`initial events are uploaded as [${initialEvents}]`)
-    }
+
     log.trace(`updating the deployment [${id}]`)
 
     const {
-      result: { appUrl }
+      result: { applicationUrl }
     } = await put(token, `deployments/${id}`, {
       name,
       codePackage,
@@ -179,10 +182,10 @@ const handler = refreshToken(
       log.trace(`skip waiting for the deployment ready state`)
     }
 
-    log.success(`"${name}" available at ${appUrl}`)
+    log.success(`"${name}" available at ${applicationUrl}`)
 
     if (generateQrCode) {
-      qr.generate(appUrl, { small: true })
+      qr.generate(applicationUrl, { small: true })
     }
   }
 )
@@ -194,7 +197,7 @@ module.exports = {
   describe: chalk.green('deploy a reSolve application to the cloud to the cloud'),
   builder: yargs =>
     yargs
-      .option('skipBuild', {
+      .option('skip-build', {
         describe: 'skip the application build phase',
         type: 'boolean',
         default: false
@@ -210,14 +213,19 @@ module.exports = {
         describe: 'the application name (the name from package.json is used by default)',
         type: 'string'
       })
-      .option('deploymentId', {
+      .option('deployment-id', {
         alias: 'd',
         describe: `${chalk.yellow(
           '(deprecated)'
         )} create or update the deployment with specific global ID`,
         type: 'string'
       })
-      .option('noWait', {
+      .option('eventstore-id', {
+        alias: 'es',
+        describe: `eventstore id`,
+        type: 'string'
+      })
+      .option('no-wait', {
         describe: 'do not wait for the deployment to reach the ready state',
         type: 'boolean',
         default: false
@@ -241,7 +249,7 @@ module.exports = {
         alias: 'env',
         type: 'array'
       })
-      .option('npmRegistry', {
+      .option('npm-registry', {
         describe: 'custom NPM registry link',
         type: 'string'
       })

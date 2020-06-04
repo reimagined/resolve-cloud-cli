@@ -34,22 +34,22 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('startTime', {
+  expect(option).toHaveBeenCalledWith('start-time', {
     describe: expect.any(String),
     alias: 's',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('endTime', {
+  expect(option).toHaveBeenCalledWith('end-time', {
     describe: expect.any(String),
     alias: 'e',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('filterPattern', {
+  expect(option).toHaveBeenCalledWith('filter-pattern', {
     describe: expect.any(String),
     alias: 'f',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('streamLimit', {
+  expect(option).toHaveBeenCalledWith('stream-limit', {
     describe: expect.any(String),
     alias: 'l',
     type: 'number'
@@ -91,7 +91,7 @@ describe('handler', () => {
   })
 
   test('api call: startTime specified', async () => {
-    await handler({ deployment: 'deployment-id', startTime: 'start-time' })
+    await handler({ deployment: 'deployment-id', 'start-time': 'start-time' })
 
     expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/logs', {
       startTime: 'start-time'
@@ -99,7 +99,7 @@ describe('handler', () => {
   })
 
   test('api call: endTime specified', async () => {
-    await handler({ deployment: 'deployment-id', endTime: 'end-time' })
+    await handler({ deployment: 'deployment-id', 'end-time': 'end-time' })
 
     expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/logs', {
       endTime: 'end-time'
@@ -107,7 +107,7 @@ describe('handler', () => {
   })
 
   test('api call: filterPattern specified', async () => {
-    await handler({ deployment: 'deployment-id', filterPattern: 'filter-pattern' })
+    await handler({ deployment: 'deployment-id', 'filter-pattern': 'filter-pattern' })
 
     expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/logs', {
       filterPattern: 'filter-pattern'
@@ -115,7 +115,7 @@ describe('handler', () => {
   })
 
   test('api call: streamLimit specified', async () => {
-    await handler({ deployment: 'deployment-id', streamLimit: 3 })
+    await handler({ deployment: 'deployment-id', 'stream-limit': 3 })
 
     expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/logs', {
       streamLimit: 3

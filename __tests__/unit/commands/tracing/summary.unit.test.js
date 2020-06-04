@@ -47,12 +47,12 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('startTime', {
+  expect(option).toHaveBeenCalledWith('start-time', {
     describe: expect.any(String),
     alias: 's',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('endTime', {
+  expect(option).toHaveBeenCalledWith('end-time', {
     describe: expect.any(String),
     alias: 'e',
     type: 'string'
@@ -87,7 +87,11 @@ describe('handler', () => {
   })
 
   test('api call: startTime specified', async () => {
-    await handler({ deployment: 'deployment-id', startTime: 'start-time', endTime: 'end-time' })
+    await handler({
+      deployment: 'deployment-id',
+      'start-time': 'start-time',
+      'end-time': 'end-time'
+    })
 
     expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id/tracing/summary', {
       startTime: 'start-time',

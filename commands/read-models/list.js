@@ -10,16 +10,19 @@ const handler = refreshToken(async (token, { deployment }) => {
   if (result) {
     out(
       columnify(
-        result.map(({ name, status, lastEvent, lastError }) => ({
+        result.map(({ name, status, successEvent, errors }) => ({
           name,
           status,
-          'last event': lastEvent
-            ? `${dateFormat(new Date(lastEvent.timestamp), 'm/d/yy HH:MM:ss')} ${lastEvent.type}`
+          'last event': successEvent
+            ? `${dateFormat(new Date(successEvent.timestamp), 'm/d/yy HH:MM:ss')} ${
+                successEvent.type
+              }`
             : 'N\\A',
-          'last error': lastError ? `${lastError.message}` : 'N\\A'
+          'last error': Array.isArray(errors) ? `${errors.map(e => e.stack).join('\n')}` : 'N\\A'
         })),
         {
           minWidth: 30,
+          maxWidth: 100,
           columns: ['name', 'status', 'last event', 'last error']
         }
       )

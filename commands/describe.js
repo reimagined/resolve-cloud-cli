@@ -9,17 +9,16 @@ const { update: describeUpdate } = require('../utils/describe')
 const handler = refreshToken(async (token, { deployment }) => {
   const { result } = await get(token, `deployments/${deployment}`)
 
-  result.error =
-    result.error != null ? result.error : result.errors != null ? result.errors[0] : 'N\\A'
-  delete result.status
-  delete result.errors
+  if (result.error == null || result.error === '') {
+    result.error = 'N\\A'
+  }
 
   if (result) {
     const { versionText, updateText } = describeUpdate(result)
     out(
       columnify(
         {
-          ...omit(result, 'latestVersion'),
+          ...omit(result, 'latestVersion', 'errors'),
           error: result.error,
           version: versionText,
           update: updateText

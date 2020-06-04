@@ -13,16 +13,20 @@ const handler = refreshToken(async token => {
     out(
       columnify(
         result.map(item => {
-          const { versionText, updateText } = describeUpdate(item)
+          const { versionText, updateText, lastUpdatedText } = describeUpdate(item)
 
           return {
-            ...omit(item, 'latestVersion'),
+            ...omit(item, 'latestVersion', 'lastUpdatedAt', 'major', 'minor'),
             version: versionText,
-            update: updateText
+            update: updateText,
+            lastUpdated: lastUpdatedText
           }
         }),
         {
-          minWidth: 30
+          minWidth: 30,
+          config: {
+            version: { minWidth: 10 }
+          }
         }
       )
     )
