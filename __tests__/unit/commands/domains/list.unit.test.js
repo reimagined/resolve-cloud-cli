@@ -18,7 +18,7 @@ jest.mock('../../../../utils/std', () => ({
   out: jest.fn()
 }))
 
-const dateAdded = '2019-01-01T01:01:01.000Z'
+const dateAdded = 1546304461000
 
 beforeAll(() => {
   get.mockResolvedValue({
