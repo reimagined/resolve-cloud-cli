@@ -17,9 +17,9 @@ const handler = refreshToken(async token => {
             'domain name': domainName,
             'additional names': isEmpty(additionalNames) ? 'N/A' : additionalNames.join(', '),
             issuer,
-            imported: dateFormat(new Date(importedAt), 'm/d/yy HH:MM:ss'),
-            'not before': dateFormat(new Date(notBefore), 'm/d/yy HH:MM:ss'),
-            'not after': dateFormat(new Date(notAfter), 'm/d/yy HH:MM:ss')
+            imported: importedAt ? dateFormat(new Date(importedAt), 'm/d/yy HH:MM:ss') : 'N/A',
+            'not before': notBefore ? dateFormat(new Date(notBefore), 'm/d/yy HH:MM:ss') : 'N/A',
+            'not after': notAfter ? dateFormat(new Date(notAfter), 'm/d/yy HH:MM:ss') : 'N/A'
           })
         ),
         {

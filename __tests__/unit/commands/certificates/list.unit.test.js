@@ -50,6 +50,7 @@ describe('handler', () => {
     get.mockClear()
     dateFormat.mockClear()
     out.mockClear()
+    columnify.mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -81,6 +82,41 @@ describe('handler', () => {
     expect(dateFormat).toHaveBeenCalledWith(new Date(dateImported), expect.any(String))
     expect(dateFormat).toHaveBeenCalledWith(new Date(dateNotBefore), expect.any(String))
     expect(dateFormat).toHaveBeenCalledWith(new Date(dateNotAfter), expect.any(String))
+    expect(out).toHaveBeenCalledWith('result-output')
+  })
+
+  test('formatted output if dates are absent', async () => {
+    get.mockResolvedValueOnce({
+      result: [
+        {
+          id: 'certificate-id',
+          domainName: 'domain-name',
+          additionalNames: ['additional-name-1', 'additional-name-2'],
+          issuer: 'certificate-issuer'
+        }
+      ]
+    })
+
+    columnify.mockReturnValue('result-output')
+    dateFormat.mockReturnValue('formatted-date')
+
+    await handler({})
+
+    expect(columnify).toHaveBeenCalledWith(
+      [
+        {
+          id: 'certificate-id',
+          issuer: 'certificate-issuer',
+          'domain name': 'domain-name',
+          'additional names': 'additional-name-1, additional-name-2',
+          imported: 'N/A',
+          'not before': 'N/A',
+          'not after': 'N/A'
+        }
+      ],
+      expect.any(Object)
+    )
+    expect(dateFormat).toHaveBeenCalledTimes(0)
     expect(out).toHaveBeenCalledWith('result-output')
   })
 

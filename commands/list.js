@@ -12,16 +12,18 @@ const handler = refreshToken(async token => {
   if (result) {
     out(
       columnify(
-        result.map(item => {
-          const { versionText, updateText, lastUpdatedText } = describeUpdate(item)
+        result
+          .concat()
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map(item => {
+            const { versionText, updateText } = describeUpdate(item)
 
-          return {
-            ...omit(item, 'latestVersion', 'lastUpdatedAt', 'major', 'minor'),
-            version: versionText,
-            update: updateText,
-            lastUpdated: lastUpdatedText
-          }
-        }),
+            return {
+              ...omit(item, 'latestVersion', 'lastUpdatedAt', 'major', 'minor'),
+              version: versionText,
+              update: updateText
+            }
+          }),
         {
           minWidth: 30,
           config: {

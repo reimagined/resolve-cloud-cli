@@ -1,14 +1,15 @@
 const chalk = require('chalk')
+const semver = require('semver')
 
-const update = ({ major, minor, latestMinor, lastUpdatedAt }) => {
+const update = ({ major, minor, latestVersion }) => {
   const version = `${major}.${minor}.0`
   let versionChalk
   let updateText
 
-  if (latestMinor != null) {
-    if (latestMinor > minor) {
+  if (latestVersion != null) {
+    if (semver.gt(latestVersion, version)) {
       versionChalk = chalk.yellowBright
-      updateText = `-> ${major}.${latestMinor}.0`
+      updateText = `-> ${latestVersion}`
     } else {
       versionChalk = chalk.green
       updateText = `up-to-date`
@@ -19,7 +20,6 @@ const update = ({ major, minor, latestMinor, lastUpdatedAt }) => {
   }
 
   return {
-    lastUpdatedText: new Date(lastUpdatedAt).toString(),
     versionText: versionChalk(version),
     updateText: versionChalk(updateText)
   }
