@@ -87,7 +87,7 @@ const handler = refreshToken(
 
         if (events != null) {
           log.trace(`initial events uploading...`)
-          initialEvents = await upload(token, 'events', events)
+          initialEvents = await upload(token, 'events', events, runtime)
           log.trace(`initial events are uploaded as [${initialEvents}]`)
         }
 
@@ -143,8 +143,8 @@ const handler = refreshToken(
     log.trace(`uploading deployment resources`)
 
     const [codePackage, staticPackage] = await Promise.all([
-      upload(token, 'deployment', 'code.zip'),
-      upload(token, 'deployment', 'static.zip')
+      upload(token, 'deployment', 'code.zip', runtime),
+      upload(token, 'deployment', 'static.zip', runtime)
     ])
 
     log.trace(`code package [${codePackage}], static package [${staticPackage}]`)

@@ -4,11 +4,20 @@ const nanoid = require('nanoid')
 const FormData = require('form-data')
 const { post, get } = require('../api/client')
 
-const upload = async (token, type, file) => {
+const upload = async (token, type, file, runtime) => {
   const key = nanoid()
+
+  const query = [
+    type != null ? `type=${type}` : null,
+    key != null ? `key=${key}` : null,
+    runtime != null ? `runtime=${runtime}` : null
+  ]
+    .filter(Boolean)
+    .join('&')
+
   const {
     result: { url, headers = {}, fields = {} }
-  } = await get(token, `upload/url?type=${type}&key=${key}`)
+  } = await get(token, `upload/url?${query}`)
 
   const form = new FormData()
   Object.keys(fields).forEach(field => form.append(field, fields[field]))
