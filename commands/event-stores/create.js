@@ -10,7 +10,7 @@ const handler = refreshToken(async (token, { runtime, events }) => {
 
   if (events != null) {
     log.debug(`Uploading events`)
-    initialEvents = await upload(token, 'events', events)
+    initialEvents = await upload(token, 'events', events, runtime)
     log.debug(`Events uploaded`)
   }
 
