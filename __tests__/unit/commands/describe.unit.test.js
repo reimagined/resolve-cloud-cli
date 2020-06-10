@@ -32,7 +32,9 @@ beforeAll(() => {
       data: 'data',
       error: 'error',
       version: '0.1.0',
-      latestVersion: '0.2.0'
+      major: 0,
+      minor: 1,
+      latestMinor: '2'
     }
   })
 })
@@ -74,7 +76,16 @@ describe('handler', () => {
     await handler({})
 
     expect(columnify).toHaveBeenCalledWith(
-      { data: 'data', error: 'error', version: 'version-text', update: 'update-text' },
+      {
+        data: 'data',
+        error: 'error',
+        version: 'version-text',
+        update: 'update-text',
+        eventStore: 'N/A',
+        latestMinor: '2',
+        major: 0,
+        minor: 1
+      },
       { minWidth: 20, showHeaders: false, preserveNewLines: true }
     )
     expect(out).toHaveBeenCalledWith('result-output')

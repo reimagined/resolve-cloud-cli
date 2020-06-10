@@ -58,12 +58,15 @@ describe('handler', () => {
 
     await handler({})
 
-    expect(columnify).toHaveBeenCalledWith([{ version: 'version-text', update: 'update-text' }], {
-      minWidth: 30,
-      config: {
-        version: { minWidth: 10 }
+    expect(columnify).toHaveBeenCalledWith(
+      [{ version: 'version-text', update: 'update-text', eventStore: 'N/A' }],
+      {
+        minWidth: 30,
+        config: {
+          version: { minWidth: 10 }
+        }
       }
-    })
+    )
     expect(out).toHaveBeenCalledWith('result-output')
     expect(describeUpdate).toHaveBeenLastCalledWith({ version: '0.1.0', latestVersion: '0.2.0' })
   })

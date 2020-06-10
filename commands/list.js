@@ -19,7 +19,8 @@ const handler = refreshToken(async token => {
             const { versionText, updateText } = describeUpdate(item)
 
             return {
-              ...omit(item, 'latestVersion', 'lastUpdatedAt', 'major', 'minor'),
+              ...omit(item, 'latestVersion', 'lastUpdatedAt', 'major', 'minor', 'eventStoreId'),
+              eventStore: item.eventStoreId || 'N/A',
               version: versionText,
               update: updateText
             }
