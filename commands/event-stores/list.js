@@ -18,14 +18,14 @@ const handler = refreshToken(async token => {
         'created at': store.createdAt
           ? dateFormat(new Date(store.createdAt), 'm/d/yy HH:MM:ss')
           : 'N/A',
-        'deployment count': store.deploymentCount
+        deployments: store.deploymentIds.length > 0 ? store.deploymentIds.join(', ') : 'N/A'
       }))
 
     out(
       columnify(eventStores, {
         minWidth: 20,
         truncate: true,
-        columns: ['id', 'major', 'created at', 'deployment count', 'userId']
+        columns: ['id', 'major', 'created at', 'deployments', 'userId']
       })
     )
   }

@@ -74,7 +74,13 @@ describe('handler', () => {
     await handler({})
 
     expect(columnify).toHaveBeenCalledWith(
-      { data: 'data', error: 'error', version: 'version-text', update: 'update-text' },
+      {
+        data: 'data',
+        error: 'error',
+        version: 'version-text',
+        update: 'update-text',
+        eventStore: 'N/A'
+      },
       { minWidth: 20, showHeaders: false, preserveNewLines: true }
     )
     expect(out).toHaveBeenCalledWith('result-output')

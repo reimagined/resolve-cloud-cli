@@ -18,7 +18,8 @@ const handler = refreshToken(async (token, { deployment }) => {
     out(
       columnify(
         {
-          ...omit(result, 'latestVersion', 'errors'),
+          ...omit(result, 'latestVersion', 'errors', 'eventStoreId'),
+          eventStore: result.eventStoreId || 'N/A',
           error: result.error,
           version: versionText,
           update: updateText
