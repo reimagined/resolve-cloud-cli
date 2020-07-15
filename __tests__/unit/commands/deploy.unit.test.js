@@ -38,7 +38,7 @@ const { append: formDataAppend, getBoundary: formDataGetBoundary } = FormData.pr
 test('command', () => {
   expect(command).toEqual('deploy')
   expect(commandDescription).toEqual(expect.any(String))
-  expect(aliases).toEqual(['$0'])
+  expect(aliases).toBeUndefined()
 })
 
 test('options', () => {
