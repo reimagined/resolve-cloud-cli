@@ -193,7 +193,6 @@ const handler = refreshToken(
 module.exports = {
   handler,
   command: 'deploy',
-  aliases: ['$0'],
   describe: chalk.green('deploy a reSolve application to the cloud to the cloud'),
   builder: yargs =>
     yargs
