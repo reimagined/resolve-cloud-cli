@@ -367,11 +367,14 @@ describe('handler', () => {
   })
 
   test('deployment fall to error state', async () => {
-    const states = ['deploying', 'error']
+    const statuses = ['deploying', 'error']
 
-    routesGet['deployments/deployment-id'] = () => ({ status: states.shift() })
+    routesGet['deployments/deployment-id'] = () => ({
+      status: statuses.shift(),
+      error: 'failure-reason'
+    })
 
-    await expect(handler({})).rejects.toBeInstanceOf(Error)
+    await expect(handler({})).rejects.toThrow('failure-reason')
   })
 
   test('deployment fall to inconsistent state', async () => {
