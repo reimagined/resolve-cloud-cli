@@ -34,10 +34,10 @@ test('options', () => {
     type: 'string'
   })
   expect(positional).toHaveBeenCalledTimes(1)
-  expect(option).toHaveBeenCalledWith('no-wait', {
+  expect(option).toHaveBeenCalledWith('wait', {
     describe: expect.any(String),
     type: 'boolean',
-    default: false
+    default: true
   })
   expect(option).toHaveBeenCalledTimes(1)
 })
@@ -87,6 +87,7 @@ describe('handler', () => {
     routesGet['deployments/deployment-id'] = () => ({ status: statuses.shift() })
 
     await handler({
+      wait: true,
       deployment: 'deployment-id'
     })
 
@@ -101,6 +102,7 @@ describe('handler', () => {
     routesGet['deployments/deployment-id'] = proxy
 
     await handler({
+      wait: true,
       deployment: 'deployment-id'
     })
 
@@ -108,7 +110,7 @@ describe('handler', () => {
   })
 
   test('option: noWait', async () => {
-    await handler({ 'no-wait': true })
+    await handler({ wait: false })
 
     expect(get).not.toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })
