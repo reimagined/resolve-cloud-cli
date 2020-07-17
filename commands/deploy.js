@@ -11,21 +11,23 @@ const config = require('../config')
 
 const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS, LATEST_RUNTIME_SPECIFIER } = require('../constants')
 
-const waitForDeploymentStatus = async (token, id, expectedStates) => {
+const waitForDeploymentStatus = async (token, id, expectedStatuses) => {
   const {
-    result: { status, errors }
+    result: { status, error }
   } = await get(token, `deployments/${id}`)
 
   log.trace(
-    `received the ${id} deployment's state: ${status}, expected states: ${expectedStates.join(',')}`
+    `received the ${id} deployment's status: ${status}, expected statues: ${expectedStatuses.join(
+      ','
+    )}`
   )
 
-  if (expectedStates.includes(status)) {
-    return { status, errors }
+  if (expectedStatuses.includes(status)) {
+    return { status, error }
   }
 
   await new Promise(resolve => setTimeout(resolve, DEPLOYMENT_STATE_AWAIT_INTERVAL_MS))
-  return waitForDeploymentStatus(token, id, expectedStates)
+  return waitForDeploymentStatus(token, id, expectedStatuses)
 }
 
 const handler = refreshToken(
@@ -165,17 +167,16 @@ const handler = refreshToken(
 
     if (!noWait) {
       log.trace(`waiting for the deployment ready state`)
-      const { status, errors } = await waitForDeploymentStatus(token, id, [
+      const { status, error } = await waitForDeploymentStatus(token, id, [
         'ready',
         'error',
         'deploy-error',
         'inconsistent'
       ])
       if (status !== 'ready') {
-        throw Error(
-          `unexpected deployment state "${status}" with error: "${
-            errors == null || errors.length === 0 ? 'none' : errors
-          }"`
+        throw new Error(
+          `unexpected deployment status "${status}" with error: "${error ||
+            'no or an unknown error'}"`
         )
       }
     } else {
@@ -193,7 +194,6 @@ const handler = refreshToken(
 module.exports = {
   handler,
   command: 'deploy',
-  aliases: ['$0'],
   describe: chalk.green('deploy a reSolve application to the cloud to the cloud'),
   builder: yargs =>
     yargs
