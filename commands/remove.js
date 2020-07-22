@@ -19,12 +19,12 @@ const waitForDeploymentStatus = async (token, id, expectedStatus) => {
   return waitForDeploymentStatus(token, id, expectedStatus)
 }
 
-const handler = refreshToken(async (token, { deployment, 'no-wait': noWait }) => {
+const handler = refreshToken(async (token, { deployment, wait }) => {
   log.trace(`requesting deployment removal`)
 
   await del(token, `deployments/${deployment}`)
 
-  if (!noWait) {
+  if (wait) {
     log.trace(`waiting for deployment ready state`)
     await waitForDeploymentStatus(token, deployment, 'destroyed')
   } else {
@@ -43,9 +43,9 @@ module.exports = {
         describe: chalk.green("an existing deployment's id"),
         type: 'string'
       })
-      .option('no-wait', {
-        describe: 'do not wait for the ready state',
+      .option('wait', {
+        describe: 'wait for the ready state',
         type: 'boolean',
-        default: false
+        default: true
       })
 }

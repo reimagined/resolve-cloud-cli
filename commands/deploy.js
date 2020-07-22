@@ -35,7 +35,7 @@ const handler = refreshToken(
     token,
     {
       'skip-build': skipBuild,
-      'no-wait': noWait,
+      wait,
       configuration,
       name: nameOverride,
       'deployment-id': deploymentId,
@@ -165,7 +165,7 @@ const handler = refreshToken(
       npmRegistry
     })
 
-    if (!noWait) {
+    if (wait) {
       log.trace(`waiting for the deployment ready state`)
       const { status, error } = await waitForDeploymentStatus(token, id, [
         'ready',
@@ -225,10 +225,10 @@ module.exports = {
         describe: `eventstore id`,
         type: 'string'
       })
-      .option('no-wait', {
-        describe: 'do not wait for the deployment to reach the ready state',
+      .option('wait', {
+        describe: 'wait for the deployment to reach the ready state',
         type: 'boolean',
-        default: false
+        default: true
       })
       .option('events', {
         describe: 'initial events snapshot (new deployments only)',

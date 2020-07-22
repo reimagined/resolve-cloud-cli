@@ -65,10 +65,10 @@ test('options', () => {
     alias: 'd',
     type: 'string'
   })
-  expect(option).toHaveBeenCalledWith('no-wait', {
+  expect(option).toHaveBeenCalledWith('wait', {
     describe: expect.any(String),
     type: 'boolean',
-    default: false
+    default: true
   })
   expect(option).toHaveBeenCalledWith('events', {
     describe: expect.any(String),
@@ -349,7 +349,7 @@ describe('handler', () => {
 
     routesGet['deployments/deployment-id'] = () => ({ status: states.shift() })
 
-    await handler({})
+    await handler({ wait: true })
 
     expect(get).toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })
@@ -361,7 +361,7 @@ describe('handler', () => {
 
     routesGet['deployments/deployment-id'] = proxy
 
-    await handler({})
+    await handler({ wait: true })
 
     expect(proxy).toHaveBeenCalledTimes(3)
   })
@@ -374,7 +374,7 @@ describe('handler', () => {
       error: 'failure-reason'
     })
 
-    await expect(handler({})).rejects.toThrow('failure-reason')
+    await expect(handler({ wait: true })).rejects.toThrow('failure-reason')
   })
 
   test('deployment fall to inconsistent state', async () => {
@@ -382,7 +382,7 @@ describe('handler', () => {
 
     routesGet['deployments/deployment-id'] = () => ({ status: states.shift() })
 
-    await expect(handler({})).rejects.toBeInstanceOf(Error)
+    await expect(handler({ wait: true })).rejects.toBeInstanceOf(Error)
   })
 
   test('deployment fall to deploy-error state', async () => {
@@ -390,7 +390,7 @@ describe('handler', () => {
 
     routesGet['deployments/deployment-id'] = () => ({ status: states.shift() })
 
-    await expect(handler({})).rejects.toBeInstanceOf(Error)
+    await expect(handler({ wait: true })).rejects.toBeInstanceOf(Error)
   })
 
   test('packager invocation', async () => {
@@ -424,8 +424,8 @@ describe('handler', () => {
     expect(packager).not.toHaveBeenCalled()
   })
 
-  test('option: noWait', async () => {
-    await handler({ 'no-wait': true })
+  test('option: wait', async () => {
+    await handler({ wait: false })
 
     expect(get).not.toHaveBeenCalledWith('token', 'deployments/deployment-id')
   })
@@ -444,7 +444,7 @@ describe('handler', () => {
     routesGet['deployments/specific-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/specific-deployment-id'] = () => ({})
 
-    await handler({ 'deployment-id': 'specific-deployment-id' })
+    await handler({ wait: true, 'deployment-id': 'specific-deployment-id' })
 
     expect(post).toHaveBeenCalledTimes(2)
     expect(put).toHaveBeenCalledWith(
@@ -475,7 +475,7 @@ describe('handler', () => {
     routesGet['deployments/specific-deployment-id'] = () => ({ status: 'ready' })
     routesPut['deployments/specific-deployment-id'] = () => ({})
 
-    await handler({ deploymentId: 'specific-deployment-id' })
+    await handler({ wait: true, deploymentId: 'specific-deployment-id' })
 
     expect(post).toHaveBeenCalledWith('token', 'deployments', {
       name: 'package-json-name',
