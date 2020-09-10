@@ -3,6 +3,7 @@ const log = require('consola')
 const chalk = require('chalk')
 const isEmpty = require('lodash.isempty')
 const qr = require('qrcode-terminal')
+const semver = require('semver')
 const { post, get, put } = require('../api/client')
 const upload = require('../api/upload')
 const refreshToken = require('../refreshToken')
@@ -51,6 +52,48 @@ const handler = refreshToken(
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
       throw Error('incorrect application name (wrong working directory?)')
+    }
+
+    const resolveVersion = config.getResolvePackageVersion()
+
+    let deploingRuntime = runtime == null ? LATEST_RUNTIME_SPECIFIER : runtime
+
+    if (deploingRuntime === LATEST_RUNTIME_SPECIFIER) {
+      const { result } = await get(token, `runtimes`)
+
+      deploingRuntime = result
+        .map(({ version }) => version)
+        .reduce((acc, val) => (acc < val ? val : acc))
+    }
+
+    const majorRuntime = semver.major(deploingRuntime)
+    const minorResolve = semver.minor(resolveVersion)
+
+    if (minorResolve < 21) {
+      throw new Error(
+        'This resolve version is not supported by the cloud. Please use a more recent version.'
+      )
+    }
+
+    const compatibilityVersions = {
+      '3': [25],
+      '2': [24],
+      '1': [23, 22],
+      '0': [21]
+    }
+
+    if (
+      (majorRuntime === 3 && minorResolve !== 25) ||
+      (majorRuntime === 2 && minorResolve !== 24) ||
+      (majorRuntime === 1 && minorResolve !== 23) ||
+      (majorRuntime === 1 && minorResolve !== 22) ||
+      (majorRuntime === 0 && minorResolve !== 21)
+    ) {
+      throw new Error(
+        `Application deployment error. The runtime version used is only compatible with ${compatibilityVersions[
+          majorRuntime
+        ].map(minor => `0.${minor}.x`)} resolve version.`
+      )
     }
 
     log.start(`deploying the "${name}" application to the cloud`)

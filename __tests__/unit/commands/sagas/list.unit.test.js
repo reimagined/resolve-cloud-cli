@@ -28,8 +28,8 @@ beforeAll(() => {
       {
         name: 'saga-name',
         status: 'status',
-        lastEvent: { type: 'event-type', timestamp: 100 },
-        lastError: { message: 'error-message' }
+        successEvent: { type: 'event-type', timestamp: 100 },
+        errors: [{ stack: 'error-message' }]
       }
     ]
   })

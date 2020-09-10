@@ -7,7 +7,7 @@ const qr = require('qrcode-terminal')
 const { post, get, put } = require('../../../api/client')
 const refreshToken = require('../../../refreshToken')
 const packager = require('../../../packager')
-const { getPackageValue } = require('../../../config')
+const { getPackageValue, getResolvePackageVersion } = require('../../../config')
 const {
   command,
   aliases,
@@ -25,7 +25,8 @@ jest.mock('../../../api/client', () => ({
 jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ...args)))
 jest.mock('../../../packager', () => jest.fn())
 jest.mock('../../../config', () => ({
-  getPackageValue: jest.fn()
+  getPackageValue: jest.fn(),
+  getResolvePackageVersion: jest.fn(() => '0.21.0')
 }))
 jest.mock('../../../constants', () => ({
   DEPLOYMENT_STATE_AWAIT_INTERVAL_MS: 1,
@@ -142,7 +143,8 @@ describe('handler', () => {
       'upload/url?type=events&key=key-c': () => ({ url: 'events-upload-url-c' }),
       'upload/url?type=deployment&key=key-a': () => ({ url: 'deployment-upload-url-a' }),
       'upload/url?type=deployment&key=key-b': () => ({ url: 'deployment-upload-url-b' }),
-      'eventStores/event-store-id': () => ({ eventStoreId: 'event-store-id' })
+      'eventStores/event-store-id': () => ({ eventStoreId: 'event-store-id' }),
+      runtimes: () => [{ version: '0.0.0' }]
     }
     routesPost = {
       deployments: () => ({ id: 'deployment-id' }),
@@ -162,6 +164,7 @@ describe('handler', () => {
 
   afterEach(() => {
     getPackageValue.mockClear()
+    getResolvePackageVersion.mockClear()
     refreshToken.mockClear()
     post.mockClear()
     get.mockClear()
@@ -185,6 +188,22 @@ describe('handler', () => {
     await handler({})
 
     expect(getPackageValue).toHaveBeenCalledWith('name', '')
+  })
+
+  test('failed deployment with unsupported resolve version', async () => {
+    getResolvePackageVersion.mockReturnValueOnce('0.0.0')
+
+    await expect(handler({})).rejects.toThrowError(
+      'This resolve version is not supported by the cloud. Please use a more recent version.'
+    )
+  })
+
+  test('failed deployment with incompatible resolve version', async () => {
+    getResolvePackageVersion.mockReturnValueOnce('0.25.0')
+
+    await expect(handler({})).rejects.toThrowError(
+      'Application deployment error. The runtime version used is only compatible with 0.21.x resolve version.'
+    )
   })
 
   test('deployment files uploading', async () => {
