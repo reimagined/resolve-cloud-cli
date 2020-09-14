@@ -54,6 +54,35 @@ const handler = refreshToken(
       throw Error('incorrect application name (wrong working directory?)')
     }
 
+    log.start(`deploying the "${name}" application to the cloud`)
+    log.trace(`requesting the list of existing deployments`)
+
+    const { result: deployments } = await get(token, 'deployments')
+
+    log.trace(`deployment list received: ${deployments.length} items`)
+    let id = null
+    let deployedVersion = null
+
+    if (deploymentId) {
+      log.trace(`searching existing deployment with id "${deploymentId}"`)
+      const deployment = deployments.find(item => item.id === deploymentId)
+      if (deployment != null) {
+        id = deploymentId
+        deployedVersion = deployment.version
+      }
+    } else {
+      const nameDeployments = deployments.reduce(
+        (acc, item) => (item.name === name ? acc.concat(item) : acc),
+        []
+      )
+      if (nameDeployments.length > 1) {
+        throw Error(`multiple deployments with the same name "${name} found"`)
+      }
+      if (nameDeployments.length > 0) {
+        ;[{ id, version: deployedVersion }] = nameDeployments
+      }
+    }
+
     const resolveVersion = config.getResolvePackageVersion()
 
     let deploingRuntime = runtime == null ? LATEST_RUNTIME_SPECIFIER : runtime
@@ -72,6 +101,13 @@ const handler = refreshToken(
     if (minorResolve < 21) {
       throw new Error(
         'This resolve version is not supported by the cloud. Please use a more recent version.'
+      )
+    }
+
+    if (deployedVersion != null && semver.major(deployedVersion) !== majorRuntime) {
+      throw new Error(
+        `This application was previously deployed with an older major version of the reSolve cloud runtime (v${deployedVersion}). 
+        To re-deploy the application, explicitly specify the runtime version that matches the runtime used by the existing deployment, or deploy the application under a new ID to use the latest runtime.`
       )
     }
 
@@ -94,32 +130,6 @@ const handler = refreshToken(
           majorRuntime
         ].map(minor => `0.${minor}.x`)} resolve version.`
       )
-    }
-
-    log.start(`deploying the "${name}" application to the cloud`)
-    log.trace(`requesting the list of existing deployments`)
-
-    const { result: deployments } = await get(token, 'deployments')
-
-    log.trace(`deployment list received: ${deployments.length} items`)
-    let id
-
-    if (deploymentId) {
-      log.trace(`searching existing deployment with id "${deploymentId}"`)
-      if (deployments.findIndex(item => item.id === deploymentId) >= 0) {
-        id = deploymentId
-      }
-    } else {
-      const nameDeployments = deployments.reduce(
-        (acc, item) => (item.name === name ? acc.concat(item) : acc),
-        []
-      )
-      if (nameDeployments.length > 1) {
-        throw Error(`multiple deployments with the same name "${name} found"`)
-      }
-      if (nameDeployments.length > 0) {
-        ;[{ id }] = nameDeployments
-      }
     }
 
     let initialEvents = null
