@@ -10,7 +10,11 @@ const refreshToken = require('../refreshToken')
 const packager = require('../packager')
 const config = require('../config')
 
-const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS, LATEST_RUNTIME_SPECIFIER } = require('../constants')
+const {
+  DEPLOYMENT_STATE_AWAIT_INTERVAL_MS,
+  LATEST_RUNTIME_SPECIFIER,
+  COMPATIBILITY_VERSIONS
+} = require('../constants')
 
 const waitForDeploymentStatus = async (token, id, expectedStatuses) => {
   const {
@@ -111,22 +115,9 @@ const handler = refreshToken(
       )
     }
 
-    const compatibilityVersions = {
-      '3': [25],
-      '2': [24],
-      '1': [23, 22],
-      '0': [21]
-    }
-
-    if (
-      (majorRuntime === 3 && minorResolve !== 25) ||
-      (majorRuntime === 2 && minorResolve !== 24) ||
-      (majorRuntime === 1 && minorResolve !== 23) ||
-      (majorRuntime === 1 && minorResolve !== 22) ||
-      (majorRuntime === 0 && minorResolve !== 21)
-    ) {
+    if (!COMPATIBILITY_VERSIONS[majorRuntime].includes(minorResolve)) {
       throw new Error(
-        `Application deployment error. The runtime version used is only compatible with ${compatibilityVersions[
+        `Application deployment error. The runtime version used is only compatible with ${COMPATIBILITY_VERSIONS[
           majorRuntime
         ].map(minor => `0.${minor}.x`)} resolve version.`
       )

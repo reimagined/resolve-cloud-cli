@@ -21,6 +21,7 @@ const request = async (token, method, url, data, params, headers) => {
     requestHeaders.Authorization = `Bearer ${token}`
   }
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       // eslint-disable-next-line no-await-in-loop
