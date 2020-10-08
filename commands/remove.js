@@ -4,19 +4,23 @@ const refreshToken = require('../refreshToken')
 const { del, get } = require('../api/client')
 const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS } = require('../constants')
 
-const waitForDeploymentStatus = async (token, id, expectedStatus) => {
+const waitForDeploymentStatus = async (token, id, expectedStatuses) => {
   const {
-    result: { status }
+    result: { status, error }
   } = await get(token, `deployments/${id}`)
 
-  log.trace(`received deployment ${id} status: ${status}, expected status: ${expectedStatus}`)
+  log.trace(
+    `received the ${id} deployment's status: ${status}, expected statues: ${expectedStatuses.join(
+      ','
+    )}`
+  )
 
-  if (status === expectedStatus) {
-    return status
+  if (expectedStatuses.includes(status)) {
+    return { status, error }
   }
 
   await new Promise(resolve => setTimeout(resolve, DEPLOYMENT_STATE_AWAIT_INTERVAL_MS))
-  return waitForDeploymentStatus(token, id, expectedStatus)
+  return waitForDeploymentStatus(token, id, expectedStatuses)
 }
 
 const handler = refreshToken(async (token, { deployment, wait }) => {
@@ -26,7 +30,19 @@ const handler = refreshToken(async (token, { deployment, wait }) => {
 
   if (wait) {
     log.trace(`waiting for deployment ready state`)
-    await waitForDeploymentStatus(token, deployment, 'destroyed')
+    const { status, error } = await waitForDeploymentStatus(token, deployment, [
+      'destroyed',
+      'error',
+      'deploy-error',
+      'inconsistent'
+    ])
+
+    if (status !== 'destroyed') {
+      throw new Error(
+        `unexpected deployment status "${status}" with error: "${error ||
+          'no or an unknown error'}"`
+      )
+    }
   } else {
     log.trace(`skip waiting for deployment ready state`)
   }
