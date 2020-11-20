@@ -22,9 +22,9 @@ const checkVersionCompatibility = (runtimeMajor, resolveMinor) => {
 
   if (Array.isArray(compatibleMinorVersions) && !compatibleMinorVersions.includes(resolveMinor)) {
     throw new Error(
-      `Application deployment error. The runtime version used is only compatible with ${compatibleMinorVersions.map(
-        minor => `0.${minor}.x`
-      )} resolve version.`
+      `Application deployment error. The runtime version used is only compatible with ${compatibleMinorVersions
+        .map(minor => `0.${minor}.x`)
+        .join(', ')} resolve version.`
     )
   }
 }

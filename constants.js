@@ -5,7 +5,7 @@ module.exports = {
   VERSION_COMPATIBILITY_MAP: {
     '3': [25],
     '2': [24],
-    '1': [23, 22],
+    '1': [22, 23],
     '0': [21]
   }
 }
