@@ -10,7 +10,24 @@ const refreshToken = require('../refreshToken')
 const packager = require('../packager')
 const config = require('../config')
 
-const { DEPLOYMENT_STATE_AWAIT_INTERVAL_MS, LATEST_RUNTIME_SPECIFIER } = require('../constants')
+const {
+  DEPLOYMENT_STATE_AWAIT_INTERVAL_MS,
+  LATEST_RUNTIME_SPECIFIER,
+  MIN_RESOLVE_MINOR,
+  VERSION_COMPATIBILITY_MAP
+} = require('../constants')
+
+const checkVersionCompatibility = (runtimeMajor, resolveMinor) => {
+  const compatibleMinorVersions = VERSION_COMPATIBILITY_MAP[runtimeMajor]
+
+  if (Array.isArray(compatibleMinorVersions) && !compatibleMinorVersions.includes(resolveMinor)) {
+    throw new Error(
+      `Application deployment error. The runtime version used is only compatible with ${compatibleMinorVersions
+        .map(minor => `0.${minor}.x`)
+        .join(', ')} resolve version.`
+    )
+  }
+}
 
 const waitForDeploymentStatus = async (token, id, expectedStatuses) => {
   const {
@@ -76,7 +93,7 @@ const handler = refreshToken(
         []
       )
       if (nameDeployments.length > 1) {
-        throw Error(`multiple deployments with the same name "${name} found"`)
+        throw Error(`multiple deployments with the same name "${name}" found`)
       }
       if (nameDeployments.length > 0) {
         ;[{ id, version: deployedVersion }] = nameDeployments
@@ -85,52 +102,26 @@ const handler = refreshToken(
 
     const resolveVersion = config.getResolvePackageVersion()
 
-    let deploingRuntime = runtime == null ? LATEST_RUNTIME_SPECIFIER : runtime
+    let deployingRuntime = runtime == null ? LATEST_RUNTIME_SPECIFIER : runtime
 
-    if (deploingRuntime === LATEST_RUNTIME_SPECIFIER) {
+    if (deployingRuntime === LATEST_RUNTIME_SPECIFIER) {
       const { result } = await get(token, `runtimes`)
 
-      deploingRuntime = result
+      deployingRuntime = result
         .map(({ version }) => version)
         .reduce((acc, val) => (acc < val ? val : acc))
     }
 
-    const majorRuntime = semver.major(deploingRuntime)
-    const minorResolve = semver.minor(resolveVersion)
+    const runtimeMajor = semver.major(deployedVersion || deployingRuntime)
+    const resolveMinor = semver.minor(resolveVersion)
 
-    if (minorResolve < 21) {
+    if (resolveMinor < MIN_RESOLVE_MINOR) {
       throw new Error(
         'This resolve version is not supported by the cloud. Please use a more recent version.'
       )
     }
 
-    if (deployedVersion != null && semver.major(deployedVersion) !== majorRuntime) {
-      throw new Error(
-        `This application was previously deployed with an older major version of the reSolve cloud runtime (v${deployedVersion}). 
-        To re-deploy the application, explicitly specify the runtime version that matches the runtime used by the existing deployment, or deploy the application under a new ID to use the latest runtime.`
-      )
-    }
-
-    const compatibilityVersions = {
-      '3': [25],
-      '2': [24],
-      '1': [23, 22],
-      '0': [21]
-    }
-
-    if (
-      (majorRuntime === 3 && minorResolve !== 25) ||
-      (majorRuntime === 2 && minorResolve !== 24) ||
-      (majorRuntime === 1 && minorResolve !== 23) ||
-      (majorRuntime === 1 && minorResolve !== 22) ||
-      (majorRuntime === 0 && minorResolve !== 21)
-    ) {
-      throw new Error(
-        `Application deployment error. The runtime version used is only compatible with ${compatibilityVersions[
-          majorRuntime
-        ].map(minor => `0.${minor}.x`)} resolve version.`
-      )
-    }
+    checkVersionCompatibility(runtimeMajor, resolveMinor)
 
     let initialEvents = null
 

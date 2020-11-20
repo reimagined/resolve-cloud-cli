@@ -26,11 +26,18 @@ jest.mock('../../../refreshToken', () => jest.fn(h => (...args) => h('token', ..
 jest.mock('../../../packager', () => jest.fn())
 jest.mock('../../../config', () => ({
   getPackageValue: jest.fn(),
-  getResolvePackageVersion: jest.fn(() => '0.21.0')
+  getResolvePackageVersion: jest.fn(() => '0.23.0')
 }))
 jest.mock('../../../constants', () => ({
   DEPLOYMENT_STATE_AWAIT_INTERVAL_MS: 1,
-  LATEST_RUNTIME_SPECIFIER: 'latest-runtime'
+  LATEST_RUNTIME_SPECIFIER: 'latest-runtime',
+  MIN_RESOLVE_MINOR: 21,
+  VERSION_COMPATIBILITY_MAP: {
+    '3': [25],
+    '2': [24],
+    '1': [22, 23],
+    '0': [21]
+  }
 }))
 
 const { option } = yargs
@@ -144,7 +151,7 @@ describe('handler', () => {
       'upload/url?type=deployment&key=key-a': () => ({ url: 'deployment-upload-url-a' }),
       'upload/url?type=deployment&key=key-b': () => ({ url: 'deployment-upload-url-b' }),
       'eventStores/event-store-id': () => ({ eventStoreId: 'event-store-id' }),
-      runtimes: () => [{ version: '0.0.0' }]
+      runtimes: () => [{ version: '0.0.0' }, { version: '1.0.0' }]
     }
     routesPost = {
       deployments: () => ({ id: 'deployment-id' }),
@@ -198,12 +205,46 @@ describe('handler', () => {
     )
   })
 
-  test('failed deployment with incompatible resolve version', async () => {
+  test('failed new deployment with incompatible resolve version', async () => {
     getResolvePackageVersion.mockReturnValueOnce('0.25.0')
+
+    await expect(handler({})).rejects.toThrowError(
+      'Application deployment error. The runtime version used is only compatible with 0.22.x, 0.23.x resolve version.'
+    )
+  })
+
+  test('failed existing deployment with incompatible resolve version', async () => {
+    routesGet.deployments = () => [
+      {
+        name: 'package-json-name',
+        id: 'existing-deployment-id',
+        version: '0.0.0'
+      }
+    ]
+    routesGet['deployments/existing-deployment-id'] = () => ({ status: 'ready' })
+    routesPut['deployments/existing-deployment-id'] = () => ({})
+
+    getResolvePackageVersion.mockReturnValueOnce('0.22.0')
 
     await expect(handler({})).rejects.toThrowError(
       'Application deployment error. The runtime version used is only compatible with 0.21.x resolve version.'
     )
+  })
+
+  test('does not fail if existing deployment has version that is not specified in compatibility map', async () => {
+    routesGet.deployments = () => [
+      {
+        name: 'package-json-name',
+        id: 'existing-deployment-id',
+        version: '100500.0.0'
+      }
+    ]
+    routesGet['deployments/existing-deployment-id'] = () => ({ status: 'ready' })
+    routesPut['deployments/existing-deployment-id'] = () => ({})
+
+    getResolvePackageVersion.mockReturnValueOnce('0.22.0')
+
+    await expect(handler({})).resolves.not.toThrowError()
   })
 
   test('deployment files uploading', async () => {
