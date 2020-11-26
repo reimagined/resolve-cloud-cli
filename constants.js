@@ -3,7 +3,7 @@ module.exports = {
   LATEST_RUNTIME_SPECIFIER: 'latest',
   MIN_RESOLVE_MINOR: 21,
   VERSION_COMPATIBILITY_MAP: {
-    '3': [25],
+    '3': [25, 26],
     '2': [24],
     '1': [22, 23],
     '0': [21]
