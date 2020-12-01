@@ -5,10 +5,15 @@ const config = require('../config')
 
 const apiVersion = 'v0'
 
+const isResponseTimedOut = response =>
+  (response.status === 500 && /Task timed out after .+ seconds/.test(response.message)) ||
+  response.status === 504
+
 const request = async (token, method, url, data, params, headers) => {
   const baseURL = url.startsWith('http') ? '' : `${config.get('api_url')}/${apiVersion}/`
 
   log.debug(`> ${method}: ${baseURL}${url}`)
+
   if (!isEmpty(data)) {
     log.trace(data)
   }
@@ -34,24 +39,20 @@ const request = async (token, method, url, data, params, headers) => {
         maxContentLength: 200 * 1024 * 1024,
         headers: requestHeaders
       })
+
       log.debug(`< [${status}] ${method}: ${baseURL}${url}`)
+
       if (!isEmpty(response.result)) {
         log.trace(response.result)
       }
+
       return response
     } catch (e) {
-      if (e.response) {
-        const {
-          response: { status, data: message }
-        } = e
-        if (status === 500 && /Task timed out after 30.+ seconds/.test(message)) {
-          log.debug(`Task timed out. Retrying...`)
-          // eslint-disable-next-line no-continue
-          continue
-        }
-        throw new Error(`${status}: ${message}`)
+      if (!e.response) {
+        throw e
+      } else if (!isResponseTimedOut(e.response)) {
+        throw new Error(`${e.response.status}: ${e.response.message}`)
       }
-      throw e
     }
   }
 }
