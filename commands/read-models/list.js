@@ -13,11 +13,14 @@ const handler = refreshToken(async (token, { deployment }) => {
         result.map(({ name, status, successEvent, errors }) => ({
           name,
           status,
-          'last event': successEvent
-            ? `${dateFormat(new Date(successEvent.timestamp), 'm/d/yy HH:MM:ss')} ${
-                successEvent.type
-              }`
-            : 'N\\A',
+          'last event': [
+            successEvent &&
+              successEvent.timestamp != null &&
+              dateFormat(new Date(successEvent.timestamp), 'm/d/yy HH:MM:ss'),
+            successEvent && successEvent.type
+          ]
+            .filter(Boolean)
+            .join(' '),
           'last error': Array.isArray(errors) ? `${errors.map(e => e.stack).join('\n')}` : 'N\\A'
         })),
         {
