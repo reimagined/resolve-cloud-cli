@@ -80,8 +80,10 @@ const getResolvePackageVersion = () => {
 
   const keys = Object.keys(pkg.dependencies)
   const resolvePackageNames = keys.filter(
-    name => name.startsWith('resolve') && name !== 'resolve-cloud'
+    name =>
+      (name.startsWith('resolve') && name !== 'resolve-cloud') || name.startsWith('@reimagined/')
   )
+
   const version = pkg.dependencies[resolvePackageNames[0]]
 
   // eslint-disable-next-line no-restricted-syntax

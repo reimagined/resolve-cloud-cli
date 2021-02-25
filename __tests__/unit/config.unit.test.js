@@ -41,3 +41,15 @@ test('should return 0.0.0 version', async () => {
 
   expect(result).toEqual('0.0.0')
 })
+
+test('support future scoped packages', async () => {
+  fs.readFileSync.mockReturnValueOnce(
+    JSON.stringify({
+      dependencies: {
+        '@reimagined/package-1': '0.1.0'
+      }
+    })
+  )
+
+  expect(getResolvePackageVersion()).toEqual('0.1.0')
+})
