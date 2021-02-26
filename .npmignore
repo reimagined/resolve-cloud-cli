@@ -1,7 +1,0 @@
-__mocks__
-__tests__
-.drone.yml
-.eslintrc.yml
-.prettierignore.yml
-.prettierrc.yml
-yarn.lock
