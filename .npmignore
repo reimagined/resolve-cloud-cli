@@ -1,7 +1,9 @@
 __mocks__
 __tests__
-.drone.yml
-.eslintrc.yml
-.prettierignore.yml
-.prettierrc.yml
 yarn.lock
+jest.config.func.js
+jest.config.unit.js
+tsconfig.json
+.npmignore
+src
+tsconfig.tsbuildinfo

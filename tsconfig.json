@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2018",
+    "lib": ["ES2018", "DOM"],
+    "rootDir": "src",
+    "outDir": "lib",
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true,
+    "noImplicitThis": false,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "removeComments": false,
+    "resolveJsonModule": true,
+    "noUncheckedIndexedAccess": true,
+    "composite": true,
+    "types": [
+      "node",
+      "jest",
+      "node-fetch",
+      "rc",
+      "semver",
+      "lodash.get",
+      "lodash.set",
+      "lodash.unset",
+      "lodash.isempty",
+      "lodash.omit",
+      "columnify",
+      "inquirer",
+      "dateformat",
+      "archiver",
+      "fs-extra",
+      "./external"
+    ]
+  }
+}

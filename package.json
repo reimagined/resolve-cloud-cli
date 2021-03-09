@@ -1,20 +1,21 @@
 {
   "name": "resolve-cloud",
-  "version": "0.16.1",
+  "version": "0.28.0-alpha.2",
   "description": "",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=10"
   },
-  "bin": "./index.js",
+  "bin": "./bin/index.js",
   "bugs": {
     "url": "https://github.com/reimagined/resolve-cloud/issues"
   },
   "scripts": {
-    "test": "jest",
-    "test:w": "jest --watch",
-    "test:c": "jest --coverage",
-    "lint": "eslint . --ignore-path=.prettierignore",
-    "prettier": "prettier --write \"./**/*.js\""
+    "prepare": "tsc",
+    "build": "echo || exit 0",
+    "test": "jest --config jest.config.unit.js --passWithNoTests",
+    "test:w": "jest --config ./jest.config.unit.js --passWithNoTests --watch",
+    "test:c": "jest --config ./jest.config.unit.js --passWithNoTests --coverage",
+    "test:f": "jest --config ./jest.config.func.js --passWithNoTests"
   },
   "repository": "https://github.com/reimagined/resolve-cloud.git",
   "author": "reimagined team",
@@ -28,52 +29,33 @@
     "cloud"
   ],
   "dependencies": {
-    "amazon-cognito-identity-js": "^3.0.15",
-    "archiver": "^3.0.0",
-    "axios": "^0.21.1",
-    "chalk": "^2.4.1",
-    "columnify": "^1.5.4",
-    "consola": "^2.10.1",
-    "dateformat": "^3.0.3",
-    "dotenv": "^8.0.0",
-    "form-data": "^2.3.2",
-    "fs-extra": "^8.0.1",
-    "inquirer": "^7.0.0",
-    "latest-version": "^5.1.0",
-    "lodash.get": "^4.4.2",
-    "lodash.isempty": "^4.4.0",
-    "lodash.omit": "^4.5.0",
-    "lodash.set": "^4.3.2",
-    "lodash.unset": "^4.5.2",
-    "nanoid": "^2.0.3",
-    "node-fetch": "^2.2.0",
-    "parse-domain": "^2.3.2",
-    "qrcode-terminal": "^0.12.0",
-    "rc": "^1.2.8",
-    "readable-stream": "^3.0.2",
-    "semver": "^6.3.0",
-    "yargs": "^14.0.0"
-  },
-  "devDependencies": {
-    "@types/jest": "^24.0.16",
-    "@types/yargs": "^13.0.2",
-    "eslint": "^6.4.0",
-    "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-config-prettier": "^6.0.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-prettier": "^3.1.0",
-    "husky": "^3.0.2",
-    "jest": "^24.9.0",
-    "prettier": "1.18.2",
-    "pretty-quick": "^1.6.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run test && npm run lint"
-    }
-  },
-  "jest": {
-    "verbose": true,
-    "testEnvironment": "node"
+    "@resolve-js/eventstore-postgresql-serverless": "0.28.0-alpha.2",
+    "source-map-support": "0.5.19",
+    "amazon-cognito-identity-js": "4.5.5",
+    "archiver": "5.2.0",
+    "aws-sdk": "^2.844.0",
+    "axios": "0.21.1",
+    "chalk": "4.1.0",
+    "columnify": "1.5.4",
+    "consola": "2.15.0",
+    "dateformat": "4.0.0",
+    "dotenv": "8.2.0",
+    "form-data": "3.0.0",
+    "fs-extra": "9.1.0",
+    "inquirer": "7.3.3",
+    "latest-version": "5.1.0",
+    "lodash.get": "4.4.2",
+    "lodash.isempty": "4.4.0",
+    "lodash.omit": "4.5.0",
+    "lodash.set": "4.3.2",
+    "lodash.unset": "4.5.2",
+    "nanoid": "3.1.20",
+    "qrcode-terminal": "0.12.0",
+    "rc": "1.2.8",
+    "request": "2.88.2",
+    "@resolve-js/eventstore-base": "0.28.0-alpha.2",
+    "semver": "7.3.4",
+    "yargs": "16.2.0",
+    "mustache": "4.1.0"
   }
 }
