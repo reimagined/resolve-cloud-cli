@@ -3,11 +3,11 @@ import { pipeline } from 'stream'
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import createAdapter from '@resolve-js/eventstore-postgresql-serverless'
+import { EventstoreAlreadyFrozenError } from '@resolve-js/eventstore-base'
 
 import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
 import { logger } from '../../utils/std'
+import getAdapterWithCredentials from '../../utils/get-adapter-with-credentials'
 
 export const exportEventStore = async (params: {
   token: string
@@ -15,28 +15,6 @@ export const exportEventStore = async (params: {
   eventStoreId: string
 }) => {
   const { token, eventStorePath, eventStoreId } = params
-
-  const {
-    result: {
-      eventStoreDatabaseName,
-      eventStoreClusterArn,
-      eventStoreSecretArn,
-      region,
-      accessKeyId,
-      secretAccessKey,
-      sessionToken,
-    },
-  } = await get(token, `/event-stores/${eventStoreId}`)
-
-  const eventStoreAdapter = createAdapter({
-    databaseName: eventStoreDatabaseName,
-    dbClusterOrInstanceArn: eventStoreClusterArn,
-    awsSecretStoreArn: eventStoreSecretArn,
-    accessKeyId,
-    secretAccessKey,
-    sessionToken,
-    region,
-  })
 
   const pathToEventStore = path.resolve(process.cwd(), eventStorePath)
 
@@ -47,7 +25,58 @@ export const exportEventStore = async (params: {
   const pathToEvents = path.join(pathToEventStore, 'events.db')
   const pathToSecrets = path.join(pathToEventStore, 'secrets.db')
 
-  await promisify(pipeline)(eventStoreAdapter.exportEvents(), fs.createWriteStream(pathToEvents))
+  let eventStoreAdapter = await getAdapterWithCredentials({ token, eventStoreId })
+  let cursor = null
+  let isJsonStreamTimedOutOnce = false
+
+  logger.start(`exporting the event-store from the cloud`)
+
+  for (;;) {
+    try {
+      const exportStream = eventStoreAdapter.exportEvents({ cursor })
+
+      const writeStream = fs.createWriteStream(pathToEvents, {
+        flags: isJsonStreamTimedOutOnce ? 'a' : 'w',
+      })
+
+      const pipelinePromise = promisify(pipeline)(exportStream, writeStream).then(() => false)
+
+      let timeoutResolve
+      let timeout
+
+      const timeoutPromise = new Promise<boolean>((resolve) => {
+        timeoutResolve = resolve
+        timeout = setTimeout(() => {
+          resolve(true)
+        }, 30 * 60 * 1000)
+      })
+
+      const isJsonStreamTimedOut = await Promise.race([timeoutPromise, pipelinePromise])
+      isJsonStreamTimedOutOnce = isJsonStreamTimedOutOnce || isJsonStreamTimedOut
+
+      if (isJsonStreamTimedOut) {
+        exportStream.emit('timeout')
+        await pipelinePromise
+      } else if (timeoutResolve != null) {
+        clearTimeout(timeout)
+        timeoutResolve(true)
+      }
+
+      if ((exportStream as any).isEnd) {
+        break
+      }
+
+      cursor = (exportStream as any).cursor
+      eventStoreAdapter = await getAdapterWithCredentials({ token, eventStoreId })
+    } catch (error) {
+      if (EventstoreAlreadyFrozenError.is(error)) {
+        await eventStoreAdapter.unfreeze()
+      } else {
+        throw error
+      }
+    }
+  }
+
   await promisify(pipeline)(eventStoreAdapter.exportSecrets(), fs.createWriteStream(pathToSecrets))
 }
 

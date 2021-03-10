@@ -1,8 +1,10 @@
+import inquirer from 'inquirer'
 import { CognitoUserPool, CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js'
 
 import * as config from '../config'
 import { get } from './client'
 import { logger } from '../utils/std'
+import { PASSWORD_REGEX } from '../constants'
 
 export const login = async (Username: string, Password: string) => {
   const {
@@ -28,9 +30,23 @@ export const login = async (Username: string, Password: string) => {
         onFailure(err) {
           reject(err)
         },
-        newPasswordRequired(userAttributes) {
+        async newPasswordRequired(userAttributes) {
+          const { NewPassword } = await inquirer.prompt([
+            {
+              type: 'password',
+              name: 'NewPassword',
+              message: 'Enter new password',
+              mask: '*',
+              validate: (input: string) => {
+                if (!PASSWORD_REGEX.test(input)) {
+                  return 'Password must have minimum 8 characters, at least one uppercase letter, one lowercase letter and one digit'
+                }
+                return true
+              },
+            },
+          ])
           delete userAttributes.email_verified
-          user.completeNewPasswordChallenge(Password, userAttributes, {
+          user.completeNewPasswordChallenge(NewPassword, userAttributes, {
             onSuccess(result) {
               resolve(result.getRefreshToken().getToken())
             },

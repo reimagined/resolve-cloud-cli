@@ -3,38 +3,11 @@ import { pipeline } from 'stream'
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import createAdapter from '@resolve-js/eventstore-postgresql-serverless'
 import { MAINTENANCE_MODE_MANUAL, EventstoreAlreadyFrozenError } from '@resolve-js/eventstore-base'
 
 import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
 import { logger } from '../../utils/std'
-
-const getCredentialsAndCreateAdapter = async (params: { token: string; eventStoreId: string }) => {
-  const { token, eventStoreId } = params
-
-  const {
-    result: {
-      eventStoreDatabaseName,
-      eventStoreClusterArn,
-      eventStoreSecretArn,
-      region,
-      accessKeyId,
-      secretAccessKey,
-      sessionToken,
-    },
-  } = await get(token, `/event-stores/${eventStoreId}`)
-
-  return createAdapter({
-    databaseName: eventStoreDatabaseName,
-    dbClusterOrInstanceArn: eventStoreClusterArn,
-    awsSecretStoreArn: eventStoreSecretArn,
-    accessKeyId,
-    secretAccessKey,
-    sessionToken,
-    region,
-  })
-}
+import getAdapterWithCredentials from '../../utils/get-adapter-with-credentials'
 
 export const importEventStore = async (params: {
   token: string
@@ -56,7 +29,7 @@ export const importEventStore = async (params: {
 
   const exportedEventsFileSize = fs.statSync(pathToEvents).size
 
-  let eventStoreAdapter = await getCredentialsAndCreateAdapter({ token, eventStoreId })
+  let eventStoreAdapter = await getAdapterWithCredentials({ token, eventStoreId })
   let byteOffset = 0
 
   try {
@@ -66,6 +39,8 @@ export const importEventStore = async (params: {
       throw error
     }
   }
+
+  logger.start(`importing the event-store to the cloud`)
 
   for (;;) {
     try {
@@ -79,17 +54,24 @@ export const importEventStore = async (params: {
         importStream
       ).then(() => false)
 
-      const timeoutPromise = new Promise((resolve) =>
-        setTimeout(() => {
+      let timeoutResolve: any
+      let timeout
+
+      const timeoutPromise = new Promise<boolean>((resolve) => {
+        timeoutResolve = resolve
+        timeout = setTimeout(() => {
           resolve(true)
         }, 30 * 60 * 1000)
-      )
+      })
 
       const isJsonStreamTimedOut = await Promise.race([timeoutPromise, pipelinePromise])
 
       if (isJsonStreamTimedOut) {
         importStream.emit('timeout')
         await pipelinePromise
+      } else if (timeoutResolve != null) {
+        clearTimeout(timeout)
+        timeoutResolve(true)
       }
 
       byteOffset = (importStream as any).byteOffset
@@ -98,9 +80,9 @@ export const importEventStore = async (params: {
         break
       }
 
-      eventStoreAdapter = await getCredentialsAndCreateAdapter({ token, eventStoreId })
+      eventStoreAdapter = await getAdapterWithCredentials({ token, eventStoreId })
     } catch (error) {
-      if (error instanceof EventstoreAlreadyFrozenError) {
+      if (EventstoreAlreadyFrozenError.is(error)) {
         await eventStoreAdapter.unfreeze()
       } else {
         throw error
