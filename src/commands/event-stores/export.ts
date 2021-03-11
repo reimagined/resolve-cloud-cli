@@ -29,8 +29,6 @@ export const exportEventStore = async (params: {
   let cursor = null
   let isJsonStreamTimedOutOnce = false
 
-  logger.start(`exporting the event-store from the cloud`)
-
   for (;;) {
     try {
       const exportStream = eventStoreAdapter.exportEvents({ cursor })
@@ -82,6 +80,8 @@ export const exportEventStore = async (params: {
 
 export const handler = refreshToken(async (token: any, params: any) => {
   const { path: eventStorePath, 'event-store-id': eventStoreId } = params
+
+  logger.start(`exporting the event-store from the cloud`)
 
   await exportEventStore({
     token,

@@ -40,8 +40,6 @@ export const importEventStore = async (params: {
     }
   }
 
-  logger.start(`importing the event-store to the cloud`)
-
   for (;;) {
     try {
       const importStream = eventStoreAdapter.importEvents({
@@ -93,6 +91,8 @@ export const importEventStore = async (params: {
 
 export const handler = refreshToken(async (token: any, params: any) => {
   const { path: eventStorePath, 'event-store-id': eventStoreId } = params
+
+  logger.start(`importing the event-store to the cloud`)
 
   await importEventStore({
     token,

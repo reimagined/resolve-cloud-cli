@@ -43,7 +43,7 @@ const middleware = async (params: any) => {
       ? apiUrlFromCLI
       : process.env.RESOLVE_API_URL != null
       ? process.env.RESOLVE_API_URL
-      : 'https://api.prod.resolve.sh'
+      : 'https://api.resolve.sh'
 
   if (configApiUrl !== apiUrl) {
     config.set('api_url', apiUrl)
