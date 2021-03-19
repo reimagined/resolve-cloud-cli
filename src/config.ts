@@ -53,7 +53,7 @@ export const del = (...selectors: Array<string>) => {
   saveFile(conf)
 }
 
-export const getResolvePackageVersion = () => {
+export const getResolvePackageVersion = (): string => {
   let pkg = null
   try {
     pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
@@ -85,7 +85,12 @@ export const getResolvePackageVersion = () => {
       throw new Error('The resolve package versions must be the same.')
     }
   }
-  return version
+
+  if (version != null && version.constructor === String) {
+    return version as string
+  } else {
+    throw new Error('Failed to get resolve package version')
+  }
 }
 
 export const getApplicationIdentifier = (nameOverride?: string): string => {

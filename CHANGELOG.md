@@ -5,7 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.27.0
+## 0.28.3
+
+### Breaking Changes
+
+- The `event-store create --event-store-id=<event-store-id>` command was renamed to `event-store clone <event-store-id>` command.
+
+### Added
+
+- The `event-stores clone <event-store-id>`,commands were added.
+- The `event-stores link <deployment-id>`, `event-stores unlink <deployment-id>` commands were added.
+
+### Removed
+
+- The `event-store-id` and `mode` options were removed for the `event-stores create` command.
+
+## 0.28.2
 
 ### Breaking Changes
 
@@ -15,7 +30,8 @@ The deployment ID can be omitted if the current working directory is a deployed 
 
 ### Added
 
-- The `event-stores import` and `event-stores export` commands were added.
+- The `event-stores freeze`, `event-stores unfreeze` commands were added.
+- The `event-stores import`, `event-stores export`, `event-stores incremental-import` commands were added.
 - The `follow` and `offset` options were added for the `logs get` command.
 - The `event-store-id` and `mode` options were added for the `event-stores create` command.
 - The `with-event-store` option was added for the `remove` command.

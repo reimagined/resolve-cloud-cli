@@ -45,7 +45,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
     logger.success('Freeze event-store successfully completed!')
   } catch (error) {
     if (EventstoreAlreadyFrozenError.is(error)) {
-      logger.error(new Error('EventStore is already frozen'))
+      logger.error('EventStore is already frozen')
     } else {
       throw error
     }

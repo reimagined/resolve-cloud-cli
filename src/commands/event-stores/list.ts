@@ -3,49 +3,73 @@ import chalk from 'chalk'
 
 import refreshToken from '../../refreshToken'
 import { get } from '../../api/client'
-import { out } from '../../utils/std'
-import { getResolvePackageVersion } from '../../config'
+import { out, renderByTemplate } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any) => {
-  const version = getResolvePackageVersion()
+type Deployment = {
+  deploymentId: string
+  applicationName: string
+  version: string
+  eventStoreId: string
+  domainName: string
+  deploymentTag?: string
+  applicationUrl: string
+}
 
-  if (version == null) {
-    throw new Error('Failed to get resolve package version')
-  }
+export const handler = refreshToken(
+  async (
+    token: any,
+    params: {
+      format?: string
+    }
+  ) => {
+    const { format } = params
+    const { result } = await get(token, `/event-stores`)
 
-  const { result } = await get(token, `/event-stores`, {
-    version,
-  })
-
-  if (result) {
-    out(
-      columnify(
-        result.map(
-          ({
-            eventStoreId,
-            version: esVersion,
-            linkedDeployments,
-          }: {
-            eventStoreId: string
-            version: string
-            linkedDeployments: string
-          }) => ({
-            id: eventStoreId,
-            version: esVersion,
-            'linked deployments': linkedDeployments,
+    if (result) {
+      if (format) {
+        result.map((deployment: Deployment) =>
+          renderByTemplate(format, {
+            ...deployment,
           })
-        ),
-        {
-          minWidth: 20,
-          truncate: true,
-          columns: ['id', 'linked deployments', 'version'],
-        }
+        )
+        return
+      }
+      out(
+        columnify(
+          result.map(
+            ({
+              eventStoreId,
+              version: esVersion,
+              linkedDeployments,
+            }: {
+              eventStoreId: string
+              version: string
+              linkedDeployments: string
+            }) => ({
+              id: eventStoreId,
+              version: esVersion,
+              'linked deployments': linkedDeployments,
+            })
+          ),
+          {
+            minWidth: 20,
+            truncate: true,
+            columns: ['id', 'linked deployments', 'version'],
+          }
+        )
       )
-    )
+    }
   }
-})
+)
 
 export const command = 'list'
 export const aliases = ['ls', '$0']
 export const describe = chalk.green('display a list of event stores')
-export const builder = () => {}
+export const builder = (yargs: any) =>
+  yargs
+    .option('format', {
+      describe: `Format the output using a mustache template http://mustache.github.io/ 
+        Possible fields: eventStoreId, version`,
+      type: 'string',
+    })
+    .group(['format'], 'Options:')

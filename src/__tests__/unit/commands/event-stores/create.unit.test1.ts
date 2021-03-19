@@ -36,16 +36,6 @@ test('command', () => {
 test('options', () => {
   builder(yargs)
 
-  expect(option).toHaveBeenCalledWith('event-store-id', {
-    describe: expect.any(String),
-    type: 'string',
-  })
-  expect(option).toHaveBeenCalledWith('mode', {
-    describe: expect.any(String),
-    type: 'string',
-    choices: ['clone', 'reuse'],
-    default: 'clone',
-  })
   expect(option).toHaveBeenCalledWith('import-from', {
     describe: expect.any(String),
     type: 'string',
@@ -54,7 +44,7 @@ test('options', () => {
     describe: expect.any(String),
     type: 'string',
   })
-  expect(option).toHaveBeenCalledTimes(4)
+  expect(option).toHaveBeenCalledTimes(2)
 })
 
 describe('handler', () => {
@@ -84,21 +74,6 @@ describe('handler', () => {
       'token',
       `/event-stores`,
       { version },
-      { [HEADER_EXECUTION_MODE]: 'async' }
-    )
-  })
-
-  test('calls post with event store options with prev event-store id', async () => {
-    await handler({ 'event-store-id': 'prevEventStoreId', mode: 'clone' })
-
-    expect(post).toBeCalledWith(
-      'token',
-      `/event-stores`,
-      {
-        version,
-        prevEventStoreId: 'prevEventStoreId',
-        mode: 'clone',
-      },
       { [HEADER_EXECUTION_MODE]: 'async' }
     )
   })

@@ -6,7 +6,6 @@ import { get, post } from '../../api/client'
 import { logger, renderByTemplate, disableLogger } from '../../utils/std'
 import setupCloudCredentials from '../../utils/setup-cloud-credentials'
 import { getResolvePackageVersion } from '../../config'
-import { importEventStore } from './import'
 import { HEADER_EXECUTION_MODE } from '../../constants'
 
 const cloneEventStore = async (params: {
@@ -54,7 +53,7 @@ const cloneEventStore = async (params: {
       Sql: `SELECT COUNT(*) FROM ${escapeId(sourceEventStoreDatabaseName)}.${escapeId(tableName)}`,
     })
     counts[tableName] = count
-    logger.info(`Total ${tableName}: ${count}`)
+    logger.info(`[Source] Total ${tableName}: ${count}`)
   }
 
   for (const tableName of tableNames) {
@@ -75,6 +74,8 @@ const cloneEventStore = async (params: {
     if (tableName === 'events') {
       const batchSize = 50000
       for (let index = 0; index < eventsCount; index += batchSize) {
+        const endIndex = Math.min(index + batchSize, eventsCount)
+
         for (let retry = 0; retry < 10; retry++) {
           try {
             await executeStatement({
@@ -89,14 +90,16 @@ const cloneEventStore = async (params: {
                 OFFSET ${index}
                 ON CONFLICT DO NOTHING`,
             })
-            logger.info(`Progress ${tableName}: ${index + batchSize} / ${counts[tableName]}`)
+            logger.info(
+              `[Source->Target] Progress ${tableName}: ${endIndex} / ${counts[tableName]}`
+            )
             break
           } catch (error) {
             if (!/canceling statement due to user request/.test(`${error}`)) {
               throw error
             }
             logger.info(
-              `Progress ${tableName}: ${index + batchSize} / ${counts[tableName]}. Retry ${
+              `[Source->Target] Progress ${tableName}: ${endIndex} / ${counts[tableName]}. Retry ${
                 retry + 1
               } / 10`
             )
@@ -115,7 +118,9 @@ const cloneEventStore = async (params: {
         )} ON CONFLICT DO NOTHING`,
       })
 
-      logger.info(`Progress ${tableName}: ${counts[tableName]} / ${counts[tableName]}`)
+      logger.info(
+        `[Source->Target] Progress ${tableName}: ${counts[tableName]} / ${counts[tableName]}`
+      )
     }
   }
 
@@ -144,13 +149,12 @@ const cloneEventStore = async (params: {
       SecretArn: secretArn,
       Sql: `SELECT COUNT(*) FROM ${escapeId(targetEventStoreDatabaseName)}.${escapeId(tableName)}`,
     })
-    counts[tableName] = count
-    logger.info(`Total ${tableName}: ${count}`)
+    logger.info(`[Target] Total ${tableName}: ${count}`)
   }
 }
 
 export const handler = refreshToken(async (token: any, params: any) => {
-  const { 'event-store-id': prevEventStoreId, 'import-from': eventStorePath, format } = params
+  const { 'event-store-id': prevEventStoreId, format } = params
   if (format != null) {
     disableLogger()
   }
@@ -160,23 +164,13 @@ export const handler = refreshToken(async (token: any, params: any) => {
     result: { eventStoreId },
   } = await post(token, `/event-stores`, { version }, { [HEADER_EXECUTION_MODE]: 'async' })
 
-  logger.info(`Event store ID: ${eventStoreId}`)
+  logger.info(`[Target] Event store ID: ${eventStoreId}`)
 
-  if (prevEventStoreId != null) {
-    await cloneEventStore({
-      token,
-      prevEventStoreId,
-      eventStoreId,
-    })
-  }
-
-  if (eventStorePath != null) {
-    await importEventStore({
-      token,
-      eventStorePath,
-      eventStoreId,
-    })
-  }
+  await cloneEventStore({
+    token,
+    prevEventStoreId,
+    eventStoreId,
+  })
 
   if (renderByTemplate(format, { eventStoreId })) {
     return
@@ -185,12 +179,12 @@ export const handler = refreshToken(async (token: any, params: any) => {
   logger.success(`Event store with "${eventStoreId}" id has been created`)
 })
 
-export const command = 'create'
-export const describe = chalk.green('create an event-store')
+export const command = 'clone <event-store-id>'
+export const describe = chalk.green('clone an existing event store')
 export const builder = (yargs: any) =>
   yargs
-    .option('import-from', {
-      describe: 'path to the previously exported event-store directory',
+    .positional('event-store-id', {
+      describe: chalk.green("an existing event store's id"),
       type: 'string',
     })
     .option('format', {
@@ -198,15 +192,15 @@ export const builder = (yargs: any) =>
       Possible fields: eventStoreId`,
       type: 'string',
     })
-    .group(['import-from', 'format'], 'Options:')
+    .group(['format'], 'Options:')
     .example([
-      ['yarn resolve-cloud event-stores create', 'Create new empty event-store'],
+      ['yarn resolve-cloud event-stores create', 'Create new empty event store'],
       [
-        'yarn resolve-cloud event-stores create --import-from=<path-to-event-store-directory>',
-        'Create a new event store and import data from a previously exported event store directory',
+        'yarn resolve-cloud event-stores clone <event-store-id>',
+        'Clone an existing event store by id',
       ],
       [
-        'NEW_EVENT_STORE=$(yarn -s resolve-cloud event-stores create --format="{{ eventStoreId }}")',
-        'Create a new empty event store and save its event-store-id in env',
+        'NEW_EVENT_STORE=$(yarn -s resolve-cloud event-stores clone <event-store-id> --format="{{ eventStoreId }}")',
+        'Clone an existing event store and save its event-store-id in env',
       ],
     ])

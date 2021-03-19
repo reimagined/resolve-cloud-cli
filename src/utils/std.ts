@@ -1,4 +1,4 @@
-import log from 'consola'
+import log, { Consola } from 'consola'
 import Mustache from 'mustache'
 
 const { render } = Mustache
@@ -6,7 +6,30 @@ Mustache.escape = (v) => v
 
 export const out = (content: any) => console.log(content)
 export const err = (content: any) => console.error(content)
-export const logger = log
+
+// eslint-disable-next-line import/no-mutable-exports
+export let logger = log
+
+export const disableLogger = () => {
+  const emptyFunction = () => {}
+
+  logger = ({
+    fatal: emptyFunction,
+    error: emptyFunction,
+    warn: emptyFunction,
+    log: emptyFunction,
+    info: emptyFunction,
+    start: emptyFunction,
+    success: emptyFunction,
+    ready: emptyFunction,
+    debug: emptyFunction,
+    trace: emptyFunction,
+  } as unknown) as Consola
+}
+
+export const enableLogger = () => {
+  logger = log
+}
 
 // Just a proposal! --format={{ json }} dumps result as JSON with all the context
 const createView = (view: any) => ({
