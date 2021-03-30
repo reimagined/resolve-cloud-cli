@@ -1,6 +1,6 @@
 {
   "name": "resolve-cloud",
-  "version": "0.28.3",
+  "version": "0.29.0",
   "description": "",
   "engines": {
     "node": ">=10"
@@ -29,8 +29,8 @@
     "cloud"
   ],
   "dependencies": {
-    "@resolve-js/eventstore-postgresql-serverless": "0.28.3",
-    "source-map-support": "0.5.19",
+    "@resolve-js/eventstore-base": "0.29.0",
+    "@resolve-js/eventstore-postgresql-serverless": "0.29.0",
     "amazon-cognito-identity-js": "4.5.5",
     "archiver": "5.2.0",
     "aws-sdk": "^2.844.0",
@@ -49,13 +49,14 @@
     "lodash.omit": "4.5.0",
     "lodash.set": "4.3.2",
     "lodash.unset": "4.5.2",
+    "mustache": "4.1.0",
     "nanoid": "3.1.20",
     "qrcode-terminal": "0.12.0",
     "rc": "1.2.8",
     "request": "2.88.2",
-    "@resolve-js/eventstore-base": "0.28.3",
+    "resolve-cloud-common": "0.0.120",
     "semver": "7.3.4",
-    "yargs": "16.2.0",
-    "mustache": "4.1.0"
+    "source-map-support": "0.5.19",
+    "yargs": "16.2.0"
   }
 }

@@ -10,12 +10,10 @@ export const handler = refreshToken(async (token: any, params: any) => {
 
   const promises: Array<Promise<unknown>> = []
   const errors: Array<Error> = []
-  for (const { eventSubscriber } of result) {
+  for (const { name } of result) {
     promises.push(
       Promise.resolve()
-        .then(() =>
-          patch(token, `deployments/${deploymentId}/read-models/${eventSubscriber}/resume`, {})
-        )
+        .then(() => patch(token, `deployments/${deploymentId}/read-models/${name}/resume`, {}))
         .catch((error) => errors.push(error))
     )
   }

@@ -1,5 +1,6 @@
 import log, { Consola } from 'consola'
 import Mustache from 'mustache'
+import dateFormat from 'dateformat'
 
 const { render } = Mustache
 Mustache.escape = (v) => v
@@ -50,3 +51,10 @@ export const renderByTemplate = (template: string | undefined, view: any): boole
   }
   return false
 }
+
+export const formatEvent = (event: Record<string, any> | null) =>
+  event
+    ? `${event.type !== 'Init' ? dateFormat(new Date(event.timestamp), 'm/d/yy HH:MM:ss') : ''} ${
+        event.type
+      }`
+    : 'N\\A'

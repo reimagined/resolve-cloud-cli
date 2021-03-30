@@ -10,11 +10,10 @@ import { logger } from '../../utils/std'
 import getAdapterWithCredentials from '../../utils/get-adapter-with-credentials'
 
 export const importEventStore = async (params: {
-  token: string
   eventStorePath: string
   eventStoreId: string
 }) => {
-  const { token, eventStorePath, eventStoreId } = params
+  const { eventStorePath, eventStoreId } = params
 
   const pathToEvents = path.resolve(process.cwd(), eventStorePath, 'events.db')
   const pathToSecrets = path.resolve(process.cwd(), eventStorePath, 'secrets.db')
@@ -29,7 +28,7 @@ export const importEventStore = async (params: {
 
   const exportedEventsFileSize = fs.statSync(pathToEvents).size
 
-  let eventStoreAdapter = await getAdapterWithCredentials({ token, eventStoreId })
+  let eventStoreAdapter = await getAdapterWithCredentials({ eventStoreId })
   let byteOffset = 0
 
   try {
@@ -78,7 +77,7 @@ export const importEventStore = async (params: {
         break
       }
 
-      eventStoreAdapter = await getAdapterWithCredentials({ token, eventStoreId })
+      eventStoreAdapter = await getAdapterWithCredentials({ eventStoreId })
     } catch (error) {
       if (EventstoreAlreadyFrozenError.is(error)) {
         await eventStoreAdapter.unfreeze()
@@ -87,6 +86,8 @@ export const importEventStore = async (params: {
       }
     }
   }
+
+  await promisify(pipeline)(fs.createReadStream(pathToSecrets), eventStoreAdapter.importSecrets())
 }
 
 export const handler = refreshToken(async (token: any, params: any) => {
@@ -95,7 +96,6 @@ export const handler = refreshToken(async (token: any, params: any) => {
   logger.start(`importing the event-store to the cloud`)
 
   await importEventStore({
-    token,
     eventStorePath,
     eventStoreId,
   })

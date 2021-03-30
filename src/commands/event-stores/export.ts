@@ -10,11 +10,10 @@ import { logger } from '../../utils/std'
 import getAdapterWithCredentials from '../../utils/get-adapter-with-credentials'
 
 export const exportEventStore = async (params: {
-  token: string
   eventStorePath: string
   eventStoreId: string
 }) => {
-  const { token, eventStorePath, eventStoreId } = params
+  const { eventStorePath, eventStoreId } = params
 
   const pathToEventStore = path.resolve(process.cwd(), eventStorePath)
 
@@ -25,7 +24,7 @@ export const exportEventStore = async (params: {
   const pathToEvents = path.join(pathToEventStore, 'events.db')
   const pathToSecrets = path.join(pathToEventStore, 'secrets.db')
 
-  let eventStoreAdapter = await getAdapterWithCredentials({ token, eventStoreId })
+  let eventStoreAdapter = await getAdapterWithCredentials({ eventStoreId })
   let cursor = null
   let isJsonStreamTimedOutOnce = false
 
@@ -65,7 +64,7 @@ export const exportEventStore = async (params: {
       }
 
       cursor = (exportStream as any).cursor
-      eventStoreAdapter = await getAdapterWithCredentials({ token, eventStoreId })
+      eventStoreAdapter = await getAdapterWithCredentials({ eventStoreId })
     } catch (error) {
       if (EventstoreAlreadyFrozenError.is(error)) {
         await eventStoreAdapter.unfreeze()
@@ -84,7 +83,6 @@ export const handler = refreshToken(async (token: any, params: any) => {
   logger.start(`exporting the event-store from the cloud`)
 
   await exportEventStore({
-    token,
     eventStorePath,
     eventStoreId,
   })

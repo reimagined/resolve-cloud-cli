@@ -1,8 +1,12 @@
-import { get } from '../api/client'
 import createAdapter from '@resolve-js/eventstore-postgresql-serverless'
 
-const getAdapterWithCredentials = async (params: { token: string; eventStoreId: string }) => {
-  const { token, eventStoreId } = params
+import { get } from '../api/client'
+import { refreshToken } from '../api/auth'
+
+const getAdapterWithCredentials = async (params: { eventStoreId: string }) => {
+  const { eventStoreId } = params
+
+  const token = await refreshToken()
 
   const {
     result: {

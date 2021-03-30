@@ -134,6 +134,9 @@ const request = async (token: any, method: any, url: any, data: any, params: any
         /ECONNRESET/.test(errorText) ||
         /The Lambda function associated with the CloudFront distribution was throttled/.test(
           errorText
+        ) ||
+        /The Lambda function associated with the CloudFront distribution is invalid or doesn't have the required permissions./.test(
+          errorText
         )
       if (e.response != null) {
         const {
