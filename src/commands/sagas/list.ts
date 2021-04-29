@@ -32,13 +32,8 @@ export const handler = refreshToken(async (token: any, params: any) => {
         }),
         {
           minWidth: 20,
-          truncate: true,
+          maxWidth: 100,
           columns: ['name', 'status', 'success event', 'failed event', 'last error'],
-          config: {
-            'last error': {
-              maxWidth: 160,
-            },
-          },
         }
       )
     )

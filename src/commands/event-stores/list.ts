@@ -1,19 +1,12 @@
 import columnify from 'columnify'
 import chalk from 'chalk'
+import semver from 'semver'
+import { Deployment } from 'resolve-cloud-sdk'
 
 import refreshToken from '../../refreshToken'
 import { get } from '../../api/client'
 import { out, renderByTemplate } from '../../utils/std'
-
-type Deployment = {
-  deploymentId: string
-  applicationName: string
-  version: string
-  eventStoreId: string
-  domainName: string
-  deploymentTag?: string
-  applicationUrl: string
-}
+import { HEADER_EXECUTION_MODE } from '../../constants'
 
 export const handler = refreshToken(
   async (
@@ -23,7 +16,9 @@ export const handler = refreshToken(
     }
   ) => {
     const { format } = params
-    const { result } = await get(token, `/event-stores`)
+    const { result } = await get(token, `/event-stores`, undefined, {
+      [HEADER_EXECUTION_MODE]: 'async',
+    })
 
     if (result) {
       if (format) {
@@ -36,25 +31,48 @@ export const handler = refreshToken(
       }
       out(
         columnify(
-          result.map(
-            ({
-              eventStoreId,
-              version: esVersion,
-              linkedDeployments,
-            }: {
-              eventStoreId: string
-              version: string
-              linkedDeployments: string
-            }) => ({
-              id: eventStoreId,
-              version: esVersion,
-              'linked deployments': linkedDeployments,
-            })
-          ),
+          result
+            .map(
+              ({
+                eventStoreId,
+                version: esVersion,
+                linkedDeployments,
+                events,
+                secrets,
+                createdAt,
+                modifiedAt,
+              }: {
+                eventStoreId: string
+                version: string
+                linkedDeployments: string
+                events: number | null
+                secrets: number | null
+                createdAt: number | null
+                modifiedAt: number | null
+              }) => ({
+                id: eventStoreId,
+                version: esVersion,
+                'linked deployments': linkedDeployments ?? 'N/A',
+                events: events ?? 'N/A',
+                secrets: secrets ?? 'N/A',
+                created: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
+                'latest event': modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+              })
+            )
+            .sort((a: Deployment, b: Deployment) => (semver.lt(a.version, b.version) ? 1 : -1)),
           {
-            minWidth: 20,
+            minWidth: 6,
             truncate: true,
-            columns: ['id', 'linked deployments', 'version'],
+            columnSplitter: '    ',
+            columns: [
+              'id',
+              'linked deployments',
+              'version',
+              'events',
+              'secrets',
+              'created',
+              'latest event',
+            ],
           }
         )
       )
@@ -69,7 +87,7 @@ export const builder = (yargs: any) =>
   yargs
     .option('format', {
       describe: `Format the output using a mustache template http://mustache.github.io/ 
-        Possible fields: eventStoreId, version`,
+        Possible fields: eventStoreId, version, linkedDeployments, events, secrets, createdAt, modifiedAt`,
       type: 'string',
     })
     .group(['format'], 'Options:')

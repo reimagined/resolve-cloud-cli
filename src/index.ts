@@ -39,10 +39,19 @@ yargs
   .fail((msg, err) => {
     if (msg) {
       logger.error(msg)
+      process.exit(1)
     }
     if (err) {
       logger.error(err.message)
+      process.exit(1)
     }
-    process.exit(1)
+  })
+  .check((argv) => {
+    for (const [key, value] of Object.entries(argv)) {
+      if (typeof value === 'string' && value === '') {
+        return `Invalid option "${key}" value`
+      }
+    }
+    return true
   })
   .parse()

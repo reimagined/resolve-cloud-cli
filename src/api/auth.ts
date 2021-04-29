@@ -105,6 +105,14 @@ export const refreshToken = async () => {
       config.del('credentials.refresh_token')
       config.del('credentials.token')
     }
+
+    if (
+      error != null &&
+      error.message != null &&
+      `${error.message}`.includes('Username and Pool information are required')
+    ) {
+      throw new Error('You must be logged in to use this command')
+    }
     throw error
   }
 }

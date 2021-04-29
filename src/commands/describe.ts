@@ -1,24 +1,15 @@
 import columnify from 'columnify'
 import chalk from 'chalk'
+import { Deployment } from 'resolve-cloud-sdk'
 
 import refreshToken from '../refreshToken'
 import { get } from '../api/client'
 import { out, renderByTemplate } from '../utils/std'
 
-type Deployment = {
-  deploymentId: string
-  applicationName: string
-  version: string
-  eventStoreId: string
-  domainName: string
-  deploymentTag?: string
-  applicationUrl: string
-}
-
 export const getDeployment = async (params: {
   token: string
   deploymentId?: string
-}): Promise<Deployment> => {
+}): Promise<Deployment & { applicationUrl: string }> => {
   const { token, deploymentId } = params
 
   const { result } = await get(token, `/deployments/${deploymentId}`)

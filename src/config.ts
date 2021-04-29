@@ -64,7 +64,7 @@ export const getResolvePackageVersion = (): string => {
   const keys = Object.keys(pkg.dependencies)
   const resolvePackageNames = keys.filter(
     (name) =>
-      (name.startsWith('resolve') && name !== 'resolve-cloud') ||
+      (name.startsWith('resolve') && name !== 'resolve-cloud' && name !== 'resolve-cloud-common') ||
       name.startsWith('@reimagined/') ||
       name.startsWith('@resolve-js/')
   )
@@ -82,7 +82,11 @@ export const getResolvePackageVersion = (): string => {
         semver.valid(semver.coerce(version)) as any
       )
     ) {
-      throw new Error('The resolve package versions must be the same.')
+      throw new Error(
+        `The resolve package versions must be the same [${resolvePackageNames
+          .map((item) => `"${item}"`)
+          .join(', ')}]`
+      )
     }
   }
 

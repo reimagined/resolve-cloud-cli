@@ -34,7 +34,9 @@ test('should failed with not the same resolve version', async () => {
     })
   )
 
-  expect(getResolvePackageVersion).toThrowError('The resolve package versions must be the same.')
+  expect(getResolvePackageVersion).toThrowError(
+    'The resolve package versions must be the same ["@resolve-js/package-1", "@resolve-js/package-2"]'
+  )
 })
 
 test('should return 0.0.0 version', async () => {

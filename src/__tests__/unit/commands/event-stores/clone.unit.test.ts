@@ -2,7 +2,7 @@ import yargs from 'yargs'
 import { mocked } from 'ts-jest/utils'
 import { executeStatement } from 'resolve-cloud-common/postgres'
 
-import { post, get } from '../../../../api/client'
+import { patch } from '../../../../api/client'
 import refreshToken from '../../../../refreshToken'
 
 import {
@@ -14,10 +14,8 @@ import {
 
 import { HEADER_EXECUTION_MODE } from '../../../../constants'
 
-jest.mock('fs')
 jest.mock('../../../../api/client', () => ({
-  post: jest.fn(),
-  get: jest.fn(),
+  patch: jest.fn(),
 }))
 jest.mock('../../../../refreshToken', () =>
   jest.fn((h: any) => (...args: Array<any>) => h('token', ...args))
@@ -52,18 +50,7 @@ test('options', () => {
 
 describe('handler', () => {
   beforeAll(() => {
-    mocked(get).mockResolvedValue({
-      result: {
-        region: 'region',
-        accessKeyId: 'accessKeyId',
-        secretAccessKey: 'secretAccessKey',
-        sessionToken: 'sessionToken',
-        eventStoreSecretArn: 'eventStoreSecretArn',
-        eventStoreClusterArn: 'eventStoreClusterArn',
-        eventStoreDatabaseName: 'eventStoreDatabaseName',
-      },
-    })
-    mocked(post).mockResolvedValue({
+    mocked(patch).mockResolvedValue({
       result: {
         eventStoreId: 'event-store-id',
       },
@@ -73,8 +60,7 @@ describe('handler', () => {
 
   afterEach(() => {
     mocked(refreshToken).mockClear()
-    mocked(get).mockClear()
-    mocked(post).mockClear()
+    mocked(patch).mockClear()
   })
 
   test('wrapped with refreshToken', async () => {
@@ -84,13 +70,12 @@ describe('handler', () => {
   })
 
   test('calls post with event store options', async () => {
-    await handler({})
+    await handler({
+      'event-store-id': 'event-store-id',
+    })
 
-    expect(post).toBeCalledWith(
-      'token',
-      `/event-stores`,
-      { version },
-      { [HEADER_EXECUTION_MODE]: 'async' }
-    )
+    expect(patch).toBeCalledWith('token', `/event-stores/event-store-id/clone`, undefined, {
+      [HEADER_EXECUTION_MODE]: 'async',
+    })
   })
 })

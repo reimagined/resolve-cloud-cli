@@ -1,5 +1,6 @@
 import columnify from 'columnify'
 import chalk from 'chalk'
+import semver from 'semver'
 
 import refreshToken from '../refreshToken'
 import { get } from '../api/client'
@@ -38,15 +39,23 @@ export const handler = refreshToken(
 
       out(
         columnify(
-          result.map(
-            ({ deploymentId, version, eventStoreId, applicationName, domainName }: Deployment) => ({
-              'application-name': applicationName,
-              'deployment-id': deploymentId,
-              version,
-              'event-store-id': eventStoreId ?? 'N/A',
-              domain: domainName,
-            })
-          ),
+          result
+            .map(
+              ({
+                deploymentId,
+                version,
+                eventStoreId,
+                applicationName,
+                domainName,
+              }: Deployment) => ({
+                'application-name': applicationName,
+                'deployment-id': deploymentId,
+                version,
+                'event-store-id': eventStoreId ?? 'N/A',
+                domain: domainName,
+              })
+            )
+            .sort((a: Deployment, b: Deployment) => (semver.lt(a.version, b.version) ? 1 : -1)),
           {
             columnSplitter: '    ',
             columns: ['application-name', 'deployment-id', 'domain', 'version', 'event-store-id'],

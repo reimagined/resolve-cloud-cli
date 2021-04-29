@@ -3,6 +3,7 @@ import * as request from 'request'
 import fs from 'fs'
 import qr from 'qrcode-terminal'
 import dotenv from 'dotenv'
+import { intersectsVersions } from 'resolve-cloud-sdk'
 
 import { post, get, patch, put } from '../api/client'
 import refreshToken from '../refreshToken'
@@ -49,12 +50,10 @@ export const handler = refreshToken(async (token: any, params: any) => {
   let eventStoreId: string
   let eventStoreDatabaseName: string
   let eventBusLambdaArn: string
-  let eventBusDatabaseName: string
 
   logger.trace(`requesting the list of existing deployments`)
   void ({ result: deployment } = await get(token, '/deployments', {
     applicationName,
-    version: resolveVersion,
   }))
 
   logger.trace(`deployment list received: ${deployment == null ? 0 : 1} items`)
@@ -64,7 +63,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
 
     if (receivedEventStoreId == null) {
       void ({
-        result: { eventStoreId, eventStoreDatabaseName, eventBusLambdaArn, eventBusDatabaseName },
+        result: { eventStoreId, eventStoreDatabaseName, eventBusLambdaArn },
       } = await post(
         token,
         `/event-stores`,
@@ -86,7 +85,6 @@ export const handler = refreshToken(async (token: any, params: any) => {
           eventStoreId: string
           eventStoreDatabaseName: string
           eventBusLambdaArn: string
-          eventBusDatabaseName: string
           version: string
         }>
       } = await get(token, `/event-stores`, {
@@ -105,18 +103,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
         throw new Error(`Event store with the "${receivedEventStoreId}" id was not found`)
       }
 
-      if (foundEventStore.version !== resolveVersion) {
-        throw new Error(
-          `Wrong event store "${receivedEventStoreId}" version ${foundEventStore.version}`
-        ) // TODO update message
-      }
-
-      void ({
-        eventStoreId,
-        eventStoreDatabaseName,
-        eventBusLambdaArn,
-        eventBusDatabaseName,
-      } = foundEventStore)
+      void ({ eventStoreId, eventStoreDatabaseName, eventBusLambdaArn } = foundEventStore)
     }
 
     const { result } = await post(
@@ -128,19 +115,12 @@ export const handler = refreshToken(async (token: any, params: any) => {
         eventStoreId,
         eventStoreDatabaseName,
         eventBusLambdaArn,
-        eventBusDatabaseName,
         domain,
       },
       { [HEADER_EXECUTION_MODE]: 'async' }
     )
 
     const { deploymentId, domainName } = result
-
-    if (envs != null) {
-      await put(token, `deployments/${deploymentId}/environment`, {
-        variables: dotenv.parse(Buffer.from(envs.join('\n'))),
-      })
-    }
 
     deployment = {
       deploymentId,
@@ -149,6 +129,12 @@ export const handler = refreshToken(async (token: any, params: any) => {
       domainName,
       eventStoreId,
     }
+  }
+
+  if (!intersectsVersions(deployment.version, resolveVersion)) {
+    throw new Error(
+      `Current version "${resolveVersion}" incompatible with "${deployment.version}" deployment version`
+    )
   }
 
   const {
@@ -203,6 +189,12 @@ export const handler = refreshToken(async (token: any, params: any) => {
     },
     { [HEADER_EXECUTION_MODE]: 'async' }
   )
+
+  if (envs != null) {
+    await put(token, `deployments/${deployment.deploymentId}/environment`, {
+      variables: dotenv.parse(Buffer.from(envs.join('\n'))),
+    })
+  }
 
   await patch(token, `/deployments/${deployment.deploymentId}/bootstrap`, undefined, {
     [HEADER_EXECUTION_MODE]: 'async',
