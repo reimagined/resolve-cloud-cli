@@ -72,6 +72,7 @@ export const getResolvePackageVersion = (): string => {
   if (packageName == null) {
     throw new Error('The resolve packages were not found')
   }
+
   const version = pkg.dependencies[packageName]
 
   // eslint-disable-next-line no-restricted-syntax

@@ -7,7 +7,6 @@ import { createDecipheriv } from 'crypto'
 import * as config from '../config'
 import { logger } from '../utils/std'
 import { HEADER_EXECUTION_MODE } from '../constants'
-import { undefined } from 'io-ts'
 
 const request = async (token: any, method: any, url: any, data: any, params: any, headers: any) => {
   const apiUrl = config.get('api_url')
@@ -58,7 +57,7 @@ const request = async (token: any, method: any, url: any, data: any, params: any
 
       const { executionId, executionToken, executionSalt, result } = response
 
-      if (result !== undefined && headers[HEADER_EXECUTION_MODE] !== 'async') {
+      if (headers[HEADER_EXECUTION_MODE] !== 'async') {
         logger.debug(
           `< [${status}] ${method}: ${baseURL}${url} { mode: ${
             responseHeaders[HEADER_EXECUTION_MODE] === 'async' ? '"async"' : '"sync"'
@@ -73,6 +72,9 @@ const request = async (token: any, method: any, url: any, data: any, params: any
       for (;;) {
         logger.trace(`>> ${describeMethod}: ${baseURL}${describeUrl}`)
 
+        const { [HEADER_EXECUTION_MODE]: headerExec, ...rest } = requestHeaders
+        void headerExec
+
         const { data: responseData, status: describeStatus } = await axios.request({
           method: describeMethod,
           baseURL: apiIP,
@@ -81,8 +83,7 @@ const request = async (token: any, method: any, url: any, data: any, params: any
           data: null,
           maxContentLength: 200 * 1024 * 1024,
           headers: {
-            ...requestHeaders,
-            [HEADER_EXECUTION_MODE]: undefined,
+            ...rest,
           },
           timeout: 60000,
         })

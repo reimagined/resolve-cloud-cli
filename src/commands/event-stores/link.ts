@@ -1,10 +1,10 @@
 import chalk from 'chalk'
+import inquirer from 'inquirer'
 
 import { patch } from '../../api/client'
 import { logger } from '../../utils/std'
 import refreshToken from '../../refreshToken'
 import { getDeployment } from '../describe'
-import inquirer from 'inquirer'
 
 export const handler = refreshToken(async (token: any, params: any) => {
   const { 'event-store-id': eventStoreId, 'deployment-id': deploymentId, force } = params

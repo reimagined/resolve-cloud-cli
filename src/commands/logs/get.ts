@@ -1,9 +1,9 @@
 import chalk from 'chalk'
+import { setTimeout } from 'timers'
 
 import refreshToken from '../../refreshToken'
 import { get } from '../../api/client'
 import { out } from '../../utils/std'
-import { setTimeout } from 'timers'
 
 export const handler = refreshToken(async (token: any, params: any) => {
   const {
