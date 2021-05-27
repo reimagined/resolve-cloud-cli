@@ -1,6 +1,6 @@
 {
   "name": "resolve-cloud",
-  "version": "0.30.3",
+  "version": "0.30.4",
   "description": "",
   "engines": {
     "node": ">=10"
@@ -29,8 +29,8 @@
     "cloud"
   ],
   "dependencies": {
-    "@resolve-js/eventstore-base": "0.30.3",
-    "@resolve-js/eventstore-postgresql-serverless": "0.30.3",
+    "@resolve-js/eventstore-base": "0.30.4",
+    "@resolve-js/eventstore-postgresql-serverless": "0.30.4",
     "amazon-cognito-identity-js": "4.5.5",
     "archiver": "5.2.0",
     "aws-sdk": "^2.844.0",
@@ -55,7 +55,7 @@
     "rc": "1.2.8",
     "request": "2.88.2",
     "resolve-cloud-common": "0.0.124",
-    "resolve-cloud-sdk": "0.30.3",
+    "resolve-cloud-sdk": "0.30.4",
     "semver": "7.3.4",
     "source-map-support": "0.5.19",
     "yargs": "16.2.0"
