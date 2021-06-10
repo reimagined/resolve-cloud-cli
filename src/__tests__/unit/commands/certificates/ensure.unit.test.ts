@@ -1,7 +1,7 @@
 import yargs from 'yargs'
-import { readFile } from 'fs'
-import { join } from 'path'
-import { mocked } from 'ts-jest/utils'
+// import { readFile } from 'fs'
+// import { join } from 'path'
+// import { mocked } from 'ts-jest/utils'
 
 import {
   command,
@@ -10,8 +10,8 @@ import {
   aliases,
   describe as commandDescription,
 } from '../../../../commands/certificates/ensure'
-import { post } from '../../../../api/client'
-import refreshToken from '../../../../refreshToken'
+// import { post } from '../../../../api/client'
+// import refreshToken from '../../../../refreshToken'
 
 jest.mock('../../../../api/client', () => ({
   post: jest.fn(),
@@ -65,21 +65,20 @@ test('options', () => {
 })
 
 describe('handler', () => {
-  beforeAll(() => {
-    mocked(post).mockResolvedValue({
-      result: {
-        certificateId: 'certificate-id',
-      },
-    })
-  })
-
-  afterEach(() => {
-    mocked(refreshToken).mockClear()
-    mocked(post).mockClear()
-    mocked(readFile).mockClear()
-    mocked(join).mockClear()
-  })
-
+  // beforeAll(() => {
+  //   mocked(post).mockResolvedValue({
+  //     result: {
+  //       certificateId: 'certificate-id',
+  //     },
+  //   })
+  // })
+  //
+  // afterEach(() => {
+  //   mocked(refreshToken).mockClear()
+  //   mocked(post).mockClear()
+  //   mocked(readFile).mockClear()
+  //   mocked(join).mockClear()
+  // })
   // test('wrapped with refreshToken', async () => {
   //   await handler({})
   //

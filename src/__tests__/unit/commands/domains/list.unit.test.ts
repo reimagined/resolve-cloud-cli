@@ -1,8 +1,8 @@
-import dateFormat from 'dateformat'
+// import dateFormat from 'dateformat'
 // import columnify from 'columnify'
 import { mocked } from 'ts-jest/utils'
 
-import { out } from '../../../../utils/std'
+// import { out } from '../../../../utils/std'
 import {
   command,
   aliases,
@@ -10,7 +10,7 @@ import {
   describe as commandDescription,
 } from '../../../../commands/domains/list'
 import { get } from '../../../../api/client'
-import refreshToken from '../../../../refreshToken'
+// import refreshToken from '../../../../refreshToken'
 
 jest.mock('../../../../api/client', () => ({
   get: jest.fn(),
@@ -47,13 +47,12 @@ test('command', () => {
 })
 
 describe('handler', () => {
-  afterEach(() => {
-    mocked(refreshToken).mockClear()
-    mocked(get).mockClear()
-    mocked(dateFormat).mockClear()
-    mocked(out).mockClear()
-  })
-
+  // afterEach(() => {
+  //   mocked(refreshToken).mockClear()
+  //   mocked(get).mockClear()
+  //   mocked(dateFormat).mockClear()
+  //   mocked(out).mockClear()
+  // })
   // test('wrapped with refreshToken', async () => {
   //   await handler({})
   //

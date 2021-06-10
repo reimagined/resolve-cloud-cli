@@ -1,5 +1,5 @@
 import yargs from 'yargs'
-import { mocked } from 'ts-jest/utils'
+// import { mocked } from 'ts-jest/utils'
 
 import {
   command,
@@ -7,8 +7,8 @@ import {
   builder,
   describe as commandDescription,
 } from '../../../../commands/domains/verify'
-import { post } from '../../../../api/client'
-import refreshToken from '../../../../refreshToken'
+// import { post } from '../../../../api/client'
+// import refreshToken from '../../../../refreshToken'
 
 jest.mock('../../../../api/client', () => ({
   post: jest.fn(),
@@ -38,11 +38,10 @@ test('options', () => {
 })
 
 describe('handler', () => {
-  afterEach(() => {
-    mocked(refreshToken).mockClear()
-    mocked(post).mockClear()
-  })
-
+  // afterEach(() => {
+  //   mocked(refreshToken).mockClear()
+  //   mocked(post).mockClear()
+  // })
   // test('wrapped with refreshToken', async () => {
   //   await handler({})
   //

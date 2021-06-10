@@ -106,6 +106,8 @@ export const handler = refreshToken(async (token: any, params: any) => {
       void ({ eventStoreId, eventStoreDatabaseName, eventBusLambdaArn } = foundEventStore)
     }
 
+    const domains = domain == null ? [] : domain.split(',')
+
     const { result } = await post(
       token,
       `/deployments`,
@@ -115,12 +117,23 @@ export const handler = refreshToken(async (token: any, params: any) => {
         eventStoreId,
         eventStoreDatabaseName,
         eventBusLambdaArn,
-        domain,
+        domain: domains[0],
       },
       { [HEADER_EXECUTION_MODE]: 'async' }
     )
 
     const { deploymentId, domainName } = result
+
+    if (domains.length > 0) {
+      for (let index = 1; index < domains.length; index++) {
+        await put(
+          token,
+          `/deployments/${deploymentId}/domain`,
+          { domain: domains[index] },
+          { [HEADER_EXECUTION_MODE]: 'async' }
+        )
+      }
+    }
 
     deployment = {
       deploymentId,
@@ -200,12 +213,18 @@ export const handler = refreshToken(async (token: any, params: any) => {
     [HEADER_EXECUTION_MODE]: 'async',
   })
 
-  const applicationUrl = `https://${deployment.domainName}`
+  const availableDomains = Array.from(
+    new Set([...(domain == null ? [] : domain.split(',')), ...deployment.domainName.split(',')])
+  )
 
-  logger.success(`"${applicationName}" available at ${applicationUrl}`)
+  logger.success(
+    `"${applicationName}" available at ${availableDomains
+      .map((domainName) => `https://${domainName}`)
+      .join(' ')}`
+  )
 
   if (generateQrCode) {
-    qr.generate(applicationUrl, { small: true })
+    qr.generate(availableDomains[0], { small: true })
   }
 })
 

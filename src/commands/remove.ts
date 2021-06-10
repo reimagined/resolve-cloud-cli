@@ -16,9 +16,20 @@ export const handler = refreshToken(async (token: any, params: any) => {
 
   logger.trace(`requesting deployment removal`)
 
-  await patch(token, `/deployments/${deploymentId}/shutdown`, undefined, {
-    [HEADER_EXECUTION_MODE]: 'async',
-  })
+  try {
+    await Promise.race([
+      patch(token, `/deployments/${deploymentId}/shutdown`, undefined, {
+        [HEADER_EXECUTION_MODE]: 'async',
+      }),
+      new Promise((resolve) => setTimeout(resolve, 60000)),
+    ])
+  } catch (error) {
+    if (
+      !/Options "dbClusterOrInstanceArn" and "awsSecretStoreArn" are mandatory/.test(error.message)
+    ) {
+      throw error
+    }
+  }
 
   await optionalWait(
     del(
