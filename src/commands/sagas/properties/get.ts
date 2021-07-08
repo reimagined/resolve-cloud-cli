@@ -13,7 +13,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
     {}
   )
 
-  out(JSON.parse(result))
+  out(result)
 })
 
 export const command = `get <deployment-id> <saga> <property>`

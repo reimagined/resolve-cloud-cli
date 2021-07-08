@@ -57,10 +57,14 @@ test('options', () => {
 })
 
 describe('handler', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
   afterEach(() => {
     mocked(refreshToken).mockClear()
     mocked(del).mockClear()
     mocked(patch).mockClear()
+    jest.clearAllTimers()
   })
 
   test('wrapped with refreshToken', async () => {

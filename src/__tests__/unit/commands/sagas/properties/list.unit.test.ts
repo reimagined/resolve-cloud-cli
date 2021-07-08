@@ -82,7 +82,7 @@ describe('handler', () => {
       {
         property: 'property',
       },
-      { minWidth: 30, columns: ['name', 'value'] }
+      { columns: ['name', 'value'], columnSplitter: '    ' }
     )
     expect(out).toHaveBeenCalledWith('result-output')
   })
