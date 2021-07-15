@@ -27,7 +27,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
     if (
       !/Options "dbClusterOrInstanceArn" and "awsSecretStoreArn" are mandatory/.test(error.message)
     ) {
-      throw error
+      logger.warn(`Shutdown deployment failed with "${error.message}"`)
     }
   }
 

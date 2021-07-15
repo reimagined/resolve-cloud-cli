@@ -3,7 +3,7 @@ import { pipeline } from 'stream'
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import { EventstoreAlreadyFrozenError } from '@resolve-js/eventstore-base'
+import { EventstoreAlreadyFrozenError, MAINTENANCE_MODE_MANUAL } from '@resolve-js/eventstore-base'
 
 import refreshToken from '../../refreshToken'
 import { logger } from '../../utils/std'
@@ -30,7 +30,10 @@ export const exportEventStore = async (params: {
 
   for (;;) {
     try {
-      const exportStream = eventStoreAdapter.exportEvents({ cursor })
+      const exportStream = eventStoreAdapter.exportEvents({
+        cursor,
+        maintenanceMode: MAINTENANCE_MODE_MANUAL,
+      })
 
       const writeStream = fs.createWriteStream(pathToEvents, {
         flags: isJsonStreamTimedOutOnce ? 'a' : 'w',

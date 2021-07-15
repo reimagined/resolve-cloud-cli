@@ -133,6 +133,8 @@ const request = async (token: any, method: any, url: any, data: any, params: any
         /timeout of (\d+)ms exceeded/.test(errorText) ||
         /ETIMEDOUT/.test(errorText) ||
         /ECONNRESET/.test(errorText) ||
+        /Rate exceeded/.test(errorText) ||
+        /EPROTO/.test(errorText) ||
         /The Lambda function associated with the CloudFront distribution was throttled/.test(
           errorText
         ) ||
