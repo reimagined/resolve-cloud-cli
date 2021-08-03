@@ -14,7 +14,11 @@ jest.mock('../../../../api/client', () => ({
   post: jest.fn(),
 }))
 jest.mock('../../../../refreshToken', () =>
-  jest.fn((h: any) => (...args: Array<any>) => h('token', ...args))
+  jest.fn(
+    (h: any) =>
+      (...args: Array<any>) =>
+        h('token', ...args)
+  )
 )
 jest.mock('querystring', () => ({
   escape: jest.fn(() => 'escaped-string'),

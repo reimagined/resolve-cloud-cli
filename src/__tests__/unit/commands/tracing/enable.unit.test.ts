@@ -15,7 +15,11 @@ jest.mock('../../../../api/client', () => ({
 }))
 
 jest.mock('../../../../refreshToken', () =>
-  jest.fn((h: any) => (...args: Array<any>) => h('token', ...args))
+  jest.fn(
+    (h: any) =>
+      (...args: Array<any>) =>
+        h('token', ...args)
+  )
 )
 
 jest.mock('../../../../utils/get-deployment-id', () => jest.fn(() => 'deployment-id'))

@@ -16,7 +16,11 @@ jest.mock('../../../../api/client', () => ({
 }))
 
 jest.mock('../../../../refreshToken', () =>
-  jest.fn((h: any) => (...args: Array<any>) => h('token', ...args))
+  jest.fn(
+    (h: any) =>
+      (...args: Array<any>) =>
+        h('token', ...args)
+  )
 )
 
 const { positional } = yargs

@@ -17,7 +17,11 @@ jest.mock('../../../../api/client', () => ({
   post: jest.fn(),
 }))
 jest.mock('../../../../refreshToken', () =>
-  jest.fn((h) => (...args: Array<any>) => h('token', ...args))
+  jest.fn(
+    (h) =>
+      (...args: Array<any>) =>
+        h('token', ...args)
+  )
 )
 jest.mock('util', () => ({
   promisify: (fn: any) => fn,

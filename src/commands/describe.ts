@@ -42,14 +42,8 @@ export const handler = refreshToken(
       return
     }
 
-    const {
-      applicationName,
-      version,
-      eventStoreId,
-      domainName,
-      applicationUrl,
-      deploymentId,
-    } = deployment
+    const { applicationName, version, eventStoreId, domainName, applicationUrl, deploymentId } =
+      deployment
 
     out(
       columnify(

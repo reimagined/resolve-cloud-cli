@@ -15,6 +15,7 @@ type EventStore = {
   secrets: number | null
   createdAt: number | null
   modifiedAt: number | null
+  isFrozen: boolean | null
 }
 
 export const handler = refreshToken(
@@ -40,6 +41,7 @@ export const handler = refreshToken(
             secrets,
             createdAt,
             modifiedAt,
+            isFrozen,
           }: EventStore) =>
             renderByTemplate(format, {
               eventStoreId,
@@ -52,6 +54,7 @@ export const handler = refreshToken(
               createdAt: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
               latestEvent: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
               modifiedAt: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+              isFrozen: isFrozen != null ? `${isFrozen}` : 'N/A',
             })
         )
         return
@@ -68,6 +71,7 @@ export const handler = refreshToken(
                 secrets,
                 createdAt,
                 modifiedAt,
+                isFrozen,
               }: EventStore) => ({
                 id: eventStoreId,
                 version: esVersion,
@@ -76,6 +80,7 @@ export const handler = refreshToken(
                 secrets: secrets ?? 'N/A',
                 created: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
                 'latest event': modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+                frozen: isFrozen != null ? `${isFrozen}` : 'N/A',
               })
             )
             .sort((a: EventStore, b: EventStore) => (semver.lt(a.version, b.version) ? 1 : -1)),
@@ -91,6 +96,7 @@ export const handler = refreshToken(
               'secrets',
               'created',
               'latest event',
+              'frozen',
             ],
           }
         )

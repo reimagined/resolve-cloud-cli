@@ -1,6 +1,7 @@
 import log, { Consola } from 'consola'
 import Mustache from 'mustache'
 import dateFormat from 'dateformat'
+import * as utils from 'util'
 
 const { render } = Mustache
 Mustache.escape = (v) => v
@@ -14,7 +15,7 @@ export let logger = log
 export const disableLogger = () => {
   const emptyFunction = () => {}
 
-  logger = ({
+  logger = {
     fatal: emptyFunction,
     error: emptyFunction,
     warn: emptyFunction,
@@ -25,7 +26,7 @@ export const disableLogger = () => {
     ready: emptyFunction,
     debug: emptyFunction,
     trace: emptyFunction,
-  } as unknown) as Consola
+  } as unknown as Consola
 }
 
 export const enableLogger = () => {
@@ -52,9 +53,15 @@ export const renderByTemplate = (template: string | undefined, view: any): boole
   return false
 }
 
-export const formatEvent = (event: Record<string, any> | null) =>
-  event
-    ? `${event.type !== 'Init' ? dateFormat(new Date(event.timestamp), 'm/d/yy HH:MM:ss') : ''} ${
-        event.type
-      }`
-    : 'N\\A'
+export const formatEvent = (event: Record<string, any> | null) => {
+  try {
+    return event
+      ? `${event.type !== 'Init' ? dateFormat(new Date(event.timestamp), 'm/d/yy HH:MM:ss') : ''} ${
+          event.type
+        }`
+      : 'N\\A'
+  } catch (error) {
+    setImmediate(() => logger.trace('Bad event:', utils.inspect(event, undefined, null)))
+    return `${error}`
+  }
+}

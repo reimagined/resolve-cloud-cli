@@ -3,7 +3,11 @@ import yargs from 'yargs'
 import { command, builder, describe as commandDescription } from '../../../commands/tracing'
 
 jest.mock('../../../refreshToken', () =>
-  jest.fn((h: any) => (...args: Array<any>) => h('token', ...args))
+  jest.fn(
+    (h: any) =>
+      (...args: Array<any>) =>
+        h('token', ...args)
+  )
 )
 
 const { commandDir } = yargs

@@ -8,7 +8,11 @@ import {
 } from '../../../../commands/sagas/properties'
 
 jest.mock('../../../../refreshToken', () =>
-  jest.fn((h: any) => (...args: Array<any>) => h('token', ...args))
+  jest.fn(
+    (h: any) =>
+      (...args: Array<any>) =>
+        h('token', ...args)
+  )
 )
 
 const { commandDir } = yargs

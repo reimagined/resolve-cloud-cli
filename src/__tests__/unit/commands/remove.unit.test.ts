@@ -17,7 +17,11 @@ jest.mock('../../../api/client', () => ({
   patch: jest.fn(),
 }))
 jest.mock('../../../refreshToken', () =>
-  jest.fn((h: any) => (...args: Array<any>) => h('token', ...args))
+  jest.fn(
+    (h: any) =>
+      (...args: Array<any>) =>
+        h('token', ...args)
+  )
 )
 const version = '0.0.0'
 

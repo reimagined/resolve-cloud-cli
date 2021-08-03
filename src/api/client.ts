@@ -40,7 +40,11 @@ const request = async (token: any, method: any, url: any, data: any, params: any
         } }`
       )
 
-      const { data: response, status, headers: responseHeaders } = await axios.request({
+      const {
+        data: response,
+        status,
+        headers: responseHeaders,
+      } = await axios.request({
         method,
         baseURL: apiIP,
         url,

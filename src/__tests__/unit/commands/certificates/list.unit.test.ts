@@ -16,7 +16,11 @@ jest.mock('../../../../api/client', () => ({
   get: jest.fn(),
 }))
 jest.mock('../../../../refreshToken', () =>
-  jest.fn((h: any) => (...args: Array<any>) => h('token', ...args))
+  jest.fn(
+    (h: any) =>
+      (...args: Array<any>) =>
+        h('token', ...args)
+  )
 )
 jest.mock('../../../../utils/std', () => ({
   out: jest.fn(),
