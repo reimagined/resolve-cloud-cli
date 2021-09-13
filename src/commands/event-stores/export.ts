@@ -41,7 +41,7 @@ export const exportEventStore = async (params: {
 
       const pipelinePromise = promisify(pipeline)(exportStream, writeStream).then(() => false)
 
-      let timeoutResolve
+      let timeoutResolve: any
       let timeout
 
       const timeoutPromise = new Promise<boolean>((resolve) => {

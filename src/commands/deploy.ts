@@ -49,7 +49,6 @@ export const handler = refreshToken(async (token: any, params: any) => {
   let deployment: Deployment
   let eventStoreId: string
   let eventStoreDatabaseName: string
-  let eventBusLambdaArn: string
 
   logger.trace(`requesting the list of existing deployments`)
   void ({ result: deployment } = await get(token, '/deployments', {
@@ -63,7 +62,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
 
     if (receivedEventStoreId == null) {
       void ({
-        result: { eventStoreId, eventStoreDatabaseName, eventBusLambdaArn },
+        result: { eventStoreId, eventStoreDatabaseName },
       } = await post(
         token,
         `/event-stores`,
@@ -84,7 +83,6 @@ export const handler = refreshToken(async (token: any, params: any) => {
         result: Array<{
           eventStoreId: string
           eventStoreDatabaseName: string
-          eventBusLambdaArn: string
           version: string
         }>
       } = await get(token, `/event-stores`, {
@@ -103,7 +101,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
         throw new Error(`Event store with the "${receivedEventStoreId}" id was not found`)
       }
 
-      void ({ eventStoreId, eventStoreDatabaseName, eventBusLambdaArn } = foundEventStore)
+      void ({ eventStoreId, eventStoreDatabaseName } = foundEventStore)
     }
 
     const domains = domain == null ? [] : domain.split(',')
@@ -116,7 +114,6 @@ export const handler = refreshToken(async (token: any, params: any) => {
         version: resolveVersion,
         eventStoreId,
         eventStoreDatabaseName,
-        eventBusLambdaArn,
         domain: domains[0],
       },
       { [HEADER_EXECUTION_MODE]: 'async' }
