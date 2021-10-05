@@ -1,56 +1,18 @@
 import chalk from 'chalk'
-import createAdapter from '@resolve-js/eventstore-postgresql-serverless'
-import { EventstoreAlreadyUnfrozenError } from '@resolve-js/eventstore-base'
 
 import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import { patch } from '../../api/client'
 import { logger } from '../../utils/std'
-
-export const unfreezeEventStore = async (params: { token: string; eventStoreId: string }) => {
-  const { token, eventStoreId } = params
-
-  const {
-    result: {
-      eventStoreDatabaseName,
-      eventStoreClusterArn,
-      eventStoreSecretArn,
-      region,
-      accessKeyId,
-      secretAccessKey,
-      sessionToken,
-    },
-  } = await get(token, `/event-stores/${eventStoreId}`)
-
-  const eventStoreAdapter = createAdapter({
-    databaseName: eventStoreDatabaseName,
-    dbClusterOrInstanceArn: eventStoreClusterArn,
-    awsSecretStoreArn: eventStoreSecretArn,
-    accessKeyId,
-    secretAccessKey,
-    sessionToken,
-    region,
-  })
-
-  await eventStoreAdapter.unfreeze()
-}
+import { HEADER_EXECUTION_MODE } from '../../constants'
 
 export const handler = refreshToken(async (token: any, params: any) => {
   const { 'event-store-id': eventStoreId } = params
 
-  try {
-    await unfreezeEventStore({
-      token,
-      eventStoreId,
-    })
+  await patch(token, `/event-stores/${eventStoreId}/unfreeze`, undefined, {
+    [HEADER_EXECUTION_MODE]: 'async',
+  })
 
-    logger.success('Unfreeze event-store successfully completed!')
-  } catch (error) {
-    if (EventstoreAlreadyUnfrozenError.is(error)) {
-      logger.error('EventStore is already unfrozen')
-    } else {
-      throw error
-    }
-  }
+  logger.success('Unfreeze event-store successfully completed!')
 })
 
 export const command = 'unfreeze <event-store-id>'

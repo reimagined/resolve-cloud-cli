@@ -72,6 +72,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
 
       if (eventStorePath != null) {
         await importEventStore({
+          token,
           eventStoreId,
           eventStorePath,
         })

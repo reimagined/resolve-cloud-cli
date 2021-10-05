@@ -1,19 +1,20 @@
-import { promisify } from 'util'
-import { pipeline } from 'stream'
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import { EventstoreAlreadyFrozenError, MAINTENANCE_MODE_MANUAL } from '@resolve-js/eventstore-base'
+import * as request from 'request'
+import ProgressBar from 'progress'
 
 import refreshToken from '../../refreshToken'
 import { logger } from '../../utils/std'
-import getAdapterWithCredentials from '../../utils/get-adapter-with-credentials'
+import { get, patch } from '../../api/client'
+import { HEADER_EXECUTION_MODE } from '../../constants'
 
 export const exportEventStore = async (params: {
+  token: string
   eventStorePath: string
   eventStoreId: string
 }) => {
-  const { eventStorePath, eventStoreId } = params
+  const { eventStorePath, eventStoreId, token } = params
 
   const pathToEventStore = path.resolve(process.cwd(), eventStorePath)
 
@@ -24,60 +25,134 @@ export const exportEventStore = async (params: {
   const pathToEvents = path.join(pathToEventStore, 'events.db')
   const pathToSecrets = path.join(pathToEventStore, 'secrets.db')
 
-  let eventStoreAdapter = await getAdapterWithCredentials({ eventStoreId })
-  let cursor = null
-  let isJsonStreamTimedOutOnce = false
+  const {
+    result: { eventsExportUrl, secretsExportUrl, statusFileUrl },
+  } = await get(token, `/event-stores/${eventStoreId}/export`)
+
+  await patch(token, `/event-stores/${eventStoreId}/export`, undefined, {
+    [HEADER_EXECUTION_MODE]: 'async',
+  })
+
+  const interval = 16 * 60 * 1000 // 16 minutes
+  let progressBar: ProgressBar
+  let prevUploadedEvents = 0
+  let startTime = Date.now()
 
   for (;;) {
     try {
-      const exportStream = eventStoreAdapter.exportEvents({
-        cursor,
-        maintenanceMode: MAINTENANCE_MODE_MANUAL,
+      // eslint-disable-next-line no-loop-func
+      const isComplete = await new Promise((resolve, reject) => {
+        request.get(statusFileUrl, (error: Error, res: request.Response, body: any) => {
+          if (error != null) {
+            reject(error)
+            return
+          }
+
+          if (res.statusCode === 404) {
+            resolve(false)
+            return
+          }
+
+          if (res.statusCode !== 200) {
+            reject(new Error(res.statusMessage))
+            return
+          }
+
+          const { eventsUploaded, eventCount, heartbeatTime } = JSON.parse(body)
+
+          if (progressBar == null) {
+            progressBar = new ProgressBar('  preparing event-store [:bar] :percent', {
+              width: 50,
+              total: eventCount,
+            })
+
+            progressBar.render()
+          }
+
+          if (prevUploadedEvents !== eventsUploaded) {
+            progressBar.tick(eventsUploaded - prevUploadedEvents)
+            prevUploadedEvents = eventsUploaded
+            startTime = heartbeatTime
+          }
+
+          if (Date.now() - heartbeatTime > interval) {
+            reject(new Error('Timeout'))
+            return
+          }
+
+          if (eventsUploaded >= eventCount) {
+            resolve(true)
+          } else {
+            resolve(false)
+          }
+        })
       })
 
-      const writeStream = fs.createWriteStream(pathToEvents, {
-        flags: isJsonStreamTimedOutOnce ? 'a' : 'w',
-      })
-
-      const pipelinePromise = promisify(pipeline)(exportStream, writeStream).then(() => false)
-
-      let timeoutResolve: any
-      let timeout
-
-      const timeoutPromise = new Promise<boolean>((resolve) => {
-        timeoutResolve = resolve
-        timeout = setTimeout(() => {
-          resolve(true)
-        }, 30 * 60 * 1000)
-      })
-
-      const isJsonStreamTimedOut = await Promise.race([timeoutPromise, pipelinePromise])
-      isJsonStreamTimedOutOnce = isJsonStreamTimedOutOnce || isJsonStreamTimedOut
-
-      if (isJsonStreamTimedOut) {
-        exportStream.emit('timeout')
-        await pipelinePromise
-      } else if (timeoutResolve != null) {
-        clearTimeout(timeout)
-        timeoutResolve(true)
+      if (Date.now() - startTime > interval) {
+        throw new Error('Timeout')
       }
 
-      if ((exportStream as any).isEnd) {
+      if (isComplete) {
         break
       }
-
-      cursor = (exportStream as any).cursor
-      eventStoreAdapter = await getAdapterWithCredentials({ eventStoreId })
+      await new Promise((resolve) => setTimeout(resolve, 5000))
     } catch (error) {
-      if (EventstoreAlreadyFrozenError.is(error)) {
-        await eventStoreAdapter.unfreeze()
-      } else {
-        throw error
-      }
+      console.log(error)
+      throw error
     }
   }
 
-  await promisify(pipeline)(eventStoreAdapter.exportSecrets(), fs.createWriteStream(pathToSecrets))
+  await Promise.all(
+    [
+      {
+        type: 'events',
+        filePath: pathToEvents,
+        exportUrl: eventsExportUrl,
+      },
+      {
+        type: 'secrets',
+        filePath: pathToSecrets,
+        exportUrl: secretsExportUrl,
+      },
+    ].map(
+      ({ type, exportUrl, filePath }) =>
+        new Promise((resolve, reject) => {
+          request
+            .get(exportUrl)
+            .on('response', (res) => {
+              if (res.statusCode !== 200) {
+                reject(new Error(res.statusMessage))
+              } else {
+                res.pipe(fs.createWriteStream(filePath))
+              }
+
+              if (type === 'events') {
+                const size = res.headers['content-length']
+
+                if (size == null) {
+                  throw new Error('Failed to get "content-length" header')
+                }
+
+                const bar = new ProgressBar(`  downloading event-store [:bar] :percent`, {
+                  width: 50,
+                  total: +size,
+                })
+
+                res.on('data', (data) => {
+                  bar.tick(data.length)
+                })
+              }
+            })
+
+            .on('complete', () => {
+              resolve(true)
+            })
+            .on('error', (error) => {
+              reject(error)
+            })
+        })
+    )
+  )
 }
 
 export const handler = refreshToken(async (token: any, params: any) => {
@@ -86,6 +161,7 @@ export const handler = refreshToken(async (token: any, params: any) => {
   logger.start(`exporting the event-store from the cloud`)
 
   await exportEventStore({
+    token,
     eventStorePath,
     eventStoreId,
   })

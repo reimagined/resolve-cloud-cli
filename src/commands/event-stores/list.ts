@@ -54,6 +54,7 @@ export const handler = refreshToken(
               createdAt: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
               latestEvent: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
               modifiedAt: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+              frozen: isFrozen != null ? `${isFrozen}` : 'N/A',
               isFrozen: isFrozen != null ? `${isFrozen}` : 'N/A',
             })
         )
@@ -112,7 +113,7 @@ export const builder = (yargs: any) =>
   yargs
     .option('format', {
       describe: `Format the output using a mustache template http://mustache.github.io/ 
-        Possible fields: id, version, linkedDeployments, events, secrets, created, latestEvent`,
+        Possible fields: id, version, linkedDeployments, events, secrets, created, latestEvent, frozen`,
       type: 'string',
     })
     .group(['format'], 'Options:')

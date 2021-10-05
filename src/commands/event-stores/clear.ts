@@ -1,45 +1,15 @@
 import chalk from 'chalk'
-import createAdapter from '@resolve-js/eventstore-postgresql-serverless'
 
-import { get } from '../../api/client'
+import { patch } from '../../api/client'
 import { out, logger } from '../../utils/std'
 import refreshToken from '../../refreshToken'
-
-export const clearEventStore = async (params: { token: string; eventStoreId: string }) => {
-  const { token, eventStoreId } = params
-
-  const {
-    result: {
-      eventStoreDatabaseName,
-      eventStoreClusterArn,
-      eventStoreSecretArn,
-      region,
-      accessKeyId,
-      secretAccessKey,
-      sessionToken,
-    },
-  } = await get(token, `/event-stores/${eventStoreId}`)
-
-  const eventStoreAdapter = createAdapter({
-    databaseName: eventStoreDatabaseName,
-    dbClusterOrInstanceArn: eventStoreClusterArn,
-    awsSecretStoreArn: eventStoreSecretArn,
-    accessKeyId,
-    secretAccessKey,
-    sessionToken,
-    region,
-  })
-
-  await eventStoreAdapter.drop()
-  await eventStoreAdapter.init()
-}
+import { HEADER_EXECUTION_MODE } from '../../constants'
 
 export const handler = refreshToken(async (token: any, params: any) => {
   const { 'event-store-id': eventStoreId } = params
 
-  await clearEventStore({
-    token,
-    eventStoreId,
+  await patch(token, `/event-stores/${eventStoreId}/clear`, undefined, {
+    [HEADER_EXECUTION_MODE]: 'async',
   })
   logger.success('Event-stores clear successfully completed!')
 
