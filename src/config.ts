@@ -3,9 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import rc from 'rc'
 import * as semver from 'semver'
-import lodashGet from 'lodash.get'
-import lodashSet from 'lodash.set'
-import lodashUnset from 'lodash.unset'
+
+import * as configHelpers from './utils/config-helpers'
 
 const configFile = path.join(os.homedir(), '.resolverc')
 
@@ -32,7 +31,7 @@ const saveFile = (conf: any) => {
 export const get = (...selectors: Array<string>) => {
   const conf = load()
   return selectors
-    .map((selector) => lodashGet(conf, selector))
+    .map((selector) => configHelpers.get(conf, selector))
     .reduce((acc, value) => {
       if (acc === null) {
         return value
@@ -43,13 +42,13 @@ export const get = (...selectors: Array<string>) => {
 
 export const set = (selector: string, value: any) => {
   const conf = loadFile()
-  lodashSet(conf, selector, value)
+  configHelpers.set(conf, selector, value)
   saveFile(conf)
 }
 
 export const del = (...selectors: Array<string>) => {
   const conf = loadFile()
-  selectors.map((selector) => lodashUnset(conf, selector))
+  selectors.map((selector) => configHelpers.unset(conf, selector))
   saveFile(conf)
 }
 

@@ -1,18 +1,14 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { put } from '../../api/client'
-import { HEADER_EXECUTION_MODE } from '../../constants'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId, domain } = params
 
-  return put(
-    token,
-    `/deployments/${deploymentId}/domain`,
-    { domain },
-    { [HEADER_EXECUTION_MODE]: 'async' }
-  )
+  await client.setDeploymentDomain({
+    deploymentId,
+    domain,
+  })
 })
 
 export const command = 'assign <domain> <deployment-id>'

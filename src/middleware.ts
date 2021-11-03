@@ -3,7 +3,6 @@ import chalk from 'chalk'
 import { gt } from 'semver'
 
 import * as config from './config'
-import { get } from './api/client'
 import { logger } from './utils/std'
 
 const { version, name } = require('../package.json')
@@ -35,8 +34,6 @@ const middleware = async (params: any) => {
   logger.level = (verbosityLevels[actualVerbosity] || verbosityLevels.normal) as any
 
   const configApiUrl = config.get('api_url')
-  const configClientId = config.get('auth.client_id')
-  const configUserPoolId = config.get('auth.user_pool_id')
 
   const apiUrl =
     apiUrlFromCLI != null
@@ -48,19 +45,9 @@ const middleware = async (params: any) => {
   if (configApiUrl !== apiUrl) {
     config.set('api_url', apiUrl)
 
-    const {
-      result: { ClientId, UserPoolId },
-    } = await get(null, '/client-app-config')
-
-    config.set('auth.client_id', ClientId)
-    config.set('auth.user_pool_id', UserPoolId)
-  } else if (configClientId == null || configUserPoolId == null) {
-    const {
-      result: { ClientId, UserPoolId },
-    } = await get(null, '/client-app-config')
-
-    config.set('auth.client_id', ClientId)
-    config.set('auth.user_pool_id', UserPoolId)
+    config.del('auth.client_id')
+    config.del('auth.user_pool_id')
+    config.del('credentials.token')
   }
 
   logger.trace(

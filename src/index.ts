@@ -42,7 +42,7 @@ yargs
       process.exit(1)
     }
     if (err) {
-      logger.error(err.message)
+      logger.error(err.stack)
       process.exit(1)
     }
   })

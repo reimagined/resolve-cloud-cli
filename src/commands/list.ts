@@ -2,69 +2,42 @@ import columnify from 'columnify'
 import chalk from 'chalk'
 import semver from 'semver'
 
-import refreshToken from '../refreshToken'
-import { get } from '../api/client'
 import { out, renderByTemplate } from '../utils/std'
+import commandHandler from '../command-handler'
 
-type Deployment = {
-  deploymentId: string
-  applicationName: string
-  version: string
-  eventStoreId: string
-  domainName: string
-  deploymentTag?: string
-  applicationUrl: string
-}
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { format } = params
 
-export const handler = refreshToken(
-  async (
-    token: any,
-    params: {
-      format?: string
-    }
-  ) => {
-    const { format } = params
-    const { result } = await get(token, `/deployments`)
+  const result = await client.listDeployments()
 
-    if (result) {
-      if (format) {
-        result.map((deployment: Deployment) =>
-          renderByTemplate(format, {
-            ...deployment,
-            applicationUrl: `https://${deployment.domainName}`,
-          })
-        )
-        return
-      }
-
-      out(
-        columnify(
-          result
-            .map(
-              ({
-                deploymentId,
-                version,
-                eventStoreId,
-                applicationName,
-                domainName,
-              }: Deployment) => ({
-                'application-name': applicationName,
-                'deployment-id': deploymentId,
-                version,
-                'event-store-id': eventStoreId ?? 'N/A',
-                domain: domainName,
-              })
-            )
-            .sort((a: Deployment, b: Deployment) => (semver.lt(a.version, b.version) ? 1 : -1)),
-          {
-            columnSplitter: '    ',
-            columns: ['application-name', 'deployment-id', 'domain', 'version', 'event-store-id'],
-          }
-        )
-      )
-    }
+  if (format) {
+    result.map((deployment) =>
+      renderByTemplate(format, {
+        ...deployment,
+        applicationUrl: deployment.domains.map((domain) => `https://${domain}`).join(' , '),
+      })
+    )
+    return
   }
-)
+
+  out(
+    columnify(
+      result
+        .map(({ deploymentId, version, eventStoreId, applicationName, domains }) => ({
+          'application-name': applicationName,
+          'deployment-id': deploymentId,
+          version,
+          'event-store-id': eventStoreId ?? 'N/A',
+          domain: domains.join(','),
+        }))
+        .sort((a, b) => (semver.lt(a.version, b.version) ? 1 : -1)),
+      {
+        columnSplitter: '    ',
+        columns: ['application-name', 'deployment-id', 'domain', 'version', 'event-store-id'],
+      }
+    )
+  )
+})
 
 export const command = 'list'
 export const aliases = ['ls']

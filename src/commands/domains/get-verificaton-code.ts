@@ -1,20 +1,19 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { logger } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { id } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { id: domainId } = params
 
-  const {
-    result: { VerificationCode },
-  } = await get(token, `domains/${id}/verification-code`)
+  const { verificationCode } = await client.getVerificationCode({
+    domainId,
+  })
 
-  if (VerificationCode != null) {
-    logger.info(`Your verification code - ${VerificationCode}`)
+  if (verificationCode != null) {
+    logger.info(`Your verification code - ${verificationCode}`)
   } else {
-    logger.info(`Domain "${id}" already verified`)
+    logger.info(`Domain "${domainId}" already verified`)
   }
 })
 

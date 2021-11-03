@@ -1,30 +1,29 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { post } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { logger, renderByTemplate, disableLogger } from '../../utils/std'
 import { getResolvePackageVersion } from '../../config'
 import { importEventStore } from './import'
-import { HEADER_EXECUTION_MODE } from '../../constants'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { 'import-from': eventStorePath, format } = params
   if (format != null) {
     disableLogger()
   }
   const version = getResolvePackageVersion()
 
-  const {
-    result: { eventStoreId },
-  } = await post(token, `/event-stores`, { version }, { [HEADER_EXECUTION_MODE]: 'async' })
+  const { eventStoreId } = await client.createEventStore({
+    version,
+  })
 
   logger.info(`Event store ID: ${eventStoreId}`)
 
   if (eventStorePath != null) {
     await importEventStore({
-      token,
+      client,
       eventStorePath,
       eventStoreId,
+      format,
     })
   }
 

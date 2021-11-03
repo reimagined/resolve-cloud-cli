@@ -1,17 +1,16 @@
 import chalk from 'chalk'
 
-import { get } from '../../../api/client'
-import refreshToken from '../../../refreshToken'
+import commandHandler from '../../../command-handler'
 import { out } from '../../../utils/std'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { deploymentId, saga, property } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { deploymentId, saga: sagaName, property: key } = params
 
-  const { result } = await get(
-    token,
-    `deployments/${deploymentId}/sagas/${saga}/properties/${property}`,
-    {}
-  )
+  const result = await client.getSagaProperty({
+    deploymentId,
+    sagaName,
+    key,
+  })
 
   out(result)
 })

@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "ES2018",
-    "lib": ["ES2018", "DOM"],
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
     "rootDir": "src",
     "outDir": "lib",
     "strict": true,
@@ -22,14 +22,9 @@
     "types": [
       "node",
       "jest",
-      "node-fetch",
       "rc",
       "semver",
-      "lodash.get",
-      "lodash.set",
-      "lodash.unset",
-      "lodash.isempty",
-      "lodash.omit",
+      "node-fetch",
       "columnify",
       "inquirer",
       "dateformat",

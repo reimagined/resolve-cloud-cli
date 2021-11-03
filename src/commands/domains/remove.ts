@@ -1,12 +1,13 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { del } from '../../api/client'
-import { HEADER_EXECUTION_MODE } from '../../constants'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { id } = params
-  return del(token, `domains/${id}`, undefined, { [HEADER_EXECUTION_MODE]: 'async' })
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { id: domainId } = params
+
+  await client.dropDomain({
+    domainId,
+  })
 })
 
 export const command = 'remove <id>'

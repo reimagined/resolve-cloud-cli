@@ -3,19 +3,17 @@ import * as path from 'path'
 import chalk from 'chalk'
 import { promisify } from 'util'
 
-import refreshToken from '../../refreshToken'
-import { put } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { logger } from '../../utils/std'
-import { HEADER_EXECUTION_MODE } from '../../constants'
 
 const readFile = promisify(fs.readFile)
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const {
     'certificate-file': certificateFile,
     'key-file': keyFile,
     'chain-file': chainFile,
-    id,
+    id: certificateId,
   } = params
 
   const [certificate, key, chain] = await Promise.all([
@@ -26,19 +24,14 @@ export const handler = refreshToken(async (token: any, params: any) => {
       : readFile(path.join(__dirname, '..', '..', '..', chainFile), 'utf8'),
   ])
 
-  const { result } = await put(
-    token,
-    `certificates`,
-    {
-      certificate,
-      key,
-      chain,
-      id,
-    },
-    { [HEADER_EXECUTION_MODE]: 'async' }
-  )
+  const newCertificateId = await client.ensureCertificate({
+    certificate,
+    key,
+    chain,
+    certificateId,
+  })
 
-  logger.success(`The certificate "${result}" successfully ensured`)
+  logger.success(`The certificate "${newCertificateId}" successfully ensured`)
 })
 
 export const command = 'ensure'

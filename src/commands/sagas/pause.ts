@@ -1,12 +1,14 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { patch } from '../../api/client'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { deploymentId, saga } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { deploymentId, saga: sagaName } = params
 
-  return await patch(token, `deployments/${deploymentId}/sagas/${saga}/pause`, {})
+  return await client.pauseSaga({
+    deploymentId,
+    sagaName,
+  })
 })
 
 export const command = 'pause <deployment-id> <saga>'

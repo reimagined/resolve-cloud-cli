@@ -1,14 +1,14 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { out } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId, 'trace-id': traceId } = params
 
-  const { result } = await get(token, `deployments/${deploymentId}/tracing/details`, {
-    traceIds: traceId,
+  const result = await client.getTracingDetails({
+    deploymentId,
+    traceIds: traceId.split(','),
   })
 
   out(JSON.stringify(result, null, 2))

@@ -2,107 +2,91 @@ import columnify from 'columnify'
 import chalk from 'chalk'
 import semver from 'semver'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { out, renderByTemplate } from '../../utils/std'
-import { HEADER_EXECUTION_MODE } from '../../constants'
 
-type EventStore = {
-  eventStoreId: string
-  version: string
-  linkedDeployments: string
-  events: number | null
-  secrets: number | null
-  createdAt: number | null
-  modifiedAt: number | null
-  isFrozen: boolean | null
-}
-
-export const handler = refreshToken(
+export const handler = commandHandler(
   async (
-    token: any,
+    { client },
     params: {
       format?: string
     }
   ) => {
     const { format } = params
-    const { result } = await get(token, `/event-stores`, undefined, {
-      [HEADER_EXECUTION_MODE]: 'async',
-    })
 
-    if (result) {
-      if (format) {
-        result.map(
-          ({
+    const result = await client.listEventStores()
+
+    if (format) {
+      result.map(
+        ({
+          eventStoreId,
+          version: esVersion,
+          linkedDeployments,
+          events,
+          secrets,
+          createdAt,
+          modifiedAt,
+          isFrozen,
+        }) =>
+          renderByTemplate(format, {
             eventStoreId,
+            id: eventStoreId,
             version: esVersion,
-            linkedDeployments,
-            events,
-            secrets,
-            createdAt,
-            modifiedAt,
-            isFrozen,
-          }: EventStore) =>
-            renderByTemplate(format, {
+            linkedDeployments: linkedDeployments ?? 'N/A',
+            events: events ?? 'N/A',
+            secrets: secrets ?? 'N/A',
+            created: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
+            createdAt: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
+            latestEvent: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+            modifiedAt: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+            frozen: isFrozen != null ? `${isFrozen}` : 'N/A',
+            isFrozen: isFrozen != null ? `${isFrozen}` : 'N/A',
+          })
+      )
+      return
+    }
+    out(
+      columnify(
+        result
+          .map(
+            ({
               eventStoreId,
+              version: esVersion,
+              linkedDeployments,
+              events,
+              secrets,
+              createdAt,
+              modifiedAt,
+              isFrozen,
+            }) => ({
               id: eventStoreId,
               version: esVersion,
-              linkedDeployments: linkedDeployments ?? 'N/A',
+              'linked deployments': linkedDeployments ?? 'N/A',
               events: events ?? 'N/A',
               secrets: secrets ?? 'N/A',
               created: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
-              createdAt: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
-              latestEvent: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
-              modifiedAt: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+              'latest event': modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
               frozen: isFrozen != null ? `${isFrozen}` : 'N/A',
-              isFrozen: isFrozen != null ? `${isFrozen}` : 'N/A',
             })
-        )
-        return
-      }
-      out(
-        columnify(
-          result
-            .map(
-              ({
-                eventStoreId,
-                version: esVersion,
-                linkedDeployments,
-                events,
-                secrets,
-                createdAt,
-                modifiedAt,
-                isFrozen,
-              }: EventStore) => ({
-                id: eventStoreId,
-                version: esVersion,
-                'linked deployments': linkedDeployments ?? 'N/A',
-                events: events ?? 'N/A',
-                secrets: secrets ?? 'N/A',
-                created: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
-                'latest event': modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
-                frozen: isFrozen != null ? `${isFrozen}` : 'N/A',
-              })
-            )
-            .sort((a: EventStore, b: EventStore) => (semver.lt(a.version, b.version) ? 1 : -1)),
-          {
-            minWidth: 6,
-            truncate: true,
-            columnSplitter: '    ',
-            columns: [
-              'id',
-              'linked deployments',
-              'version',
-              'events',
-              'secrets',
-              'created',
-              'latest event',
-              'frozen',
-            ],
-          }
-        )
+          )
+          .sort((a, b) => (semver.lt(a.version, b.version) ? 1 : -1)),
+        {
+          minWidth: 6,
+          truncate: true,
+          columnSplitter: '    ',
+          columns: [
+            'id',
+            'linked deployments',
+            'version',
+            'events',
+            'secrets',
+            'created',
+            'latest event',
+            'frozen',
+          ],
+        }
       )
-    }
+    )
   }
 )
 

@@ -1,14 +1,16 @@
 import columnify from 'columnify'
 import chalk from 'chalk'
 
-import refreshToken from '../../../refreshToken'
+import commandHandler from '../../../command-handler'
 import { out, renderByTemplate } from '../../../utils/std'
-import { get } from '../../../api/client'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { deploymentId, saga, format } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { deploymentId, saga: sagaName, format } = params
 
-  const { result } = await get(token, `deployments/${deploymentId}/sagas/${saga}/properties`, {})
+  const result = await client.listSagaProperties({
+    deploymentId,
+    sagaName,
+  })
 
   if (format) {
     Object.entries(result).map(([key, value]) =>

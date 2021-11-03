@@ -1,28 +1,24 @@
 import chalk from 'chalk'
 
-import { patch } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { disableLogger, logger, renderByTemplate } from '../../utils/std'
-import refreshToken from '../../refreshToken'
-import { HEADER_EXECUTION_MODE } from '../../constants'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { 'event-store-id': prevEventStoreId, format } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { 'event-store-id': sourceEventStoreId, format } = params
 
   if (format != null) {
     disableLogger()
   }
 
-  const {
-    result: { eventStoreId },
-  } = await patch(token, `/event-stores/${prevEventStoreId}/clone`, undefined, {
-    [HEADER_EXECUTION_MODE]: 'async',
+  const { eventStoreId: targetEventStoreId } = await client.cloneEventStore({
+    eventStoreId: sourceEventStoreId,
   })
 
-  if (renderByTemplate(format, { eventStoreId })) {
+  if (renderByTemplate(format, { eventStoreId: targetEventStoreId })) {
     return
   }
 
-  logger.success(`Event store with "${eventStoreId}" id has been created`)
+  logger.success(`Event store with "${targetEventStoreId}" id has been created`)
 })
 
 export const command = 'clone <event-store-id>'

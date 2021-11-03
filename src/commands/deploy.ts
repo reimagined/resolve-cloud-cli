@@ -3,25 +3,15 @@ import * as request from 'request'
 import fs from 'fs'
 import qr from 'qrcode-terminal'
 import dotenv from 'dotenv'
-import { intersectsVersions } from 'resolve-cloud-sdk'
+import { intersectsVersions, Deployment } from 'resolve-cloud-sdk'
 
-import { post, get, patch, put } from '../api/client'
-import refreshToken from '../refreshToken'
+import commandHandler from '../command-handler'
 import packager, { codeZipPath, staticZipPath } from '../packager'
 import * as config from '../config'
 import { logger } from '../utils/std'
 import { importEventStore } from './event-stores/import'
-import { HEADER_EXECUTION_MODE } from '../constants'
 
-type Deployment = {
-  deploymentId: string
-  applicationName: string
-  version: string
-  eventStoreId: string
-  domainName: string
-}
-
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const resolveVersion = config.getResolvePackageVersion()
 
   const {
@@ -46,98 +36,60 @@ export const handler = refreshToken(async (token: any, params: any) => {
     logger.trace(`skipping the application build phase`)
   }
 
-  let deployment: Deployment
-  let eventStoreId: string
-  let eventStoreDatabaseName: string
+  let deployment: Deployment = null as any
+  let eventStoreId: string = receivedEventStoreId as any
 
   logger.trace(`requesting the list of existing deployments`)
-  void ({ result: deployment } = await get(token, '/deployments', {
-    applicationName,
-  }))
 
-  logger.trace(`deployment list received: ${deployment == null ? 0 : 1} items`)
+  const existingDeployment = await client.getDeploymentByApplicationName({ applicationName })
+  if (existingDeployment != null) {
+    deployment = existingDeployment
+  }
 
   if (deployment == null) {
     logger.start(`deploying the "${applicationName}" application to the cloud`)
 
     if (receivedEventStoreId == null) {
-      void ({
-        result: { eventStoreId, eventStoreDatabaseName },
-      } = await post(
-        token,
-        `/event-stores`,
-        { version: resolveVersion },
-        { [HEADER_EXECUTION_MODE]: 'async' }
-      ))
+      void ({ eventStoreId } = await client.createEventStore({
+        version: resolveVersion,
+      }))
 
       if (eventStorePath != null) {
         await importEventStore({
-          token,
+          client,
           eventStoreId,
           eventStorePath,
         })
       }
-    } else {
-      const {
-        result: listEventStores,
-      }: {
-        result: Array<{
-          eventStoreId: string
-          eventStoreDatabaseName: string
-          version: string
-        }>
-      } = await get(token, `/event-stores`, {
-        version: resolveVersion,
-      })
-
-      if (listEventStores == null) {
-        throw new Error('Failed to get event store list')
-      }
-
-      const foundEventStore = listEventStores.find(
-        ({ eventStoreId: foundEventStoreId }) => receivedEventStoreId === foundEventStoreId
-      )
-
-      if (foundEventStore == null) {
-        throw new Error(`Event store with the "${receivedEventStoreId}" id was not found`)
-      }
-
-      void ({ eventStoreId, eventStoreDatabaseName } = foundEventStore)
     }
 
     const domains = domain == null ? [] : domain.split(',')
 
-    const { result } = await post(
-      token,
-      `/deployments`,
-      {
-        applicationName,
-        version: resolveVersion,
-        eventStoreId,
-        eventStoreDatabaseName,
-        domain: domains[0],
-      },
-      { [HEADER_EXECUTION_MODE]: 'async' }
-    )
+    const createdDeployment = await client.createDeployment({
+      applicationName,
+      version: resolveVersion,
+      eventStoreId,
+      domain: domains[0],
+    })
 
-    const { deploymentId, domainName } = result
+    for (let index = 1; index < domains.length; index++) {
+      await client.setDeploymentDomain({
+        deploymentId: createdDeployment.deploymentId,
+        domain: domains[index],
+      })
+    }
 
-    if (domains.length > 0) {
-      for (let index = 1; index < domains.length; index++) {
-        await put(
-          token,
-          `/deployments/${deploymentId}/domain`,
-          { domain: domains[index] },
-          { [HEADER_EXECUTION_MODE]: 'async' }
-        )
+    for (const item of createdDeployment.domains) {
+      if (!domains.includes(item)) {
+        domains.push(item)
       }
     }
 
     deployment = {
-      deploymentId,
+      deploymentId: createdDeployment.deploymentId,
       applicationName,
       version: resolveVersion,
-      domainName,
+      domains,
       eventStoreId,
     }
   }
@@ -148,9 +100,9 @@ export const handler = refreshToken(async (token: any, params: any) => {
     )
   }
 
-  const {
-    result: { codeUploadUrl, staticUploadUrl },
-  } = await get(token, `/deployments/${deployment.deploymentId}/upload`, {})
+  const { codeUploadUrl, staticUploadUrl } = await client.getDeploymentUploadSignedUrl({
+    deploymentId: deployment.deploymentId,
+  })
 
   logger.debug(`upload code.zip and static.zip`)
   try {
@@ -192,27 +144,24 @@ export const handler = refreshToken(async (token: any, params: any) => {
     throw error
   }
 
-  await patch(
-    token,
-    `/deployments/${deployment.deploymentId}/upload`,
-    {
-      npmRegistry,
-    },
-    { [HEADER_EXECUTION_MODE]: 'async' }
-  )
+  await client.buildDeployment({
+    deploymentId: deployment.deploymentId,
+    npmRegistry,
+  })
 
   if (envs != null) {
-    await put(token, `deployments/${deployment.deploymentId}/environment`, {
+    await client.setEnvironmentVariables({
+      deploymentId: deployment.deploymentId,
       variables: dotenv.parse(Buffer.from(envs.join('\n'))),
     })
   }
 
-  await patch(token, `/deployments/${deployment.deploymentId}/bootstrap`, undefined, {
-    [HEADER_EXECUTION_MODE]: 'async',
+  await client.bootstrapDeployment({
+    deploymentId: deployment.deploymentId,
   })
 
   const availableDomains = Array.from(
-    new Set([...(domain == null ? [] : domain.split(',')), ...deployment.domainName.split(',')])
+    new Set([...(domain == null ? [] : domain.split(',')), ...deployment.domains])
   )
 
   logger.success(
@@ -271,6 +220,7 @@ export const builder = (yargs: any) =>
     .option('domain', {
       describe: 'a verified domain to which to bind the deployed application',
       type: 'string',
+      alias: ['domains'],
     })
     .option('import-from', {
       describe: 'a path to the event store directory',

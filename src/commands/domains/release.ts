@@ -1,22 +1,21 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { del } from '../../api/client'
-import { HEADER_EXECUTION_MODE } from '../../constants'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId, domain } = params
 
   if (deploymentId == null) {
-    return del(token, '/domains', { domain }, { [HEADER_EXECUTION_MODE]: 'async' })
+    await client.releaseDomain({
+      domain,
+    })
+    return
   }
 
-  return del(
-    token,
-    `/deployments/${deploymentId}/domain`,
-    { domain },
-    { [HEADER_EXECUTION_MODE]: 'async' }
-  )
+  await client.unsetDeploymentDomain({
+    deploymentId,
+    domain,
+  })
 })
 
 export const command = 'release <domain> [deployment-id]'

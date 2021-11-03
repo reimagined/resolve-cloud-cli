@@ -1,13 +1,13 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { patch } from '../../api/client'
-import { HEADER_EXECUTION_MODE } from '../../constants'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { id } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { id: domainId } = params
 
-  return patch(token, `domains/${id}/verify`, {}, { [HEADER_EXECUTION_MODE]: 'async' })
+  await client.verifyDomain({
+    domainId,
+  })
 })
 
 export const command = 'verify <id>'

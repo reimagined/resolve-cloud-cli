@@ -2,19 +2,18 @@ import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
 import * as request from 'request'
-import ProgressBar from 'progress'
+import type { CloudSdk } from 'resolve-cloud-sdk'
 
-import refreshToken from '../../refreshToken'
 import { logger } from '../../utils/std'
-import { get, patch } from '../../api/client'
-import { HEADER_EXECUTION_MODE } from '../../constants'
+import commandHandler from '../../command-handler'
+import ProgressBar from '../../utils/progress-bar'
 
 export const exportEventStore = async (params: {
-  token: string
+  client: CloudSdk
   eventStorePath: string
   eventStoreId: string
 }) => {
-  const { eventStorePath, eventStoreId, token } = params
+  const { eventStorePath, eventStoreId, client } = params
 
   const pathToEventStore = path.resolve(process.cwd(), eventStorePath)
 
@@ -25,18 +24,19 @@ export const exportEventStore = async (params: {
   const pathToEvents = path.join(pathToEventStore, 'events.db')
   const pathToSecrets = path.join(pathToEventStore, 'secrets.db')
 
-  const {
-    result: { eventsExportUrl, secretsExportUrl, statusFileUrl },
-  } = await get(token, `/event-stores/${eventStoreId}/export`)
+  const { eventsExportUrl, secretsExportUrl, statusFileUrl } = await client.getExportUrls({
+    eventStoreId,
+  })
 
-  await patch(token, `/event-stores/${eventStoreId}/export`, undefined, {
-    [HEADER_EXECUTION_MODE]: 'async',
+  await client.exportEvents({
+    eventStoreId,
   })
 
   const interval = 16 * 60 * 1000 // 16 minutes
   let progressBar: ProgressBar
   let prevUploadedEvents = 0
   let startTime = Date.now()
+  let skipExport = false
 
   for (;;) {
     try {
@@ -59,6 +59,11 @@ export const exportEventStore = async (params: {
           }
 
           const { eventsUploaded, eventCount, heartbeatTime } = JSON.parse(body)
+
+          if (eventCount === 0) {
+            skipExport = true
+            return resolve(true)
+          }
 
           if (progressBar == null) {
             progressBar = new ProgressBar('  preparing event-store [:bar] :percent', {
@@ -102,6 +107,10 @@ export const exportEventStore = async (params: {
     }
   }
 
+  if (skipExport) {
+    return
+  }
+
   await Promise.all(
     [
       {
@@ -114,25 +123,21 @@ export const exportEventStore = async (params: {
         filePath: pathToSecrets,
         exportUrl: secretsExportUrl,
       },
-    ].map(
-      ({ type, exportUrl, filePath }) =>
-        new Promise((resolve, reject) => {
-          request
-            .get(exportUrl)
-            .on('response', (res) => {
-              if (res.statusCode !== 200) {
-                reject(new Error(res.statusMessage))
-              } else {
-                res.pipe(fs.createWriteStream(filePath))
-              }
+    ].map(({ type, exportUrl, filePath }) => {
+      const callback = (resolve: any, reject: any) => {
+        request
+          .get(exportUrl)
+          .on('response', (res) => {
+            if (res.statusCode !== 200) {
+              reject(new Error(res.statusMessage))
+            } else {
+              res.pipe(fs.createWriteStream(filePath))
+            }
 
-              if (type === 'events') {
-                const size = res.headers['content-length']
+            if (type === 'events') {
+              const size = res.headers['content-length']
 
-                if (size == null) {
-                  throw new Error('Failed to get "content-length" header')
-                }
-
+              if (size != null) {
                 const bar = new ProgressBar(`  downloading event-store [:bar] :percent`, {
                   width: 50,
                   total: +size,
@@ -142,26 +147,31 @@ export const exportEventStore = async (params: {
                   bar.tick(data.length)
                 })
               }
-            })
-
-            .on('complete', () => {
-              resolve(true)
-            })
-            .on('error', (error) => {
-              reject(error)
-            })
-        })
-    )
+            }
+          })
+          .on('complete', () => {
+            resolve(true)
+          })
+          .on('error', (error) => {
+            reject(error)
+          })
+      }
+      return new Promise(callback).catch(async (error) => {
+        void error
+        await new Promise((resolve) => setTimeout(resolve, 5000))
+        return new Promise(callback)
+      })
+    })
   )
 }
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { path: eventStorePath, 'event-store-id': eventStoreId } = params
 
   logger.start(`exporting the event-store from the cloud`)
 
   await exportEventStore({
-    token,
+    client,
     eventStorePath,
     eventStoreId,
   })

@@ -1,32 +1,23 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { post } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { logger } from '../../utils/std'
-import { HEADER_EXECUTION_MODE } from '../../constants'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { aliases, 'certificate-id': certificateId, 'domain-id': domainId } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { aliases, 'certificate-id': certificateId, 'domain-id': rawDomainId } = params
 
-  const {
-    result: { DomainName, DomainId, VerificationCode },
-  } = await post(
-    token,
-    `domains`,
-    {
-      aliases: aliases.split(',').map((alias: string) => alias.trim()),
-      certificateId,
-      domainId,
-    },
-    { [HEADER_EXECUTION_MODE]: 'async' }
-  )
+  const { domainId, domainName, verificationCode } = await client.createDomain({
+    domainId: rawDomainId,
+    certificateId,
+    aliases: aliases.split(',').map((alias: string) => alias.trim()),
+  })
 
-  logger.info(`Your domain "${DomainName}" with id "${DomainId}"`)
+  logger.info(`Your domain "${domainName}" with id "${domainId}"`)
 
-  if (VerificationCode != null) {
-    logger.info(`Your verification code is ${VerificationCode}`)
+  if (verificationCode != null) {
+    logger.info(`Your verification code is ${verificationCode}`)
     logger.info(
-      `Add the following TXT verification record to your domain host's DNS settings: resolve-verification=${VerificationCode}`
+      `Add the following TXT verification record to your domain host's DNS settings: resolve-verification=${verificationCode}`
     )
   }
 })

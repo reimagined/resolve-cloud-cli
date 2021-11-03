@@ -1,13 +1,15 @@
 import chalk from 'chalk'
 
-import { patch } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { logger } from '../../utils/std'
-import refreshToken from '../../refreshToken'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { 'event-store-id': eventStoreId, 'deployment-id': deploymentId } = params
 
-  await patch(token, `/event-stores/${eventStoreId}/unlink`, { deploymentId })
+  await client.unlinkDeployment({
+    eventStoreId,
+    deploymentId,
+  })
 
   logger.success(`Unlink ${eventStoreId} to ${deploymentId} successfully completed!`)
 })

@@ -1,16 +1,12 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { patch } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { logger } from '../../utils/std'
-import { HEADER_EXECUTION_MODE } from '../../constants'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { 'event-store-id': eventStoreId } = params
 
-  await patch(token, `/event-stores/${eventStoreId}/freeze`, undefined, {
-    [HEADER_EXECUTION_MODE]: 'async',
-  })
+  await client.freezeEventStore({ eventStoreId })
 
   logger.success('Freeze event-store successfully completed!')
 })

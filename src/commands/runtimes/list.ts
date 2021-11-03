@@ -1,15 +1,12 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { out } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any) => {
-  const { result } = await get(token, `runtimes`)
+export const handler = commandHandler(async ({ client }) => {
+  const versions = await client.listVersions()
 
-  if (result) {
-    out(result.join('\n'))
-  }
+  out(versions.join('\n'))
 })
 
 export const command = 'list'

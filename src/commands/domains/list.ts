@@ -1,34 +1,31 @@
 import columnify from 'columnify'
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { out } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any) => {
-  const { result } = await get(token, `domains`)
-  if (result) {
-    out(
-      columnify(
-        result.map((item: any) => {
-          const { DomainId, CertificateId, Verified, Aliases, Users, DomainName } = item
-          return {
-            'domain-id': DomainId,
-            'domain-name': DomainName,
-            'certificate-id': CertificateId,
-            verified: Verified,
-            aliases: Aliases.join(','),
-            'users-access': Array.isArray(Users) ? Users.join(',') : Users,
-          }
-        }),
-        {
-          minWidth: 10,
-          truncate: true,
-          columns: ['domain-id', 'aliases', 'verified', 'certificate-id', 'domain-name'],
+export const handler = commandHandler(async ({ client }) => {
+  const domains = await client.listDomains()
+
+  out(
+    columnify(
+      domains.map(({ domainId, certificateId, verified, aliases, users, domainName }) => {
+        return {
+          'domain-id': domainId,
+          'domain-name': domainName,
+          'certificate-id': certificateId,
+          verified,
+          aliases: aliases.join(','),
+          'users-access': Array.isArray(users) ? users.join(',') : users,
         }
-      )
+      }),
+      {
+        minWidth: 10,
+        truncate: true,
+        columns: ['domain-id', 'aliases', 'verified', 'certificate-id', 'domain-name'],
+      }
     )
-  }
+  )
 })
 
 export const command = 'list'

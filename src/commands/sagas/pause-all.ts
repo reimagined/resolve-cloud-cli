@@ -1,18 +1,25 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { patch, get } from '../../api/client'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId } = params
 
-  const { result } = await get(token, `deployments/${deploymentId}/sagas`, {})
+  const result = await client.listSagas({
+    deploymentId,
+  })
+
   const promises: Array<Promise<unknown>> = []
   const errors: Array<Error> = []
-  for (const { eventSubscriber } of result) {
+  for (const { name: sagaName } of result) {
     promises.push(
       Promise.resolve()
-        .then(() => patch(token, `deployments/${deploymentId}/sagas/${eventSubscriber}/pause`, {}))
+        .then(() =>
+          client.pauseSaga({
+            deploymentId,
+            sagaName,
+          })
+        )
         .catch((error) => errors.push(error))
     )
   }

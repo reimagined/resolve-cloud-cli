@@ -1,9 +1,7 @@
 import chalk from 'chalk'
 
-import refreshToken from '../refreshToken'
-import { del, patch } from '../api/client'
 import { logger } from '../utils/std'
-import { HEADER_EXECUTION_MODE } from '../constants'
+import commandHandler from '../command-handler'
 
 const optionalWait = async (promise: Promise<any>, flag: boolean) => {
   if (flag) {
@@ -11,17 +9,20 @@ const optionalWait = async (promise: Promise<any>, flag: boolean) => {
   }
 }
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId, 'with-event-store': withEventStore, wait } = params
 
   logger.trace(`requesting deployment removal`)
 
+  let timer: any = null
   try {
     await Promise.race([
-      patch(token, `/deployments/${deploymentId}/shutdown`, undefined, {
-        [HEADER_EXECUTION_MODE]: 'async',
+      client.shutdownDeployment({
+        deploymentId,
       }),
-      new Promise((resolve) => setTimeout(resolve, 60000)),
+      new Promise((resolve) => {
+        timer = setTimeout(resolve, 60000)
+      }),
     ])
   } catch (error) {
     if (
@@ -32,14 +33,14 @@ export const handler = refreshToken(async (token: any, params: any) => {
   }
 
   await optionalWait(
-    del(
-      token,
-      `/deployments/${deploymentId}`,
-      { withEventStore },
-      { [HEADER_EXECUTION_MODE]: 'async' }
-    ),
+    client.dropDeployment({
+      deploymentId,
+      withEventStore,
+    }),
     wait
   )
+
+  clearTimeout(timer)
 
   if (wait) {
     logger.success(`Deployment "${deploymentId}" successfully removed`)

@@ -2,14 +2,14 @@ import chalk from 'chalk'
 import columnify from 'columnify'
 import dateFormat from 'dateformat'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { out } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId, 'start-time': startTime, 'end-time': endTime } = params
 
-  const { result } = await get(token, `deployments/${deploymentId}/tracing/summary`, {
+  const result = await client.getSummaries({
+    deploymentId,
     startTime,
     endTime,
   })
@@ -17,16 +17,19 @@ export const handler = refreshToken(async (token: any, params: any) => {
   if (result) {
     out(
       columnify(
-        result.map((item: any) => {
-          const { Id, ResponseTime, Http } = item
+        result.map((item) => {
+          const { id, responseTime, http } = item
           return {
-            id: Id,
-            url: Http != null ? Http.HttpURL : '',
-            time: `${dateFormat(
-              new Date(parseInt(Id.split('-')[1], 16) * 1000),
-              'm/d/yy HH:MM:ss'
-            )}`,
-            latency: ResponseTime,
+            id,
+            url: http != null ? http.httpURL : '',
+            time:
+              id == null
+                ? 'N/A'
+                : `${dateFormat(
+                    new Date(parseInt(id.split('-')[1] as string, 16) * 1000),
+                    'm/d/yy HH:MM:ss'
+                  )}`,
+            latency: responseTime,
           }
         }),
         {

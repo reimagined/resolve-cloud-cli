@@ -1,15 +1,13 @@
 import chalk from 'chalk'
 
-import { patch } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { out, logger } from '../../utils/std'
-import refreshToken from '../../refreshToken'
-import { HEADER_EXECUTION_MODE } from '../../constants'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { 'event-store-id': eventStoreId } = params
 
-  await patch(token, `/event-stores/${eventStoreId}/clear`, undefined, {
-    [HEADER_EXECUTION_MODE]: 'async',
+  await client.clearEventStore({
+    eventStoreId,
   })
   logger.success('Event-stores clear successfully completed!')
 

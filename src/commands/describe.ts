@@ -1,65 +1,54 @@
 import columnify from 'columnify'
 import chalk from 'chalk'
-import { Deployment } from 'resolve-cloud-sdk'
+import type { CloudSdk, Deployment } from 'resolve-cloud-sdk'
 
-import refreshToken from '../refreshToken'
-import { get } from '../api/client'
 import { out, renderByTemplate } from '../utils/std'
+import commandHandler from '../command-handler'
 
 export const getDeployment = async (params: {
-  token: string
-  deploymentId?: string
+  client: CloudSdk
+  deploymentId: string
 }): Promise<Deployment & { applicationUrl: string }> => {
-  const { token, deploymentId } = params
+  const { client, deploymentId } = params
 
-  const { result } = await get(token, `/deployments/${deploymentId}`)
+  const deployment = await client.describeDeployment({
+    deploymentId,
+  })
 
-  if (result == null) {
-    throw new Error(`Deployment is not found`)
+  return {
+    ...deployment,
+    applicationUrl: deployment.domains.map((domain) => `https://${domain}`).join(' , '),
   }
-
-  result.applicationUrl = `https://${result.domainName}`
-
-  return result
 }
 
-export const handler = refreshToken(
-  async (
-    token: string,
-    params: {
-      deploymentId: string
-      format?: string
-    }
-  ) => {
-    const { format } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { format, deploymentId } = params
 
-    const deployment = await getDeployment({
-      token,
-      deploymentId: params.deploymentId,
-    })
+  const deployment = await getDeployment({
+    client,
+    deploymentId,
+  })
 
-    if (renderByTemplate(format, deployment)) {
-      return
-    }
-
-    const { applicationName, version, eventStoreId, domainName, applicationUrl, deploymentId } =
-      deployment
-
-    out(
-      columnify(
-        {
-          'application-name': applicationName,
-          'deployment-id': deploymentId,
-          'application-url': applicationUrl,
-          domain: domainName,
-          version,
-          'event-store-id': eventStoreId ?? 'N/A',
-        },
-        { minWidth: 20, showHeaders: false, preserveNewLines: true }
-      )
-    )
+  if (renderByTemplate(format, deployment)) {
+    return
   }
-)
+
+  const { applicationName, version, eventStoreId, domains, applicationUrl } = deployment
+
+  out(
+    columnify(
+      {
+        'application-name': applicationName,
+        'deployment-id': deploymentId,
+        'application-url': applicationUrl,
+        domain: domains,
+        version,
+        'event-store-id': eventStoreId ?? 'N/A',
+      },
+      { minWidth: 20, showHeaders: false, preserveNewLines: true }
+    )
+  )
+})
 
 export const command = 'describe <deployment-id>'
 export const aliases = ['get']

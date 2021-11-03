@@ -1,13 +1,13 @@
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 
-import { put } from '../../api/client'
-import refreshToken from '../../refreshToken'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId, variables } = params
 
-  return put(token, `deployments/${deploymentId}/environment`, {
+  await client.setEnvironmentVariables({
+    deploymentId,
     variables: dotenv.parse(Buffer.from(variables.join('\n'))),
   })
 })

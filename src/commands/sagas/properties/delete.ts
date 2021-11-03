@@ -1,12 +1,15 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../../refreshToken'
-import { del } from '../../../api/client'
+import commandHandler from '../../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { deploymentId, saga, property } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { deploymentId, saga: sagaName, property: key } = params
 
-  return del(token, `deployments/${deploymentId}/sagas/${saga}/properties/${property}`, {})
+  await client.deleteSagaProperty({
+    deploymentId,
+    sagaName,
+    key,
+  })
 })
 
 export const command = 'delete <deployment-id> <saga> <property>'

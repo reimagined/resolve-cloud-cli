@@ -1,17 +1,18 @@
 import columnify from 'columnify'
 import chalk from 'chalk'
 
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { disableLogger, out, renderByTemplate } from '../../utils/std'
-import refreshToken from '../../refreshToken'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId, format } = params
   if (format != null) {
     disableLogger()
   }
 
-  const { result } = await get(token, `deployments/${deploymentId}/environment`)
+  const result = await client.listEnvironmentVariables({
+    deploymentId,
+  })
 
   if (format) {
     Object.entries(result).map(([key, value]) =>

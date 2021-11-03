@@ -1,11 +1,10 @@
 import chalk from 'chalk'
 import { setTimeout } from 'timers'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { out } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const {
     deploymentId,
     'start-time': startTime,
@@ -16,14 +15,16 @@ export const handler = refreshToken(async (token: any, params: any) => {
     offset = 15000,
   } = params
 
-  const { result } = await get(token, `deployments/${deploymentId}/logs`, {
+  const logs = await client.getLogs({
+    deploymentId,
     startTime,
     endTime,
     filterPattern,
     streamLimit,
   })
-  if (result) {
-    out(result)
+
+  if (logs !== '') {
+    out(logs)
   }
 
   if (follow) {
@@ -31,14 +32,16 @@ export const handler = refreshToken(async (token: any, params: any) => {
     while (true) {
       const tempStartTime = Date.now() - offset
       // eslint-disable-next-line @typescript-eslint/no-shadow
-      const { result } = await get(token, `deployments/${deploymentId}/logs`, {
+      const followLogs = await client.getLogs({
+        deploymentId,
         startTime: tempStartTime,
         endTime,
         filterPattern,
         streamLimit,
       })
-      if (result) {
-        out(result)
+
+      if (followLogs !== '') {
+        out(followLogs)
       }
       await new Promise((resolve) => setTimeout(resolve, offset))
     }

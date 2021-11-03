@@ -1,10 +1,11 @@
-// TODO: test
 import inquirer from 'inquirer'
 import chalk from 'chalk'
-import { login } from '../api/auth'
 
-export const handler = async () => {
-  const { Username, Password } = await inquirer.prompt([
+import { login } from '../api/auth'
+import commandHandler from '../command-handler'
+
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { Username: username, Password: password } = await inquirer.prompt([
     {
       type: 'input',
       name: 'Username',
@@ -19,8 +20,15 @@ export const handler = async () => {
     },
   ])
 
-  await login(Username, Password)
-}
+  const { clientId, userPoolId } = await client.getClientAppConfig()
+
+  await login({
+    userPoolId,
+    clientId,
+    username,
+    password,
+  })
+})
 
 export const command = 'login'
 export const describe = chalk.green(

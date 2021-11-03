@@ -1,57 +1,54 @@
 import columnify from 'columnify'
 import dateFormat from 'dateformat'
-import isEmpty from 'lodash.isempty'
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { out } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any) => {
-  const { result } = await get(token, `certificates`)
-  if (result) {
-    out(
-      columnify(
-        result.map((item: any) => {
-          const {
-            CertificateId,
-            DomainName,
-            AdditionalNames,
-            Issuer,
-            ImportedAt,
-            NotBefore,
-            NotAfter,
-          } = item
-          return {
-            id: CertificateId,
-            'domain name': DomainName,
-            'additional names': isEmpty(AdditionalNames) ? 'N/A' : AdditionalNames.join(', '),
-            issuer: Issuer,
-            imported: ImportedAt ? dateFormat(new Date(ImportedAt), 'm/d/yy HH:MM:ss') : 'N/A',
-            'not before': NotBefore ? dateFormat(new Date(NotBefore), 'm/d/yy HH:MM:ss') : 'N/A',
-            'not after': NotAfter ? dateFormat(new Date(NotAfter), 'm/d/yy HH:MM:ss') : 'N/A',
-          }
-        }),
-        {
-          minWidth: 20,
-          columns: [
-            'id',
-            'domain name',
-            'additional names',
-            'issuer',
-            'imported',
-            'not before',
-            'not after',
-          ],
-          config: {
-            'additional names': {
-              maxWidth: 50,
-            },
-          },
+export const handler = commandHandler(async ({ client }) => {
+  const result = await client.listCertificates()
+
+  out(
+    columnify(
+      result.map((item) => {
+        const {
+          certificateId,
+          domainName,
+          additionalNames,
+          issuer,
+          importedAt,
+          notBefore,
+          notAfter,
+        } = item
+        return {
+          id: certificateId,
+          'domain name': domainName,
+          'additional names': additionalNames.length === 0 ? 'N/A' : additionalNames.join(', '),
+          issuer,
+          imported: importedAt ? dateFormat(new Date(importedAt), 'm/d/yy HH:MM:ss') : 'N/A',
+          'not before': notBefore ? dateFormat(new Date(notBefore), 'm/d/yy HH:MM:ss') : 'N/A',
+          'not after': notAfter ? dateFormat(new Date(notAfter), 'm/d/yy HH:MM:ss') : 'N/A',
         }
-      )
+      }),
+      {
+        minWidth: 20,
+        columns: [
+          'id',
+          'domain name',
+          'additional names',
+          'issuer',
+          'imported',
+          'not before',
+          'not after',
+        ],
+        config: {
+          'additional names': {
+            maxWidth: 50,
+          },
+        },
+      }
     )
-  }
+  )
 })
 
 export const command = 'list'

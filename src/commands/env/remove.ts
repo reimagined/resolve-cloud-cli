@@ -1,12 +1,14 @@
 import chalk from 'chalk'
 
-import { del } from '../../api/client'
-import refreshToken from '../../refreshToken'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId, variables } = params
 
-  return del(token, `deployments/${deploymentId}/environment`, { variables })
+  await client.removeEnvironmentVariables({
+    deploymentId,
+    variables,
+  })
 })
 
 export const command = 'remove <deployment-id> <variables...>'

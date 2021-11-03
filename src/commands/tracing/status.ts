@@ -1,13 +1,12 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { get } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { logger } from '../../utils/std'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { deploymentId } = params
 
-  const { result } = await get(token, `deployments/${deploymentId}/tracing/status`)
+  const result = await client.getTracingStatus({ deploymentId })
 
   logger.info(`Performance tracing status: "${result}"`)
 })

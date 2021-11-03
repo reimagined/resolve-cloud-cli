@@ -3,12 +3,11 @@ import path from 'path'
 import chalk from 'chalk'
 import readline from 'readline'
 import * as request from 'request'
-import ProgressBar from 'progress'
+import type { CloudSdk } from 'resolve-cloud-sdk'
 
-import refreshToken from '../../refreshToken'
 import { logger } from '../../utils/std'
-import { get, patch } from '../../api/client'
-import { HEADER_EXECUTION_MODE } from '../../constants'
+import ProgressBar from '../../utils/progress-bar'
+import commandHandler from '../../command-handler'
 
 const PART_SIZE = 100 * 1024 * 1024 // 100 MB in Bytes
 const eventFieldsQueue = [
@@ -29,7 +28,7 @@ const getPathToEvents = (eventStorePath: string) =>
 const getPathToSecrets = (eventStorePath: string) =>
   path.resolve(process.cwd(), eventStorePath, 'secrets.db')
 
-async function* generator(filePath: string, type: string, size: number) {
+async function* generator(filePath: string, type: string, size: number, format?: string) {
   const readStream = fs.createReadStream(filePath)
   const readByLine = readline.createInterface(readStream)
 
@@ -37,6 +36,7 @@ async function* generator(filePath: string, type: string, size: number) {
     const bar = new ProgressBar(`  preparing event-store [:bar] :percent`, {
       width: 50,
       total: size,
+      format,
     })
 
     readStream.on('data', (chunk) => {
@@ -83,7 +83,7 @@ async function* generator(filePath: string, type: string, size: number) {
   }
 }
 
-const generateCsv = async (eventStorePath: string) => {
+const generateCsv = async (eventStorePath: string, format?: string) => {
   const pathToEvents = getPathToEvents(eventStorePath)
   const pathToSecrets = getPathToSecrets(eventStorePath)
 
@@ -101,7 +101,7 @@ const generateCsv = async (eventStorePath: string) => {
       ({ originalFilePath, type }) =>
         new Promise(async (resolve, reject) => {
           const { size } = fs.statSync(originalFilePath)
-          const readStream = generator(originalFilePath, type, size)
+          const readStream = generator(originalFilePath, type, size, format)
 
           let chunkSize = 0
           let part = 0
@@ -138,20 +138,23 @@ const generateCsv = async (eventStorePath: string) => {
   }>
 }
 
-const deleteCsv = async (csvFilePaths: Array<string>) => {
-  for (const filePath of csvFilePaths) {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath)
+const deleteCsv = async (items: Array<{ pathsToCsv: Array<string> }>) => {
+  for (const { pathsToCsv } of items) {
+    for (const filePath of pathsToCsv) {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+      }
     }
   }
 }
 
 export const importEventStore = async (params: {
-  token: string
+  client: CloudSdk
   eventStorePath: string
   eventStoreId: string
+  format?: string
 }) => {
-  const { eventStorePath, eventStoreId, token } = params
+  const { eventStorePath, eventStoreId, client, format } = params
 
   const pathToEvents = getPathToEvents(eventStorePath)
   const pathToSecrets = getPathToSecrets(eventStorePath)
@@ -164,104 +167,115 @@ export const importEventStore = async (params: {
     throw new Error(`No such file or directory "${pathToSecrets}"`)
   }
 
-  const generatedFiles = await generateCsv(eventStorePath)
+  const generatedFiles = await generateCsv(eventStorePath, format)
 
-  const eventsPartsInfo = generatedFiles.find(({ type }) => type === 'events')
-  const secretsPartsInfo = generatedFiles.find(({ type }) => type === 'secrets')
-
-  if (eventsPartsInfo == null) {
-    throw new Error('Failed to prepare events for import')
-  }
-
-  if (secretsPartsInfo == null) {
-    throw new Error('Failed to prepare secrets for import')
-  }
-
-  const {
-    result: { eventsImportUrls, secretsImportUrls },
-  } = await get(token, `/event-stores/${eventStoreId}/import`, {
-    eventsPartCount: eventsPartsInfo.partCount,
-    secretsPartCount: secretsPartsInfo.partCount,
-  })
-
-  const uploadingBar = new ProgressBar(`  uploading event-store [:bar] :percent`, {
-    width: 50,
-    total: eventsPartsInfo.partCount + secretsPartsInfo.partCount,
-  })
-
-  logger.debug(`upload events and secrets`)
   try {
-    await Promise.all(
-      [
-        ...eventsImportUrls.map((url: string, idx: number) => ({
-          uploadUrl: url,
-          filePath: eventsPartsInfo.pathsToCsv[idx],
-        })),
-        ...secretsImportUrls.map((url: string, idx: number) => ({
-          uploadUrl: url,
-          filePath: secretsPartsInfo.pathsToCsv[idx],
-        })),
-      ].map(
-        ({ filePath, uploadUrl }) =>
-          new Promise((resolve, reject) => {
-            const fileSizeInBytes = fs.lstatSync(filePath).size
-            const contentType = 'text/csv'
-            const fileStream = fs.createReadStream(filePath)
-            request
-              .put({
-                uri: uploadUrl,
-                headers: {
-                  'Content-Length': fileSizeInBytes,
-                  'Content-Type': contentType,
-                },
-                body: fileStream,
-              })
-              .on('complete', () => {
+    const eventsPartsInfo = generatedFiles.find(({ type }) => type === 'events')
+    const secretsPartsInfo = generatedFiles.find(({ type }) => type === 'secrets')
+
+    if (eventsPartsInfo == null) {
+      throw new Error('Failed to prepare events for import')
+    }
+
+    if (secretsPartsInfo == null) {
+      throw new Error('Failed to prepare secrets for import')
+    }
+
+    const { eventsImportUrls, secretsImportUrls } = await client.getImportUrls({
+      eventStoreId,
+      eventsPartCount: eventsPartsInfo.partCount,
+      secretsPartCount: secretsPartsInfo.partCount,
+    })
+
+    const uploadingBar = new ProgressBar(`  uploading event-store [:bar] :percent`, {
+      width: 50,
+      total: eventsPartsInfo.partCount + secretsPartsInfo.partCount,
+      format,
+    })
+
+    logger.debug(`upload events and secrets`)
+    try {
+      await Promise.all(
+        (
+          [
+            ...eventsImportUrls.map(
+              (url: string, idx: number) =>
+                ({
+                  uploadUrl: url,
+                  filePath: eventsPartsInfo.pathsToCsv[idx] as string,
+                } as const)
+            ),
+            ...secretsImportUrls.map(
+              (url: string, idx: number) =>
+                ({
+                  uploadUrl: url,
+                  filePath: secretsPartsInfo.pathsToCsv[idx] as string,
+                } as const)
+            ),
+          ] as const
+        ).map(
+          ({ filePath, uploadUrl }) =>
+            new Promise((resolve, reject) => {
+              const fileSizeInBytes = fs.lstatSync(filePath).size
+              if (fileSizeInBytes === 0) {
                 uploadingBar.tick()
-                resolve(true)
-              })
-              .on('error', (error) => {
-                reject(error)
-              })
-          })
+                return resolve(true)
+              }
+              const contentType = 'text/csv'
+              const fileStream = fs.createReadStream(filePath)
+              request
+                .put({
+                  uri: uploadUrl,
+                  headers: {
+                    'Content-Length': fileSizeInBytes,
+                    'Content-Type': contentType,
+                  },
+                  body: fileStream,
+                })
+                .on('complete', () => {
+                  uploadingBar.tick()
+                  resolve(true)
+                })
+                .on('error', (error) => {
+                  reject(error)
+                })
+            })
+        )
       )
-    )
-    logger.debug(`events and secrets have been uploaded`)
-  } catch (error) {
-    logger.debug(`failed to upload events and secrets`)
-    throw new Error(error)
+      logger.debug(`events and secrets have been uploaded`)
+    } catch (error) {
+      logger.debug(`failed to upload events and secrets`)
+      throw new Error(error)
+    }
+
+    const totalPartCount = Math.max(eventsPartsInfo.partCount, secretsPartsInfo.partCount)
+
+    const importingBar = new ProgressBar(`  importing event-store [:bar] :percent`, {
+      width: 50,
+      total: totalPartCount,
+      format,
+    })
+
+    for (let partIndex = 0; partIndex < totalPartCount; partIndex++) {
+      await client.importEvents({
+        eventStoreId,
+        partIndex,
+      })
+
+      importingBar.tick()
+    }
+  } finally {
+    await deleteCsv(generatedFiles)
   }
-
-  const totalPartCount = Math.max(eventsPartsInfo.partCount, secretsPartsInfo.partCount)
-
-  const importingBar = new ProgressBar(`  importing event-store [:bar] :percent`, {
-    width: 50,
-    total: totalPartCount,
-  })
-
-  for (let partIndex = 0; partIndex < totalPartCount; partIndex++) {
-    await patch(
-      token,
-      `/event-stores/${eventStoreId}/import`,
-      { partIndex },
-      {
-        [HEADER_EXECUTION_MODE]: 'async',
-      }
-    )
-
-    importingBar.tick()
-  }
-
-  await deleteCsv([...eventsPartsInfo.pathsToCsv, ...secretsPartsInfo.pathsToCsv])
 }
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { path: eventStorePath, 'event-store-id': eventStoreId } = params
 
   logger.start(`importing the event-store to the cloud`)
 
   await importEventStore({
-    token,
+    client,
     eventStorePath,
     eventStoreId,
   })

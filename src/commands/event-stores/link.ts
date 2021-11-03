@@ -1,16 +1,13 @@
 import chalk from 'chalk'
 import inquirer from 'inquirer'
 
-import { patch } from '../../api/client'
+import commandHandler from '../../command-handler'
 import { logger } from '../../utils/std'
-import refreshToken from '../../refreshToken'
-import { getDeployment } from '../describe'
 
-export const handler = refreshToken(async (token: any, params: any) => {
+export const handler = commandHandler(async ({ client }, params: any) => {
   const { 'event-store-id': eventStoreId, 'deployment-id': deploymentId, force } = params
 
-  const { eventStoreId: linkedEventStoreId } = await getDeployment({
-    token,
+  const { eventStoreId: linkedEventStoreId } = await client.describeDeployment({
     deploymentId,
   })
 
@@ -29,7 +26,10 @@ export const handler = refreshToken(async (token: any, params: any) => {
     }
   }
 
-  await patch(token, `/event-stores/${eventStoreId}/link`, { deploymentId })
+  await client.linkDeployment({
+    eventStoreId,
+    deploymentId,
+  })
 
   logger.success(`Link ${eventStoreId} to ${deploymentId} successfully completed!`)
 })

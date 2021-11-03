@@ -1,12 +1,14 @@
 import chalk from 'chalk'
 
-import refreshToken from '../../refreshToken'
-import { patch } from '../../api/client'
+import commandHandler from '../../command-handler'
 
-export const handler = refreshToken(async (token: any, params: any) => {
-  const { deploymentId, readmodel } = params
+export const handler = commandHandler(async ({ client }, params: any) => {
+  const { deploymentId, readmodel: readModelName } = params
 
-  return await patch(token, `deployments/${deploymentId}/read-models/${readmodel}/resume`, {})
+  return await client.resumeReadModel({
+    deploymentId,
+    readModelName,
+  })
 })
 
 export const command = 'resume <deployment-id> <readmodel>'

@@ -16,8 +16,8 @@ export const disableLogger = () => {
   const emptyFunction = () => {}
 
   logger = {
-    fatal: emptyFunction,
-    error: emptyFunction,
+    fatal: log.fatal,
+    error: log.error,
     warn: emptyFunction,
     log: emptyFunction,
     info: emptyFunction,
