@@ -14,6 +14,8 @@ export const handler = commandHandler(async ({ client }, params: any) => {
     result.map((deployment) =>
       renderByTemplate(format, {
         ...deployment,
+        domain: deployment.domains,
+        domainName: deployment.domains,
         applicationUrl: deployment.domains.map((domain) => `https://${domain}`).join(' , '),
       })
     )
@@ -46,7 +48,7 @@ export const builder = (yargs: any) =>
   yargs
     .option('format', {
       describe: `Format the output using a mustache template http://mustache.github.io/ 
-      Possible fields: deploymentId, applicationName, eventStoreId, domainName, version, applicationUrl`,
+      Possible fields: deploymentId, applicationName, eventStoreId, domain, version, applicationUrl`,
       type: 'string',
     })
     .group(['format'], 'Options:')

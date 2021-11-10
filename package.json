@@ -1,6 +1,6 @@
 {
   "name": "resolve-cloud",
-  "version": "0.33.0",
+  "version": "0.33.1",
   "description": "",
   "engines": {
     "node": ">=14"
@@ -46,7 +46,7 @@
     "rc": "1.2.8",
     "request": "2.88.2",
     "resolve-cloud-common": "0.0.151",
-    "resolve-cloud-sdk": "0.33.0",
+    "resolve-cloud-sdk": "0.33.1",
     "semver": "7.3.5",
     "yargs": "16.2.0",
     "progress": "2.0.3",
