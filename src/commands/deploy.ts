@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import * as request from 'request'
+import fetch from 'node-fetch'
 import fs from 'fs'
 import qr from 'qrcode-terminal'
 import dotenv from 'dotenv'
@@ -118,23 +118,27 @@ export const handler = commandHandler(async ({ client }, params: any) => {
         },
       ].map(
         ({ zipPath, uploadUrl }) =>
-          new Promise((resolve, reject) => {
+          new Promise<void>(async (resolve, reject) => {
             const fileSizeInBytes = fs.lstatSync(zipPath).size
             const contentType = 'application/zip'
             const fileStream = fs.createReadStream(zipPath)
-            request.put(
-              {
-                uri: uploadUrl,
+            try {
+              const res = await fetch(uploadUrl, {
+                method: 'PUT',
                 headers: {
-                  'Content-Length': fileSizeInBytes,
+                  'Content-Length': fileSizeInBytes.toString(),
                   'Content-Type': contentType,
                 },
                 body: fileStream,
-              },
-              (error: Error, _: any, body: any) => {
-                return error ? reject(error) : body ? reject(body) : resolve(body)
+              })
+
+              if (!res.ok) {
+                throw new Error(await res.text())
               }
-            )
+              resolve()
+            } catch (error) {
+              reject(error)
+            }
           })
       )
     )

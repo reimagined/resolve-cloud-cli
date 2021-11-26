@@ -112,3 +112,6 @@ lib/
 *.cert
 *.key
 .npmrc
+.rollup.cache/
+package-lock.json
+

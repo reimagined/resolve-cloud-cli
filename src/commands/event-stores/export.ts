@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import * as request from 'request'
+import fetch from 'node-fetch'
 import type { CloudSdk } from 'resolve-cloud-sdk'
 
 import { logger } from '../../utils/std'
@@ -41,24 +41,22 @@ export const exportEventStore = async (params: {
   for (;;) {
     try {
       // eslint-disable-next-line no-loop-func
-      const isComplete = await new Promise((resolve, reject) => {
-        request.get(statusFileUrl, (error: Error, res: request.Response, body: any) => {
-          if (error != null) {
-            reject(error)
-            return
-          }
+      const isComplete = await new Promise(async (resolve, reject) => {
+        try {
+          const res = await fetch(statusFileUrl, {
+            method: 'GET',
+          })
 
-          if (res.statusCode === 404) {
+          if (res.status === 404) {
             resolve(false)
             return
           }
 
-          if (res.statusCode !== 200) {
-            reject(new Error(res.statusMessage))
-            return
+          if (res.status !== 200) {
+            throw new Error(await res.text())
           }
 
-          const { eventsUploaded, eventCount, heartbeatTime } = JSON.parse(body)
+          const { eventsUploaded, eventCount, heartbeatTime } = await res.json()
 
           if (eventCount === 0) {
             skipExport = true
@@ -90,7 +88,9 @@ export const exportEventStore = async (params: {
           } else {
             resolve(false)
           }
-        })
+        } catch (error) {
+          reject(error)
+        }
       })
 
       if (Date.now() - startTime > interval) {
@@ -124,18 +124,24 @@ export const exportEventStore = async (params: {
         exportUrl: secretsExportUrl,
       },
     ].map(({ type, exportUrl, filePath }) => {
-      const callback = (resolve: any, reject: any) => {
-        request
-          .get(exportUrl)
-          .on('response', (res) => {
-            if (res.statusCode !== 200) {
-              reject(new Error(res.statusMessage))
-            } else {
-              res.pipe(fs.createWriteStream(filePath))
-            }
+      const callback = async (resolve: any, reject: any) => {
+        try {
+          const res = await fetch(exportUrl, {
+            method: 'GET',
+          })
+
+          if (!res.ok) {
+            throw new Error(await res.text())
+          }
+
+          const fileStream = fs.createWriteStream(filePath)
+
+          await new Promise<void>(async (_resolve, _reject) => {
+            res.body.on('error', _reject)
+            fileStream.on('finish', _resolve)
 
             if (type === 'events') {
-              const size = res.headers['content-length']
+              const size = res.headers.get('content-length')
 
               if (size != null) {
                 const bar = new ProgressBar(`  downloading event-store [:bar] :percent`, {
@@ -143,18 +149,20 @@ export const exportEventStore = async (params: {
                   total: +size,
                 })
 
-                res.on('data', (data) => {
-                  bar.tick(data.length)
-                })
+                for await (const chunk of res.body) {
+                  fileStream.write(chunk)
+                  bar.tick(chunk.length)
+                }
               }
+            } else {
+              res.body.pipe(fileStream)
             }
           })
-          .on('complete', () => {
-            resolve(true)
-          })
-          .on('error', (error) => {
-            reject(error)
-          })
+
+          resolve()
+        } catch (error) {
+          reject(error)
+        }
       }
       return new Promise(callback).catch(async (error) => {
         void error

@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
 import readline from 'readline'
-import * as request from 'request'
+import fetch from 'node-fetch'
 import type { CloudSdk } from 'resolve-cloud-sdk'
 
 import { logger } from '../../utils/std'
@@ -215,30 +215,34 @@ export const importEventStore = async (params: {
           ] as const
         ).map(
           ({ filePath, uploadUrl }) =>
-            new Promise((resolve, reject) => {
+            new Promise<void>(async (resolve, reject) => {
               const fileSizeInBytes = fs.lstatSync(filePath).size
               if (fileSizeInBytes === 0) {
                 uploadingBar.tick()
-                return resolve(true)
+                return resolve()
               }
               const contentType = 'text/csv'
               const fileStream = fs.createReadStream(filePath)
-              request
-                .put({
-                  uri: uploadUrl,
+
+              try {
+                const res = await fetch(uploadUrl, {
+                  method: 'PUT',
                   headers: {
-                    'Content-Length': fileSizeInBytes,
+                    'Content-Length': fileSizeInBytes.toString(),
                     'Content-Type': contentType,
                   },
                   body: fileStream,
                 })
-                .on('complete', () => {
-                  uploadingBar.tick()
-                  resolve(true)
-                })
-                .on('error', (error) => {
-                  reject(error)
-                })
+
+                if (!res.ok) {
+                  throw new Error(await res.text())
+                }
+
+                uploadingBar.tick()
+                resolve()
+              } catch (error) {
+                reject(error)
+              }
             })
         )
       )
@@ -255,6 +259,8 @@ export const importEventStore = async (params: {
       total: totalPartCount,
       format,
     })
+
+    importingBar.render()
 
     for (let partIndex = 0; partIndex < totalPartCount; partIndex++) {
       await client.importEvents({
