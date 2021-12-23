@@ -96,7 +96,10 @@ export const handler = commandHandler(async ({ client }, params: any) => {
 
   if (!intersectsVersions(deployment.version, resolveVersion)) {
     throw new Error(
-      `Current version "${resolveVersion}" incompatible with "${deployment.version}" deployment version`
+      'The minor version of reSolve in the application you are trying to deploy does not match the version used by the current cloud deployment. \n' +
+        `Local: ${resolveVersion} \n` +
+        `Deployed: ${deployment.version} \n` +
+        'To upgrade to a new minor version, please create a new deployment.'
     )
   }
 
