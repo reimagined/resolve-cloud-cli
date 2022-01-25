@@ -3,7 +3,7 @@ test('', () => {})
 /*
 import consola from 'consola'
 import latestVersion from 'latest-version'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 
 import middleware from '../../middleware'
 
