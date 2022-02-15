@@ -35,10 +35,14 @@ export const handler = commandHandler(
             linkedDeployments: linkedDeployments ?? 'N/A',
             events: events ?? 'N/A',
             secrets: secrets ?? 'N/A',
-            created: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
-            createdAt: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
-            latestEvent: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
-            modifiedAt: modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+            created:
+              createdAt != null && createdAt !== 0 ? new Date(createdAt).toISOString() : 'N/A',
+            createdAt:
+              createdAt != null && createdAt !== 0 ? new Date(createdAt).toISOString() : 'N/A',
+            latestEvent:
+              modifiedAt != null && modifiedAt !== 0 ? new Date(modifiedAt).toISOString() : 'N/A',
+            modifiedAt:
+              modifiedAt != null && modifiedAt !== 0 ? new Date(modifiedAt).toISOString() : 'N/A',
             frozen: isFrozen != null ? `${isFrozen}` : 'N/A',
             isFrozen: isFrozen != null ? `${isFrozen}` : 'N/A',
           })
@@ -64,8 +68,10 @@ export const handler = commandHandler(
               'linked deployments': linkedDeployments ?? 'N/A',
               events: events ?? 'N/A',
               secrets: secrets ?? 'N/A',
-              created: createdAt != null ? new Date(createdAt).toISOString() : 'N/A',
-              'latest event': modifiedAt != null ? new Date(modifiedAt).toISOString() : 'N/A',
+              created:
+                createdAt != null && createdAt !== 0 ? new Date(createdAt).toISOString() : 'N/A',
+              'latest event':
+                modifiedAt != null && modifiedAt !== 0 ? new Date(modifiedAt).toISOString() : 'N/A',
               frozen: isFrozen != null ? `${isFrozen}` : 'N/A',
             })
           )
