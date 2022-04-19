@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import fetch from 'node-fetch'
 import fs from 'fs'
 import qr from 'qrcode-terminal'
 import dotenv from 'dotenv'
@@ -9,6 +8,7 @@ import commandHandler from '../command-handler'
 import packager, { codeZipPath, staticZipPath } from '../packager'
 import * as config from '../config'
 import { logger } from '../utils/std'
+import fetch from '../utils/fetch'
 import { importEventStore } from './event-stores/import'
 
 export const handler = commandHandler(async ({ client }, params: any) => {
@@ -92,6 +92,11 @@ export const handler = commandHandler(async ({ client }, params: any) => {
       domains,
       eventStoreId,
     }
+  } else if (receivedEventStoreId != null) {
+    await client.linkDeployment({
+      deploymentId: deployment.deploymentId,
+      eventStoreId: receivedEventStoreId,
+    })
   }
 
   if (!intersectsVersions(deployment.version, resolveVersion)) {
@@ -126,7 +131,7 @@ export const handler = commandHandler(async ({ client }, params: any) => {
             const contentType = 'application/zip'
             const fileStream = fs.createReadStream(zipPath)
             try {
-              const res = await fetch(uploadUrl, {
+              await fetch(uploadUrl, {
                 method: 'PUT',
                 headers: {
                   'Content-Length': fileSizeInBytes.toString(),
@@ -135,9 +140,6 @@ export const handler = commandHandler(async ({ client }, params: any) => {
                 body: fileStream,
               })
 
-              if (!res.ok) {
-                throw new Error(await res.text())
-              }
               resolve()
             } catch (error) {
               reject(error)

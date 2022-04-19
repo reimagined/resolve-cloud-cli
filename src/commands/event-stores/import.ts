@@ -2,11 +2,11 @@ import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
 import readline from 'readline'
-import fetch from 'node-fetch'
 import type { CloudSdk } from 'resolve-cloud-sdk'
 
 import { logger } from '../../utils/std'
 import ProgressBar from '../../utils/progress-bar'
+import fetch from '../../utils/fetch'
 import commandHandler from '../../command-handler'
 
 const PART_SIZE = 100 * 1024 * 1024 // 100 MB in Bytes
@@ -216,7 +216,7 @@ export const importEventStore = async (params: {
         ).map(
           ({ filePath, uploadUrl }) =>
             new Promise<void>(async (resolve, reject) => {
-              const fileSizeInBytes = fs.lstatSync(filePath).size
+              const { size: fileSizeInBytes } = fs.statSync(filePath)
               if (fileSizeInBytes === 0) {
                 uploadingBar.tick()
                 return resolve()
@@ -225,7 +225,7 @@ export const importEventStore = async (params: {
               const fileStream = fs.createReadStream(filePath)
 
               try {
-                const res = await fetch(uploadUrl, {
+                await fetch(uploadUrl, {
                   method: 'PUT',
                   headers: {
                     'Content-Length': fileSizeInBytes.toString(),
@@ -233,10 +233,6 @@ export const importEventStore = async (params: {
                   },
                   body: fileStream,
                 })
-
-                if (!res.ok) {
-                  throw new Error(await res.text())
-                }
 
                 uploadingBar.tick()
                 resolve()
@@ -263,12 +259,20 @@ export const importEventStore = async (params: {
     importingBar.render()
 
     for (let partIndex = 0; partIndex < totalPartCount; partIndex++) {
-      await client.importEvents({
-        eventStoreId,
-        partIndex,
-      })
+      try {
+        await client.importEvents({
+          eventStoreId,
+          partIndex,
+        })
 
-      importingBar.tick()
+        importingBar.tick()
+      } catch (error) {
+        if (/Unable to complete the COPY from S3/.test(`${error}`)) {
+          partIndex--
+        } else {
+          throw error
+        }
+      }
     }
   } finally {
     await deleteCsv(generatedFiles)

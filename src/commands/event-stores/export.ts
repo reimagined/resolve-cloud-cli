@@ -1,12 +1,12 @@
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import fetch from 'node-fetch'
 import type { CloudSdk } from 'resolve-cloud-sdk'
 
 import { logger } from '../../utils/std'
 import commandHandler from '../../command-handler'
 import ProgressBar from '../../utils/progress-bar'
+import fetch from '../../utils/fetch'
 
 export const exportEventStore = async (params: {
   client: CloudSdk
@@ -43,17 +43,17 @@ export const exportEventStore = async (params: {
       // eslint-disable-next-line no-loop-func
       const isComplete = await new Promise(async (resolve, reject) => {
         try {
-          const res = await fetch(statusFileUrl, {
-            method: 'GET',
-          })
+          const res = await fetch(
+            statusFileUrl,
+            {
+              method: 'GET',
+            },
+            [404]
+          )
 
           if (res.status === 404) {
             resolve(false)
             return
-          }
-
-          if (res.status !== 200) {
-            throw new Error(await res.text())
           }
 
           const { eventsUploaded, eventCount, heartbeatTime } = await res.json()
@@ -129,10 +129,6 @@ export const exportEventStore = async (params: {
           const res = await fetch(exportUrl, {
             method: 'GET',
           })
-
-          if (!res.ok) {
-            throw new Error(await res.text())
-          }
 
           const fileStream = fs.createWriteStream(filePath)
 

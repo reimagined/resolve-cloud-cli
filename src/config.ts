@@ -53,7 +53,7 @@ export const del = (...selectors: Array<string>) => {
 }
 
 export const getResolvePackageVersion = (): string => {
-  let pkg = null
+  let pkg: any = null
   try {
     pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
   } catch (error) {
@@ -63,9 +63,13 @@ export const getResolvePackageVersion = (): string => {
   const keys = Object.keys(pkg.dependencies)
   const resolvePackageNames = keys.filter(
     (name) =>
-      (name.startsWith('resolve') && name !== 'resolve-cloud' && name !== 'resolve-cloud-common') ||
-      name.startsWith('@reimagined/') ||
-      name.startsWith('@resolve-js/')
+      ((name.startsWith('resolve') &&
+        name !== 'resolve-cloud' &&
+        name !== 'resolve-cloud-common') ||
+        name.startsWith('@reimagined/') ||
+        name.startsWith('@resolve-js/')) &&
+      pkg.dependencies[name] != null &&
+      !pkg.dependencies[name].startsWith('file:')
   )
   const packageName = resolvePackageNames[0]
   if (packageName == null) {
@@ -76,12 +80,10 @@ export const getResolvePackageVersion = (): string => {
 
   // eslint-disable-next-line no-restricted-syntax
   for (const name of resolvePackageNames) {
-    if (
-      semver.neq(
-        semver.valid(semver.coerce(pkg.dependencies[name])) as any,
-        semver.valid(semver.coerce(version)) as any
-      )
-    ) {
+    const packageVersion = pkg.dependencies[name]
+    const firstVersion = semver.valid(semver.coerce(packageVersion))
+    const secondVersion = semver.valid(semver.coerce(version))
+    if (firstVersion == null || secondVersion == null || semver.neq(firstVersion, secondVersion)) {
       throw new Error(
         `The resolve package versions must be the same [${resolvePackageNames
           .map((item) => `"${item}"`)

@@ -17,11 +17,11 @@ export const handler = commandHandler(async ({ client }, params: any) => {
   } = params
 
   const [certificate, key, chain] = await Promise.all([
-    readFile(path.join(__dirname, '..', '..', '..', certificateFile), 'utf8'),
-    readFile(path.join(__dirname, '..', '..', '..', keyFile), 'utf8'),
+    readFile(path.join(process.cwd(), certificateFile), 'utf8'),
+    readFile(path.join(process.cwd(), keyFile), 'utf8'),
     chainFile == null
       ? Promise.resolve(undefined)
-      : readFile(path.join(__dirname, '..', '..', '..', chainFile), 'utf8'),
+      : readFile(path.join(process.cwd(), chainFile), 'utf8'),
   ])
 
   const newCertificateId = await client.ensureCertificate({
