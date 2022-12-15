@@ -1,6 +1,6 @@
 {
   "name": "resolve-cloud",
-  "version": "0.34.2",
+  "version": "0.34.3",
   "description": "",
   "engines": {
     "node": ">=14"
@@ -45,7 +45,7 @@
     "qrcode-terminal": "0.12.0",
     "rc": "1.2.8",
     "resolve-cloud-common": "0.0.177",
-    "resolve-cloud-sdk": "0.34.2",
+    "resolve-cloud-sdk": "0.34.3",
     "semver": "7.3.5",
     "yargs": "16.2.0",
     "progress": "2.0.3",

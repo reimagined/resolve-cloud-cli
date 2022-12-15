@@ -56,6 +56,7 @@ export const login = async (params: {
             },
           ])
           delete userAttributes.email_verified
+          delete userAttributes.email
           user.completeNewPasswordChallenge(NewPassword, userAttributes, {
             onSuccess(result) {
               resolve(result.getRefreshToken().getToken())
